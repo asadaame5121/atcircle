@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webring Login Prototype</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            color: #333;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.7);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .login-card h1 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            color: #2c3e50;
+        }
+
+        .login-description {
+            margin-bottom: 30px;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .input-group input:focus {
+            border-color: #0070f3;
+            box-shadow: 0 0 0 3px rgba(0, 112, 243, 0.2);
+            outline: none;
+        }
+
+        .login-btn {
+            background: #0070f3;
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.3s;
+        }
+
+        .login-btn:hover {
+            background: #005bb5;
+        }
+
+        .note {
+            margin-top: 20px;
+            font-size: 0.8rem;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <h1>Join the Webring</h1>
+        <p class="login-description">
+            Enter your Bluesky handle to authenticate and manage your site settings.
+        </p>
+
+        <form action="#" method="POST" onsubmit="event.preventDefault(); alert('Validation logic would run here.');">
+            <div class="input-group">
+                <label for="handle">Bluesky Handle</label>
+                <input type="text" id="handle" name="handle" placeholder="example.bsky.social" required pattern="^[a-zA-Z0-9.-]+$" title="Please enter a valid handle">
+            </div>
+
+            <button type="submit" class="login-btn">Login with Bluesky</button>
+        </form>
+
+        <p class="note">
+            We will redirect you to Bluesky for authentication. secure and password-less.
+        </p>
+    </div>
+
+</body>
+</html>

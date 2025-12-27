@@ -1,0 +1,20 @@
+{
+  "lexicon": 1,
+  "id": "com.webring.ring",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "A Webring group definition",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["title", "createdAt"],
+        "properties": {
+          "title": { "type": "string", "maxLength": 1000, "maxGraphemes": 100, "description": "Name of the webring" },
+          "description": { "type": "string", "maxLength": 10000, "maxGraphemes": 1000, "description": "Description of the webring" },
+          "createdAt": { "type": "string", "format": "datetime" }
+        }
+      }
+    }
+  }
+}

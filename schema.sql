@@ -1,0 +1,40 @@
+DROP TABLE IF EXISTS antenna_items;
+DROP TABLE IF EXISTS sites;
+DROP TABLE IF EXISTS users;
+
+CREATE TABLE users (
+  did TEXT PRIMARY KEY,
+  handle TEXT NOT NULL,
+  created_at INTEGER DEFAULT (strftime('%s', 'now'))
+);
+
+CREATE TABLE sites (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_did TEXT NOT NULL,
+  url TEXT NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT,
+  rss_url TEXT,
+  is_active INTEGER DEFAULT 1,
+  created_at INTEGER DEFAULT (strftime('%s', 'now')),
+  FOREIGN KEY (user_did) REFERENCES users(did)
+);
+
+CREATE TABLE antenna_items (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  site_id INTEGER NOT NULL,
+  title TEXT NOT NULL,
+  url TEXT NOT NULL,
+  published_at INTEGER,
+  FOREIGN KEY (site_id) REFERENCES sites(id)
+);
+
+CREATE INDEX idx_sites_user_did ON sites(user_did);
+CREATE INDEX idx_antenna_items_site_id ON antenna_items(site_id);
+CREATE INDEX idx_antenna_items_published_at ON antenna_items(published_at DESC);
+
+CREATE TABLE oauth_states (
+  key TEXT PRIMARY KEY,
+  state TEXT NOT NULL,
+  created_at INTEGER DEFAULT (strftime('%s', 'now'))
+);
