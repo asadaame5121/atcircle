@@ -1,0 +1,17 @@
+node_modules
+dist
+.env
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+.git
+.github
+.gitignore
+fly.toml
+Dockerfile
+README.md
+roadmap.md
+fly_logs.json
+tests
+**/*.test.ts

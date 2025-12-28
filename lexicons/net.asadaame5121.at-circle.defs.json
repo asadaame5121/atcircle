@@ -1,0 +1,14 @@
+{
+  "lexicon": 1,
+  "id": "net.asadaame5121.at-circle.defs",
+  "defs": {
+    "ringRef": {
+      "type": "object",
+      "required": ["uri"],
+      "properties": {
+        "uri": { "type": "string", "format": "at-uri", "description": "AT-URI of the Ring" },
+        "cid": { "type": "string", "format": "cid", "description": "Optional CID for strong reference" }
+      }
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "lexicon": 1,
+  "id": "net.asadaame5121.at-circle.member",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "Membership in an at-circle (Sidecar Record)",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["ring", "url", "title", "createdAt"],
+        "properties": {
+          "ring": { "type": "ref", "ref": "net.asadaame5121.at-circle.defs#ringRef" },
+          "url": { "type": "string", "format": "uri", "description": "URL of the participant's site" },
+          "title": { "type": "string", "maxLength": 1000, "maxGraphemes": 100, "description": "Title of the participant's site" },
+          "rss": { "type": "string", "format": "uri", "description": "RSS feed URL" },
+          "createdAt": { "type": "string", "format": "datetime" },
+          "note": { "type": "string", "maxLength": 3000, "maxGraphemes": 300, "description": "Optional note" }
+        }
+      }
+    }
+  }
+}

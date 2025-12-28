@@ -1,0 +1,141 @@
+import { Hono } from 'hono';
+import { html } from 'hono/html';
+import { Layout } from '../components/Layout.js';
+import { Bindings } from '../types/bindings.js';
+
+const app = new Hono<{ Bindings: Bindings }>();
+
+// List all rings
+app.get('/', async (c) => {
+    const rings = await c.env.DB.prepare(`
+        SELECT r.*, 
+               (SELECT COUNT(*) FROM memberships m WHERE m.ring_uri = r.uri) as member_count 
+        FROM rings r 
+        ORDER BY created_at DESC
+    `).all<any>(); 
+    
+    return c.html(Layout({
+        title: 'Atproto Webrings',
+        children: html`
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <div class="flex justify-between items-center mb-6">
+                        <h1 class="card-title text-3xl">Explore Webrings</h1>
+                        <a href="/dashboard" class="btn btn-primary btn-sm">Create Ring</a>
+                    </div>
+                    <p class="mb-6 opacity-75">Discover community-run webrings across the Atproto ecosystem.</p>
+                
+                 ${rings.results && rings.results.length > 0 ? html`
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        ${rings.results.map(ring => html`
+                            <div class="card bg-base-200 shadow-sm border border-base-300 transition-all hover:border-primary/50">
+                                <div class="card-body p-6">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <h2 class="card-title text-xl font-bold">${ring.title}</h2>
+                                        <div class="badge badge-secondary">${ring.member_count} members</div>
+                                    </div>
+                                    <p class="text-sm opacity-60 mb-2">by ${ring.owner_did}</p>
+                                    <p class="text-base mb-4 line-clamp-2">${ring.description || 'No description provided.'}</p>
+                                    <div class="card-actions justify-end mt-2">
+                                        <a href="/rings/view?ring=${encodeURIComponent(ring.uri)}" class="btn btn-sm btn-outline btn-primary">View Sites</a>
+                                        <a href="/nav/random?ring=${encodeURIComponent(ring.uri)}" class="btn btn-sm btn-circle btn-ghost" title="Random Jump">🎲</a>
+                                    </div>
+                                </div>
+                            </div>
+                        `)}
+                    </div>
+                 ` : html`<div class="alert alert-info">No webrings found yet.</div>`}
+
+                 <div class="card-actions justify-center mt-8">
+                    <a href="/" class="btn btn-ghost">Back to Home</a>
+                 </div>
+                </div>
+            </div>
+        `
+    }));
+});
+
+// View sites in a specific ring
+app.get('/view', async (c) => {
+    const ringUri = c.req.query('ring');
+    if (!ringUri) return c.redirect('/rings');
+
+    // Fetch ring info
+    const ring = await c.env.DB.prepare("SELECT * FROM rings WHERE uri = ?").bind(ringUri).first<any>();
+    if (!ring) return c.redirect('/rings');
+
+    // Fetch members
+    const members = await c.env.DB.prepare(`
+        SELECT s.*, m.member_uri
+        FROM sites s
+        JOIN memberships m ON s.id = m.site_id
+        WHERE m.ring_uri = ? AND s.is_active = 1
+        ORDER BY m.created_at ASC
+    `).bind(ringUri).all<any>();
+
+    return c.html(Layout({
+        title: `${ring.title} - Site List`,
+        children: html`
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <div class="text-sm breadcrumbs mb-4">
+                        <ul>
+                            <li><a href="/rings">Rings</a></li>
+                            <li>${ring.title}</li>
+                        </ul>
+                    </div>
+
+                    <div class="flex justify-between items-end mb-8">
+                        <div>
+                            <h1 class="card-title text-3xl mb-2">${ring.title}</h1>
+                            <p class="opacity-75">${ring.description || 'No description provided.'}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <a href="/nav/random?ring=${encodeURIComponent(ringUri)}" class="btn btn-primary">🎲 Random Jump</a>
+                        </div>
+                    </div>
+
+                    <div class="divider">Members (${members.results?.length || 0})</div>
+
+                    ${members.results && members.results.length > 0 ? html`
+                        <div class="overflow-x-auto">
+                            <table class="table table-zebra w-full">
+                                <thead>
+                                    <tr>
+                                        <th>Site</th>
+                                        <th>Description</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${members.results.map(site => html`
+                                        <tr>
+                                            <td>
+                                                <div class="font-bold">${site.title}</div>
+                                                <div class="text-xs opacity-50 underline"><a href="${site.url}" target="_blank">${site.url}</a></div>
+                                            </td>
+                                            <td class="max-w-xs truncate">${site.description || '-'}</td>
+                                            <td>
+                                                <div class="flex gap-2">
+                                                    <a href="${site.url}" target="_blank" class="btn btn-xs btn-ghost">Visit</a>
+                                                    ${site.rss_url ? html`<a href="${site.rss_url}" target="_blank" class="badge badge-warning">RSS</a>` : ''}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    `)}
+                                </tbody>
+                            </table>
+                        </div>
+                    ` : html`<div class="alert alert-ghost border-dashed">No sites have joined this ring yet.</div>`}
+
+                    <div class="card-actions justify-center mt-12 gap-4">
+                        <a href="/dashboard/ring/join?ring_uri=${encodeURIComponent(ringUri)}" class="btn btn-secondary">Join this Ring</a>
+                        <a href="/rings" class="btn btn-ghost">Back to List</a>
+                    </div>
+                </div>
+            </div>
+        `
+    }));
+});
+
+export default app;

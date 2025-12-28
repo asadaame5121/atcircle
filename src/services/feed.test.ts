@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it, mock } from "bun:test";
+import { afterAll, describe, expect, it, vi } from "vitest";
 import { fetchAndParseFeed } from "./feed";
 
 describe("fetchAndParseFeed", () => {
@@ -25,7 +25,7 @@ describe("fetchAndParseFeed", () => {
             </rss>
         `;
 
-        global.fetch = mock(async () => {
+        global.fetch = vi.fn().mockImplementation(async () => {
             return new Response(mockXml, { status: 200 });
         });
 
@@ -40,7 +40,7 @@ describe("fetchAndParseFeed", () => {
     });
 
     it("should throw an error if fetch fails", async () => {
-        global.fetch = mock(async () => {
+        global.fetch = vi.fn().mockImplementation(async () => {
             return new Response("Not Found", {
                 status: 404,
                 statusText: "Not Found",
@@ -50,7 +50,7 @@ describe("fetchAndParseFeed", () => {
         try {
             await fetchAndParseFeed("https://example.com/404");
             // Should not reach here
-            expect(false).toBe(true);
+            expect(true).toBe(false);
         } catch (e: any) {
             expect(e.message).toContain("Failed to fetch feed");
             expect(e.message).toContain("404");

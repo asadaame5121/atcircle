@@ -1,15 +1,16 @@
-import { AtpAgent, AtUri } from "@atproto/api";
+import { Agent, AtpAgent, AtUri } from "@atproto/api";
 
 const NSID = {
-    RING: "com.webring.ring",
-    MEMBER: "com.webring.member",
-    BLOCK: "com.webring.block",
-    DEFS: "com.webring.defs",
+    RING: "net.asadaame5121.at-circle.ring",
+    MEMBER: "net.asadaame5121.at-circle.member",
+    BLOCK: "net.asadaame5121.at-circle.block",
+    DEFS: "net.asadaame5121.at-circle.defs",
 };
 
 export interface RingRecord {
     title: string;
     description: string;
+    status: "open" | "closed";
     createdAt: string;
 }
 
@@ -40,16 +41,21 @@ export const AtProtoService = {
     // Ring Operations
     // -------------------------------------------------------------------------
 
-    async createRing(agent: AtpAgent, title: string, description: string) {
+    async createRing(
+        agent: AtpAgent | Agent,
+        title: string,
+        description: string,
+    ) {
         const record = {
             $type: NSID.RING,
             title,
             description,
+            status: "open", // Default to open on creation
             createdAt: new Date().toISOString(),
         };
 
         const response = await agent.api.com.atproto.repo.createRecord({
-            repo: agent.session?.did ?? "",
+            repo: (agent as any).session?.did ?? (agent as any).did ?? "",
             collection: NSID.RING,
             record,
             validate: false,
@@ -59,7 +65,7 @@ export const AtProtoService = {
     },
 
     async listRings(
-        agent: AtpAgent,
+        agent: AtpAgent | Agent,
         ownerDid: string,
         cursor?: string,
         limit: number = 50,
@@ -78,12 +84,51 @@ export const AtProtoService = {
         }[];
     },
 
+    async getRing(agent: AtpAgent | Agent, uri: string) {
+        const atUri = new AtUri(uri);
+        const response = await agent.api.com.atproto.repo.getRecord({
+            repo: atUri.hostname,
+            collection: atUri.collection,
+            rkey: atUri.rkey,
+        });
+        return response.data as unknown as {
+            uri: string;
+            cid: string;
+            value: RingRecord;
+        };
+    },
+
+    async updateRing(
+        agent: AtpAgent | Agent,
+        uri: string,
+        title: string,
+        description: string,
+        status: "open" | "closed",
+    ) {
+        const { rkey } = new AtUri(uri);
+        const record = {
+            $type: NSID.RING,
+            title,
+            description,
+            status,
+            createdAt: new Date().toISOString(),
+        };
+
+        await agent.api.com.atproto.repo.putRecord({
+            repo: (agent as any).session?.did ?? (agent as any).did ?? "",
+            collection: NSID.RING,
+            rkey,
+            record,
+            validate: false,
+        });
+    },
+
     // -------------------------------------------------------------------------
     // Membership Operations
     // -------------------------------------------------------------------------
 
     async joinRing(
-        agent: AtpAgent,
+        agent: AtpAgent | Agent,
         ringUri: string,
         siteData: { url: string; title: string; rss?: string; note?: string },
     ) {
@@ -101,7 +146,7 @@ export const AtProtoService = {
         };
 
         const response = await agent.api.com.atproto.repo.createRecord({
-            repo: agent.session?.did ?? "",
+            repo: (agent as any).session?.did ?? (agent as any).did ?? "",
             collection: NSID.MEMBER,
             record,
             validate: false,
@@ -110,18 +155,18 @@ export const AtProtoService = {
         return response.data.uri;
     },
 
-    async leaveRing(agent: AtpAgent, memberRecordUri: string) {
+    async leaveRing(agent: AtpAgent | Agent, memberRecordUri: string) {
         const { rkey } = new AtUri(memberRecordUri);
 
         await agent.api.com.atproto.repo.deleteRecord({
-            repo: agent.session?.did ?? "",
+            repo: (agent as any).session?.did ?? (agent as any).did ?? "",
             collection: NSID.MEMBER,
             rkey,
         });
     },
 
     async listMemberRecords(
-        agent: AtpAgent,
+        agent: AtpAgent | Agent,
         repoDid: string,
         cursor?: string,
         limit: number = 50,
@@ -145,7 +190,7 @@ export const AtProtoService = {
     // -------------------------------------------------------------------------
 
     async blockMember(
-        agent: AtpAgent,
+        agent: AtpAgent | Agent,
         ringUri: string,
         memberDid: string,
         reason?: string,
@@ -162,7 +207,7 @@ export const AtProtoService = {
         };
 
         await agent.api.com.atproto.repo.createRecord({
-            repo: agent.session?.did ?? "",
+            repo: (agent as any).session?.did ?? (agent as any).did ?? "",
             collection: NSID.BLOCK,
             record,
             validate: false,
@@ -170,7 +215,7 @@ export const AtProtoService = {
     },
 
     async listBlocks(
-        agent: AtpAgent,
+        agent: AtpAgent | Agent,
         ringOwnerDid: string,
         cursor?: string,
         limit: number = 50,

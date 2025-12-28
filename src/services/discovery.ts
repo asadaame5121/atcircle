@@ -1,3 +1,5 @@
+import * as cheerio from "cheerio";
+
 export interface DiscoveredFeed {
     url: string;
     type: string;
@@ -10,52 +12,37 @@ export interface SiteMetadata {
 }
 
 /**
- * Discovers metadata (Title, RSS/Atom feeds) in HTML content using HTMLRewriter.
+ * Discovers metadata (Title, RSS/Atom feeds) in HTML content using cheerio.
  * @param baseUrl - The base URL of the site.
  * @param html - The HTML content of the page.
  * @returns SiteMetadata object.
  */
 export function discoverMetadata(baseUrl: string, html: string): SiteMetadata {
     const feeds: DiscoveredFeed[] = [];
-    let title: string | undefined;
 
-    // In actual Cloudflare Workers or Bun, HTMLRewriter is a global or importable.
-    const rewriter = new HTMLRewriter();
-
-    // Feed Discovery
-    rewriter.on(
-        'link[rel="alternate"][type="application/rss+xml"], link[rel="alternate"][type="application/atom+xml"]',
-        {
-            element(element) {
-                const href = element.getAttribute("href");
-                const type = element.getAttribute("type");
-                if (href && type) {
-                    try {
-                        const absUrl = new URL(href, baseUrl).toString();
-                        feeds.push({ url: absUrl, type });
-                    } catch (e) {
-                        // Ignore invalid URLs
-                    }
-                }
-            },
-        },
-    );
+    const $ = cheerio.load(html);
 
     // Title Discovery
-    rewriter.on("title", {
-        text(text) {
-            if (!title && text.text.trim().length > 0) {
-                title = text.text.trim();
-            }
-        },
-    });
+    const title = $("title").first().text().trim() || undefined;
 
-    try {
-        rewriter.transform(new Response(html));
-    } catch (e) {
-        // Fallback or ignore if rewriter fails
-        console.error("HTMLRewriter transform failed", e);
-    }
+    // Feed Discovery
+    $('link[rel="alternate"]').each((_, el) => {
+        const $el = $(el);
+        const type = $el.attr("type");
+        const href = $el.attr("href");
+
+        if (
+            href && type &&
+            (type === "application/rss+xml" || type === "application/atom+xml")
+        ) {
+            try {
+                const absUrl = new URL(href, baseUrl).toString();
+                feeds.push({ url: absUrl, type });
+            } catch (e) {
+                // Ignore invalid URLs
+            }
+        }
+    });
 
     return {
         url: baseUrl,

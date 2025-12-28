@@ -1,25 +1,29 @@
-import { beforeEach, describe, expect, it, mock } from "bun:test";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import navigationApp from "./navigation";
 import { Bindings } from "../types/bindings";
 
 // --- D1 Mock Helpers ---
 const createMockDB = (data: any = {}) => {
     return {
-        prepare: mock((query: string) => {
-            // Simple mock: if query contains "RANDOM", use randomData, etc.
-            // But better to just let the test set up the return value manually on the spy if possible
-            // or provide a flexible mock object.
-
+        prepare: vi.fn().mockImplementation((query: string) => {
             return {
-                bind: mock((...args: any[]) => {
+                bind: vi.fn().mockImplementation((...args: any[]) => {
                     return {
-                        first: mock(async () => data.first),
-                        all: mock(async () => ({ results: data.all || [] })),
-                        run: mock(async () => ({ success: true })),
+                        first: vi.fn().mockImplementation(async () =>
+                            data.first
+                        ),
+                        all: vi.fn().mockImplementation(async () => ({
+                            results: data.all || [],
+                        })),
+                        run: vi.fn().mockImplementation(async () => ({
+                            success: true,
+                        })),
                     };
                 }),
-                first: mock(async () => data.first),
-                all: mock(async () => ({ results: data.all || [] })),
+                first: vi.fn().mockImplementation(async () => data.first),
+                all: vi.fn().mockImplementation(async () => ({
+                    results: data.all || [],
+                })),
             };
         }),
     };
@@ -122,6 +126,23 @@ describe("Navigation Routes", () => {
             );
             expect(res.status).toBe(302);
             expect(res.headers.get("Location")).toBe("https://site-a.com");
+        });
+
+        it("filters by ring", async () => {
+            // ring parameter will trigger a different query
+            // we mock DB results to reflect the ring members
+            const ringSites = [
+                { id: 2, url: "https://site-b.com" },
+            ];
+            env.DB = createMockDB({ all: ringSites }) as any;
+
+            const res = await navigationApp.request(
+                "/next?from=https://site-b.com&ring=at://ring-uri",
+                {},
+                env,
+            );
+            expect(res.status).toBe(302);
+            expect(res.headers.get("Location")).toBe("https://site-b.com"); // Loop in single-site ring
         });
     });
 

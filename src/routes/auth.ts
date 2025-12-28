@@ -5,20 +5,16 @@ import { sign } from "hono/jwt";
 import { Layout } from "../components/Layout";
 import { Bindings } from "../types/bindings";
 import { createClient } from "../services/oauth";
-import { SECRET_KEY } from "../config";
+import { PUBLIC_URL, SECRET_KEY } from "../config";
 import { D1Database } from "@cloudflare/workers-types";
 
 const app = new Hono<{ Bindings: Bindings }>();
 
 // Helper to get client (lazy init or per request)
-// Since keys can be ephemeral in this dev setup, per-request init is risky if keys rotate.
-// But we used a generated key in createClient.
-// We should probably rely on the fact that for now we just want to verify the flow.
-// Ideally we initialize once.
 let oauthClient: any = null;
-const getOAuthClient = async (db: D1Database, url: string) => {
+const getOAuthClient = async (db: D1Database) => {
     if (!oauthClient) {
-        oauthClient = await createClient(db, url);
+        oauthClient = await createClient(db, PUBLIC_URL);
     }
     return oauthClient;
 };
@@ -68,7 +64,6 @@ app.post("/auth/login", async (c) => {
         console.log("Worker Version: v9-fix (Handle Fetch)"); // Debug log
         const client = await getOAuthClient(
             c.env.DB,
-            new URL(c.req.url).origin,
         );
         const url = await client.authorize(handle, {
             scope: "atproto transition:generic",
@@ -90,11 +85,14 @@ app.post("/auth/login", async (c) => {
 });
 
 app.get("/auth/callback", async (c) => {
-    const client = await getOAuthClient(c.env.DB, new URL(c.req.url).origin);
+    const client = await getOAuthClient(c.env.DB);
     const params = new URLSearchParams(c.req.query());
+    console.log(`[AuthCallback] Received callback: ${params.toString()}`);
 
     try {
+        console.log("[AuthCallback] Calling client.callback()...");
         const { session } = await client.callback(params);
+        console.log(`[AuthCallback] Session established for ${session.did}`);
 
         // Session contains did, handle, tokens.
         // We can now create our own app session OR use the ATProto tokens directly.
@@ -157,6 +155,10 @@ app.get("/auth/callback", async (c) => {
     }
 });
 
+app.get("/logout", (c) => {
+    return c.redirect("/");
+});
+
 app.post("/logout", (c) => {
     setCookie(c, "session", "", {
         path: "/",
@@ -168,7 +170,6 @@ app.post("/logout", (c) => {
 app.get("/client-metadata.json", async (c) => {
     const client = await getOAuthClient(
         c.env.DB,
-        c.req.url.replace("/client-metadata.json", ""),
     );
     return c.json(client.clientMetadata);
 });

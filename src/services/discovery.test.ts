@@ -1,7 +1,7 @@
-import { describe, expect, it } from "bun:test";
+import { describe, expect, it } from "vitest";
 import { discoverMetadata } from "./discovery";
 
-describe("Metadata Discovery (HTMLRewriter)", () => {
+describe("Metadata Discovery (cheerio)", () => {
     it("finds title and RSS links", () => {
         const html = `
             <html>

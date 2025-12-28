@@ -1,24 +1,35 @@
 {
   "name": "webring",
   "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
-    "dev": "wrangler dev",
-    "deploy": "wrangler deploy --minify",
-    "cf-typegen": "wrangler types --env-interface CloudflareBindings",
-    "d1:verify": "wrangler d1 execute webring-db --remote --command \"SELECT 1\"",
-    "d1:migrate:oauth": "wrangler d1 execute webring-db --remote --command \"CREATE TABLE IF NOT EXISTS oauth_states (key TEXT PRIMARY KEY, state TEXT NOT NULL, created_at INTEGER DEFAULT (strftime('%s', 'now')));\""
+    "dev": "tsx watch src/index.ts",
+    "build": "esbuild src/index.ts --bundle --platform=node --format=esm --outfile=dist/index.js --banner:js=\"import { createRequire } from 'module'; const require = createRequire(import.meta.url);\"",
+    "start": "node dist/index.js",
+    "test": "vitest",
+    "cf-typegen": "wrangler types --env-interface CloudflareBindings"
   },
   "dependencies": {
     "@atproto/api": "^0.18.8",
     "@atproto/oauth-client-node": "^0.3.13",
+    "@hono/node-server": "^1.19.7",
+    "cheerio": "^1.1.2",
+    "dotenv": "^17.2.3",
     "hono": "^4.11.1",
     "jose": "^6.1.3",
     "rss-parser": "^3.13.0",
-    "zod": "^4.2.1"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20251224.0",
     "@types/bun": "^1.3.5",
-    "wrangler": "^4.4.0"
+    "@types/node": "^24.0.0",
+    "esbuild": "^0.27.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.7.2",
+    "vite-node": "^2.1.2",
+    "vitest": "^2.1.2"
   }
 }

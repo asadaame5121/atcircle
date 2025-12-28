@@ -1,0 +1,139 @@
+import { DatabaseSync } from "node:sqlite";
+
+// D1 Result Types
+export class D1Result<T = unknown> {
+    constructor(
+        public success: boolean,
+        public results: T[],
+        public meta: any = {},
+    ) {}
+}
+
+// Mimic D1PreparedStatement
+export class D1PreparedStatement {
+    constructor(private stmt: any, private params: any[] = []) {}
+
+    bind(...params: any[]) {
+        this.params = Array.isArray(params[0]) ? params[0] : params;
+        return this;
+    }
+
+    async first<T = any>(colName?: string): Promise<T | null> {
+        const result = this.stmt.get(...this.params) as any;
+        if (!result) return null;
+        if (colName && typeof result === "object") return result[colName];
+        return result as T;
+    }
+
+    async run() {
+        const info = this.stmt.run(...this.params);
+        return { success: true, results: [], meta: info };
+    }
+
+    async all<T = any>() {
+        const results = this.stmt.all(...this.params);
+        return new D1Result(true, results as T[]);
+    }
+}
+
+// Mimic D1Database
+export class D1DatabaseCompat {
+    private db: DatabaseSync;
+
+    constructor(filename: string) {
+        this.db = new DatabaseSync(filename);
+        this.db.exec("PRAGMA journal_mode = WAL;"); // Recommended for SQLite
+    }
+
+    prepare(query: string) {
+        return new D1PreparedStatement(this.db.prepare(query));
+    }
+
+    async exec(query: string) {
+        this.db.exec(query);
+        return new D1Result(true, []);
+    }
+
+    async batch<T = any>(statements: D1PreparedStatement[]) {
+        const results = [];
+        for (const stmt of statements) {
+            results.push(await stmt.all());
+        }
+        return results;
+    }
+
+    // Helper to access raw db if needed
+    getRawDb() {
+        return this.db;
+    }
+}
+
+// Initialize DB (singleton for the app)
+const dbPath = process.env.DB_PATH || "dev.db";
+const db = new D1DatabaseCompat(dbPath);
+
+// --- Auto-Migration / Schema Initialization ---
+// Ensure tables exist on startup
+db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    did TEXT PRIMARY KEY,
+    handle TEXT NOT NULL,
+    created_at INTEGER DEFAULT (strftime('%s', 'now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS sites (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_did TEXT NOT NULL,
+    url TEXT NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT,
+    rss_url TEXT,
+    is_active INTEGER DEFAULT 1,
+    acceptance_policy TEXT DEFAULT 'manual',
+    atproto_status TEXT DEFAULT 'open',
+    created_at INTEGER DEFAULT (strftime('%s', 'now')),
+    FOREIGN KEY (user_did) REFERENCES users(did)
+  );
+
+  CREATE TABLE IF NOT EXISTS antenna_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    site_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    url TEXT NOT NULL,
+    published_at INTEGER,
+    FOREIGN KEY (site_id) REFERENCES sites(id)
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_sites_user_did ON sites(user_did);
+  CREATE INDEX IF NOT EXISTS idx_antenna_items_site_id ON antenna_items(site_id);
+  CREATE INDEX IF NOT EXISTS idx_antenna_items_published_at ON antenna_items(published_at DESC);
+
+  CREATE TABLE IF NOT EXISTS oauth_states (
+    key TEXT PRIMARY KEY,
+    state TEXT NOT NULL,
+    created_at INTEGER DEFAULT (strftime('%s', 'now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS rings (
+    uri TEXT PRIMARY KEY,
+    owner_did TEXT NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT,
+    created_at INTEGER DEFAULT (strftime('%s', 'now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS memberships (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ring_uri TEXT NOT NULL,
+    site_id INTEGER NOT NULL,
+    member_uri TEXT NOT NULL UNIQUE,
+    created_at INTEGER DEFAULT (strftime('%s', 'now')),
+    FOREIGN KEY (ring_uri) REFERENCES rings(uri),
+    FOREIGN KEY (site_id) REFERENCES sites(id)
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_memberships_ring_uri ON memberships(ring_uri);
+  CREATE INDEX IF NOT EXISTS idx_memberships_site_id ON memberships(site_id);
+`);
+
+export default db;

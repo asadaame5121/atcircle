@@ -1,5 +1,6 @@
 import { Hono } from "hono";
-import { Bindings } from "../types/bindings";
+import { Bindings } from "../types/bindings.js";
+import { PUBLIC_URL } from "../config.js";
 
 const app = new Hono<{ Bindings: Bindings }>();
 
@@ -7,66 +8,110 @@ const app = new Hono<{ Bindings: Bindings }>();
 const normalizeUrl = (u: string) => u.replace(/\/$/, "");
 
 app.get("/random", async (c) => {
-    const site = await c.env.DB.prepare(
-        "SELECT url FROM sites WHERE is_active = 1 ORDER BY RANDOM() LIMIT 1",
+  const ring = c.req.query("ring");
+  let site;
+  if (ring) {
+    site = await c.env.DB.prepare(
+      `SELECT s.url FROM sites s 
+             JOIN memberships m ON s.id = m.site_id 
+             WHERE s.is_active = 1 AND m.ring_uri = ? 
+             ORDER BY RANDOM() LIMIT 1`,
+    ).bind(ring).first<{ url: string }>();
+  } else {
+    site = await c.env.DB.prepare(
+      "SELECT url FROM sites WHERE is_active = 1 ORDER BY RANDOM() LIMIT 1",
     ).first<{ url: string }>();
-    if (site) {
-        return c.redirect(site.url);
-    }
-    return c.text("No active sites in the ring yet!", 404);
+  }
+
+  if (site) {
+    return c.redirect(site.url);
+  }
+  return c.text("No active sites in the ring yet!", 404);
 });
 
 app.get("/next", async (c) => {
-    const from = c.req.query("from") || c.req.header("Referer");
-    if (!from) return c.redirect("/nav/random"); // Fallback
-
-    const sites = await c.env.DB.prepare(
-        "SELECT id, url FROM sites WHERE is_active = 1 ORDER BY id ASC",
-    ).all<{ id: number; url: string }>();
-    if (!sites.results || sites.results.length === 0) {
-        return c.text("No sites.", 404);
-    }
-
-    const list = sites.results;
-    const normalizedFrom = normalizeUrl(from);
-    let currentIndex = list.findIndex((s) =>
-        normalizeUrl(s.url) === normalizedFrom
+  const from = c.req.query("from") || c.req.header("Referer");
+  const ring = c.req.query("ring");
+  if (!from) {
+    return c.redirect(
+      "/nav/random" + (ring ? `?ring=${encodeURIComponent(ring)}` : ""),
     );
+  }
 
-    if (currentIndex === -1) currentIndex = -1;
+  let sites;
+  if (ring) {
+    sites = await c.env.DB.prepare(
+      `SELECT s.id, s.url FROM sites s 
+             JOIN memberships m ON s.id = m.site_id 
+             WHERE s.is_active = 1 AND m.ring_uri = ? 
+             ORDER BY s.id ASC`,
+    ).bind(ring).all<{ id: number; url: string }>();
+  } else {
+    sites = await c.env.DB.prepare(
+      "SELECT id, url FROM sites WHERE is_active = 1 ORDER BY id ASC",
+    ).all<{ id: number; url: string }>();
+  }
 
-    let nextIndex = currentIndex + 1;
-    if (nextIndex >= list.length) nextIndex = 0; // Loop
+  if (!sites.results || sites.results.length === 0) {
+    return c.text("No sites.", 404);
+  }
 
-    return c.redirect(list[nextIndex].url);
+  const list = sites.results;
+  const normalizedFrom = normalizeUrl(from);
+  let currentIndex = list.findIndex((s) =>
+    normalizeUrl(s.url) === normalizedFrom
+  );
+
+  if (currentIndex === -1) currentIndex = -1;
+
+  let nextIndex = currentIndex + 1;
+  if (nextIndex >= list.length) nextIndex = 0; // Loop
+
+  return c.redirect(list[nextIndex].url);
 });
 
 app.get("/prev", async (c) => {
-    const from = c.req.query("from") || c.req.header("Referer");
-    if (!from) return c.redirect("/nav/random");
-
-    const sites = await c.env.DB.prepare(
-        "SELECT id, url FROM sites WHERE is_active = 1 ORDER BY id ASC",
-    ).all<{ id: number; url: string }>();
-    if (!sites.results || sites.results.length === 0) {
-        return c.text("No sites.", 404);
-    }
-
-    const list = sites.results;
-    const normalizedFrom = normalizeUrl(from);
-    let currentIndex = list.findIndex((s) =>
-        normalizeUrl(s.url) === normalizedFrom
+  const from = c.req.query("from") || c.req.header("Referer");
+  const ring = c.req.query("ring");
+  if (!from) {
+    return c.redirect(
+      "/nav/random" + (ring ? `?ring=${encodeURIComponent(ring)}` : ""),
     );
+  }
 
-    let prevIndex = currentIndex - 1;
-    if (prevIndex < 0) prevIndex = list.length - 1; // Loop
+  let sites;
+  if (ring) {
+    sites = await c.env.DB.prepare(
+      `SELECT s.id, s.url FROM sites s 
+             JOIN memberships m ON s.id = m.site_id 
+             WHERE s.is_active = 1 AND m.ring_uri = ? 
+             ORDER BY s.id ASC`,
+    ).bind(ring).all<{ id: number; url: string }>();
+  } else {
+    sites = await c.env.DB.prepare(
+      "SELECT id, url FROM sites WHERE is_active = 1 ORDER BY id ASC",
+    ).all<{ id: number; url: string }>();
+  }
 
-    return c.redirect(list[prevIndex].url);
+  if (!sites.results || sites.results.length === 0) {
+    return c.text("No sites.", 404);
+  }
+
+  const list = sites.results;
+  const normalizedFrom = normalizeUrl(from);
+  let currentIndex = list.findIndex((s) =>
+    normalizeUrl(s.url) === normalizedFrom
+  );
+
+  let prevIndex = currentIndex - 1;
+  if (prevIndex < 0) prevIndex = list.length - 1; // Loop
+
+  return c.redirect(list[prevIndex].url);
 });
 
 app.get("/widget.js", (c) => {
-    const baseUrl = new URL(c.req.url).origin;
-    const script = `
+  const baseUrl = PUBLIC_URL;
+  const script = `
 class WebringNav extends HTMLElement {
   constructor() {
     super();
@@ -75,10 +120,14 @@ class WebringNav extends HTMLElement {
 
   connectedCallback() {
     const site = this.getAttribute('site') || window.location.origin;
+    const ring = this.getAttribute('ring') || '';
     const theme = this.getAttribute('theme') || 'system';
     const layout = this.getAttribute('layout') || 'default';
     const transparent = this.hasAttribute('transparent');
     const baseUrl = "${baseUrl}";
+
+    const ringParam = ring ? \`&ring=\${encodeURIComponent(ring)}\` : '';
+    const ringRandomParam = ring ? \`?ring=\${encodeURIComponent(ring)}\` : '';
 
     const style = \`
       :host {
@@ -245,14 +294,14 @@ class WebringNav extends HTMLElement {
     if (layout === 'compact') {
         content = \`
             <div class="webring-widget layout-compact">
-                <a href="\${baseUrl}/nav/prev?from=\${encodeURIComponent(site)}" class="webring-link nav-btn nav-prev">←</a>
+                <a href="\${baseUrl}/nav/prev?from=\${encodeURIComponent(site)}\${ringParam}" class="webring-link nav-btn nav-prev">←</a>
                 <span class="webring-title">Webring</span>
-                <a href="\${baseUrl}/nav/next?from=\${encodeURIComponent(site)}" class="webring-link nav-btn nav-next">→</a>
+                <a href="\${baseUrl}/nav/next?from=\${encodeURIComponent(site)}\${ringParam}" class="webring-link nav-btn nav-next">→</a>
                 
                 <div class="webring-actions">
-                    <a href="\${baseUrl}/nav/random" class="webring-link action-link">Random</a>
+                    <a href="\${baseUrl}/nav/random\${ringRandomParam}" class="webring-link action-link">Random</a>
                     <a href="\${baseUrl}" target="_blank" class="webring-link action-link join-link">Join us</a>
-                    <a href="\${baseUrl}/sites" class="webring-link action-link">List</a>
+                    <a href="\${ring ? \`\${baseUrl}/rings/view?ring=\${encodeURIComponent(ring)}\` : \`\${baseUrl}/rings\`}" class="webring-link action-link">List</a>
                 </div>
             </div>
         \`;
@@ -260,16 +309,16 @@ class WebringNav extends HTMLElement {
         // Default Layout
         content = \`
             <div class="webring-widget layout-default">
-                <a href="\${baseUrl}/nav/prev?from=\${encodeURIComponent(site)}" class="webring-link nav-btn">←</a>
+                <a href="\${baseUrl}/nav/prev?from=\${encodeURIComponent(site)}\${ringParam}" class="webring-link nav-btn">←</a>
                 <div class="webring-info">
                     <span class="webring-title">Webring</span>
                     <div class="webring-actions">
-                        <a href="\${baseUrl}/nav/random" class="webring-link action-link">Random</a>
-                        <a href="\${baseUrl}/sites" class="webring-link action-link">List</a>
+                        <a href="\${baseUrl}/nav/random\${ringRandomParam}" class="webring-link action-link">Random</a>
+                        <a href="\${ring ? \`\${baseUrl}/rings/view?ring=\${encodeURIComponent(ring)}\` : \`\${baseUrl}/rings\`}" class="webring-link action-link">List</a>
                         <a href="\${baseUrl}" target="_blank" class="webring-link action-link join-link">Join us</a>
                     </div>
                 </div>
-                <a href="\${baseUrl}/nav/next?from=\${encodeURIComponent(site)}" class="webring-link nav-btn">→</a>
+                <a href="\${baseUrl}/nav/next?from=\${encodeURIComponent(site)}\${ringParam}" class="webring-link nav-btn">→</a>
             </div>
         \`;
     }
@@ -279,7 +328,7 @@ class WebringNav extends HTMLElement {
 }
 customElements.define('webring-nav', WebringNav);
     `;
-    return c.text(script, 200, { "Content-Type": "application/javascript" });
+  return c.text(script, 200, { "Content-Type": "application/javascript" });
 });
 
 export default app;

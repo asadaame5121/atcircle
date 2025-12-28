@@ -16,6 +16,8 @@ CREATE TABLE sites (
   description TEXT,
   rss_url TEXT,
   is_active INTEGER DEFAULT 1,
+  acceptance_policy TEXT DEFAULT 'manual',
+  atproto_status TEXT DEFAULT 'open',
   created_at INTEGER DEFAULT (strftime('%s', 'now')),
   FOREIGN KEY (user_did) REFERENCES users(did)
 );
@@ -38,3 +40,24 @@ CREATE TABLE oauth_states (
   state TEXT NOT NULL,
   created_at INTEGER DEFAULT (strftime('%s', 'now'))
 );
+
+CREATE TABLE rings (
+  uri TEXT PRIMARY KEY,
+  owner_did TEXT NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT,
+  created_at INTEGER DEFAULT (strftime('%s', 'now'))
+);
+
+CREATE TABLE memberships (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  ring_uri TEXT NOT NULL,
+  site_id INTEGER NOT NULL,
+  member_uri TEXT NOT NULL UNIQUE,
+  created_at INTEGER DEFAULT (strftime('%s', 'now')),
+  FOREIGN KEY (ring_uri) REFERENCES rings(uri),
+  FOREIGN KEY (site_id) REFERENCES sites(id)
+);
+
+CREATE INDEX idx_memberships_ring_uri ON memberships(ring_uri);
+CREATE INDEX idx_memberships_site_id ON memberships(site_id);

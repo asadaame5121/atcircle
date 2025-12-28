@@ -23,7 +23,7 @@ export const Layout = (props: { title: string; children: any }) => html`
         <div class="flex-none">
           <ul class="menu menu-horizontal px-1">
             <li><a href="/">Home</a></li>
-            <li><a href="/sites">Sites</a></li>
+            <li><a href="/rings">Rings</a></li>
             <li><a href="/antenna">Antenna</a></li>
             <li><a href="/dashboard">Dashboard</a></li>
           </ul>
