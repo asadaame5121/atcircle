@@ -300,7 +300,7 @@ class WebringNav extends HTMLElement {
                 
                 <div class="webring-actions">
                     <a href="\${baseUrl}/nav/random\${ringRandomParam}" class="webring-link action-link">Random</a>
-                    <a href="\${baseUrl}" target="_blank" class="webring-link action-link join-link">Join us</a>
+                    <a href="\${ring ? \`\${baseUrl}/rings/view?ring=\${encodeURIComponent(ring)}\` : baseUrl}" target="_blank" class="webring-link action-link join-link">Join us</a>
                     <a href="\${ring ? \`\${baseUrl}/rings/view?ring=\${encodeURIComponent(ring)}\` : \`\${baseUrl}/rings\`}" class="webring-link action-link">List</a>
                 </div>
             </div>
@@ -315,7 +315,7 @@ class WebringNav extends HTMLElement {
                     <div class="webring-actions">
                         <a href="\${baseUrl}/nav/random\${ringRandomParam}" class="webring-link action-link">Random</a>
                         <a href="\${ring ? \`\${baseUrl}/rings/view?ring=\${encodeURIComponent(ring)}\` : \`\${baseUrl}/rings\`}" class="webring-link action-link">List</a>
-                        <a href="\${baseUrl}" target="_blank" class="webring-link action-link join-link">Join us</a>
+                        <a href="\${ring ? \`\${baseUrl}/rings/view?ring=\${encodeURIComponent(ring)}\` : baseUrl}" target="_blank" class="webring-link action-link join-link">Join us</a>
                     </div>
                 </div>
                 <a href="\${baseUrl}/nav/next?from=\${encodeURIComponent(site)}\${ringParam}" class="webring-link nav-btn">→</a>

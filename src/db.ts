@@ -74,7 +74,7 @@ const db = new D1DatabaseCompat(dbPath);
 
 // --- Auto-Migration / Schema Initialization ---
 // Ensure tables exist on startup
-db.exec(`
+await db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     did TEXT PRIMARY KEY,
     handle TEXT NOT NULL,
@@ -89,8 +89,6 @@ db.exec(`
     description TEXT,
     rss_url TEXT,
     is_active INTEGER DEFAULT 1,
-    acceptance_policy TEXT DEFAULT 'manual',
-    atproto_status TEXT DEFAULT 'open',
     created_at INTEGER DEFAULT (strftime('%s', 'now')),
     FOREIGN KEY (user_did) REFERENCES users(did)
   );
@@ -119,6 +117,8 @@ db.exec(`
     owner_did TEXT NOT NULL,
     title TEXT NOT NULL,
     description TEXT,
+    acceptance_policy TEXT DEFAULT 'automatic',
+    status TEXT DEFAULT 'open',
     created_at INTEGER DEFAULT (strftime('%s', 'now'))
   );
 
@@ -127,6 +127,7 @@ db.exec(`
     ring_uri TEXT NOT NULL,
     site_id INTEGER NOT NULL,
     member_uri TEXT NOT NULL UNIQUE,
+    status TEXT DEFAULT 'approved',
     created_at INTEGER DEFAULT (strftime('%s', 'now')),
     FOREIGN KEY (ring_uri) REFERENCES rings(uri),
     FOREIGN KEY (site_id) REFERENCES sites(id)
@@ -135,5 +136,18 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_memberships_ring_uri ON memberships(ring_uri);
   CREATE INDEX IF NOT EXISTS idx_memberships_site_id ON memberships(site_id);
 `);
+
+// --- Migrations for existing DB ---
+// We use .catch(() => {}) because these might fail if columns already exist, and that's okay.
+await db.exec(
+    "ALTER TABLE rings ADD COLUMN acceptance_policy TEXT DEFAULT 'automatic';",
+).catch(() => {});
+await db.exec("ALTER TABLE rings ADD COLUMN status TEXT DEFAULT 'open';").catch(
+    () => {},
+);
+await db.exec(
+    "ALTER TABLE memberships ADD COLUMN status TEXT DEFAULT 'approved';",
+)
+    .catch(() => {});
 
 export default db;

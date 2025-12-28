@@ -17,7 +17,8 @@ const app = new Hono<{ Bindings: Bindings, Variables: { jwtPayload: any } }>();
 app.use('*', async (c, next) => {
     const token = getCookie(c, 'session');
     if (!token) {
-        return c.redirect('/login');
+        const url = new URL(c.req.url);
+        return c.redirect('/login?next=' + encodeURIComponent(url.pathname + url.search));
     }
     try {
         const payload = await verify(token, SECRET_KEY);
@@ -33,7 +34,7 @@ app.get('/', async (c) => {
     const did = payload.sub;
 
     // --- ATProto Initialization ---
-    const agent = await restoreAgent(c.env.DB, PUBLIC_URL, did);
+    const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
 
     // --- Data Fetching ---
     
@@ -42,33 +43,122 @@ app.get('/', async (c) => {
     if (agent) {
        try {
            myRings = await AtProtoService.listRings(agent, did);
+           console.log(`[Dashboard] Fetched ${myRings.length} rings for DID: ${did}`);
        } catch (e) {
            console.error("Failed to list rings:", e);
        }
     }
 
     // 2. Fetch user's memberships (sites they registered into rings)
-    // Note: listMemberRecords lists members *in a repo*. 
-    // To see "My Memberships", we list records from *my own* repo (since it's a sidecar).
     let myMemberships: { uri: string; cid: string; value: MemberRecord }[] = [];
     if (agent) {
         try {
             myMemberships = await AtProtoService.listMemberRecords(agent, did);
+            console.log(`[Dashboard] Fetched ${myMemberships.length} memberships for DID: ${did}`);
         } catch (e) {
              console.error("Failed to list memberships:", e);
         }
     }
 
     // 3. Check if user already has a site (Legacy D1)
-    const site = await c.env.DB.prepare("SELECT * FROM sites WHERE user_did = ?").bind(did).first();
+    const site = await c.env.DB.prepare("SELECT * FROM sites WHERE user_did = ?").bind(did).first() as any;
 
     if (site) {
+        // --- Unified Data Processing ---
+        const ringMap = new Map<string, {
+            uri: string;
+            title: string;
+            description: string;
+            status: string;
+            acceptancePolicy: string;
+            isAdmin: boolean;
+            isMember: boolean;
+            memberUri?: string;
+            siteUrl?: string;
+            pendingCount: number;
+        }>();
+
+        myRings.forEach(r => {
+            ringMap.set(r.uri, {
+                uri: r.uri,
+                title: r.value.title,
+                description: r.value.description,
+                status: r.value.status,
+                acceptancePolicy: r.value.acceptancePolicy || 'automatic',
+                isAdmin: true,
+                isMember: false,
+                pendingCount: 0
+            });
+        });
+
+        myMemberships.forEach(m => {
+            const existing = ringMap.get(m.value.ring.uri);
+            if (existing) {
+                existing.isMember = true;
+                existing.memberUri = m.uri;
+                existing.siteUrl = m.value.url;
+            } else {
+                ringMap.set(m.value.ring.uri, {
+                    uri: m.value.ring.uri,
+                    title: m.value.title,
+                    description: '',
+                    status: 'unknown',
+                    acceptancePolicy: 'unknown',
+                    isAdmin: false,
+                    isMember: true,
+                    memberUri: m.uri,
+                    siteUrl: m.value.url,
+                    pendingCount: 0
+                });
+            }
+        });
+
+        // Supplement ring data from local DB (for policy and pending stats)
+        for (const ring of ringMap.values()) {
+            const local = await c.env.DB.prepare("SELECT acceptance_policy, status FROM rings WHERE uri = ?").bind(ring.uri).first() as any;
+            if (local) {
+                ring.acceptancePolicy = local.acceptance_policy;
+                ring.status = local.status;
+            }
+            if (ring.isAdmin) {
+                const pending = await c.env.DB.prepare("SELECT COUNT(*) as count FROM memberships WHERE ring_uri = ? AND status = 'pending'").bind(ring.uri).first() as { count: number };
+                ring.pendingCount = pending.count;
+            }
+        }
+
+        const unifiedRings = Array.from(ringMap.values());
+
+        // Fetch actual pending members for the moderator view
+        const pendingMemberships = await c.env.DB.prepare(`
+            SELECT m.*, s.title as site_title, s.url as site_url, r.title as ring_title
+            FROM memberships m
+            JOIN sites s ON m.site_id = s.id
+            JOIN rings r ON m.ring_uri = r.uri
+            WHERE r.owner_did = ? AND m.status = 'pending'
+        `).bind(did).all<any>();
+
         return c.html(Layout({
             title: 'Dashboard',
             children: html`
-                <div class="card bg-base-100 shadow-xl max-w-2xl mx-auto">
+                <div class="card bg-base-100 shadow-xl max-w-3xl mx-auto">
                     <div class="card-body">
-                        <h1 class="card-title text-3xl mb-4">Dashboard</h1>
+                        <div class="flex justify-between items-center mb-6">
+                            <h1 class="card-title text-3xl">Dashboard</h1>
+                            <div class="flex gap-2">
+                                <button class="btn btn-primary btn-sm" onclick="create_ring_modal.showModal()">Create Ring</button>
+                                <button class="btn btn-secondary btn-sm" onclick="join_ring_modal.showModal()">Join Ring</button>
+                            </div>
+                        </div>
+
+                        <!-- Intro Text -->
+                        <div class="bg-primary/5 p-4 rounded-lg mb-8 border border-primary/10">
+                            <h2 class="font-bold text-primary mb-1 text-sm uppercase tracking-wider">How it works</h2>
+                            <p class="text-sm opacity-80 leading-relaxed">
+                                <strong>AT-Circle</strong> は ATProto を活用した個人サイトのためのウェブリング（コミュニティの輪）です。<br/>
+                                リングを「作成」して仲間を集めたり、既存のリングに「参加」してウィジェットをサイトに設置することで、
+                                同じ興味関心を持つサイト同士を繋ぐことができます。
+                            </p>
+                        </div>
                         
                         ${c.req.query('msg') === 'created' ? html`
                             <div class="alert alert-success mb-4">
@@ -79,7 +169,13 @@ app.get('/', async (c) => {
                         ${c.req.query('msg') === 'joined' ? html`
                             <div class="alert alert-success mb-4">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                <span>Joined circle successfully!</span>
+                                <span>${c.req.query('policy') === 'manual' ? '加入許可を申請しました。' : 'Joined circle successfully!'}</span>
+                            </div>
+                        ` : ''}
+                         ${c.req.query('msg') === 'left' ? html`
+                            <div class="alert alert-info mb-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <span>Left circle successfully.</span>
                             </div>
                         ` : ''}
                         ${c.req.query('msg') === 'updated' ? html`
@@ -88,67 +184,113 @@ app.get('/', async (c) => {
                                 <span>Updated successfully!</span>
                             </div>
                         ` : ''}
+                        ${c.req.query('msg') === 'approved' ? html`
+                            <div class="alert alert-success mb-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <span>Member approved!</span>
+                            </div>
+                        ` : ''}
+                         ${c.req.query('msg') === 'rejected' ? html`
+                            <div class="alert alert-info mb-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <span>Member request rejected.</span>
+                            </div>
+                        ` : ''}
                         
-                        <!-- NEW: at-circles Section -->
-                        <div class="divider">My at-circles</div>
-                        <div class="bg-base-200 p-6 rounded-lg mb-6">
-                            <h2 class="text-xl font-bold mb-4">Managed Circles</h2>
-                             ${myRings.length > 0 ? html`
-                                <ul class="space-y-4">
-                                    ${myRings.map(r => html`
-                                        <li class="bg-base-100 p-4 rounded-md shadow-sm">
+                        <!-- Pending Approvals Section -->
+                        ${pendingMemberships.results && pendingMemberships.results.length > 0 ? html`
+                            <div class="divider">Pending Approvals</div>
+                            <div class="space-y-3 mb-8">
+                                ${pendingMemberships.results.map(m => html`
+                                    <div class="alert bg-base-200 border-warning/30 flex justify-between items-center py-3">
+                                        <div class="flex flex-col gap-0.5">
+                                            <div class="text-xs font-bold text-warning uppercase tracking-tighter">Request for: ${m.ring_title}</div>
+                                            <div class="font-medium">${m.site_title}</div>
+                                            <div class="text-xs opacity-50 font-mono">${m.site_url}</div>
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <form action="/dashboard/ring/approve" method="POST">
+                                                <input type="hidden" name="member_uri" value="${m.member_uri}" />
+                                                <button type="submit" class="btn btn-success btn-xs">Approve</button>
+                                            </form>
+                                            <form action="/dashboard/ring/reject" method="POST" onsubmit="return confirm('Reject this request?')">
+                                                <input type="hidden" name="member_uri" value="${m.member_uri}" />
+                                                <button type="submit" class="btn btn-ghost btn-xs text-error">Reject</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                `)}
+                            </div>
+                        ` : ''}
+
+                        <!-- Unified Rings Section -->
+                        <div class="divider">My Rings</div>
+                        
+                        ${unifiedRings.length > 0 ? html`
+                            <div class="space-y-4">
+                                ${unifiedRings.map(r => html`
+                                    <div class="card bg-base-200 shadow-sm border border-base-300">
+                                        <div class="card-body p-5">
                                             <div class="flex justify-between items-start">
                                                 <div>
-                                                    <div class="font-bold text-lg">${r.value.title}</div>
-                                                    <div class="text-sm opacity-75">${r.value.description}</div>
-                                                    <div class="mt-2">
-                                                        <span class="badge ${r.value.status === 'open' ? 'badge-success' : 'badge-ghost'} badge-sm">${r.value.status.toUpperCase()}</span>
+                                                    <div class="flex items-center gap-2 mb-1">
+                                                        <h3 class="font-bold text-lg">${r.title}</h3>
+                                                        <div class="flex gap-1">
+                                                            ${r.isAdmin ? html`<span class="badge badge-primary badge-outline badge-xs">Owner</span>` : ''}
+                                                            ${r.isMember ? html`<span class="badge badge-secondary badge-outline badge-xs">Member</span>` : ''}
+                                                            ${r.pendingCount > 0 ? html`<span class="badge badge-warning badge-xs">${r.pendingCount} Pending</span>` : ''}
+                                                        </div>
+                                                    </div>
+                                                    <p class="text-sm opacity-70 mb-2">${r.description || html`<span class="italic opacity-50">No description</span>`}</p>
+                                                    
+                                                    <div class="flex flex-wrap gap-2 items-center text-xs opacity-50 font-mono">
+                                                        <span>URI: ${r.uri}</span>
                                                     </div>
                                                 </div>
-                                                <button class="btn btn-ghost btn-xs" onclick="openConfigModal('${r.uri}', '${r.value.title}', '${r.value.description}', '${r.value.status}')">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37a1.724 1.724 0 002.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                                                </button>
-                                            </div>
-                                            <div class="flex justify-between items-center mt-2">
-                                                <div class="text-xs break-all opacity-50">URI: ${r.uri}</div>
-                                                <button class="btn btn-secondary btn-xs" onclick="openJoinModal('${r.uri}')">Join with my site</button>
-                                            </div>
-                                        </li>
-                                    `)}
-                                </ul>
-                            ` : html`<p class="opacity-50 italic">You haven't created any webrings yet.</p>`}
-                             
-                             <button class="btn btn-primary mt-4 btn-sm" onclick="create_ring_modal.showModal()">Create New Webring</button>
-                        </div>
 
-                         <!-- NEW: Memberships Section -->
-                        <div class="divider">My Memberships</div>
-                        <div class="bg-base-200 p-6 rounded-lg mb-6">
-                            <h2 class="text-xl font-bold mb-4">Joined Rings</h2>
-                             ${myMemberships.length > 0 ? html`
-                                <ul class="space-y-4">
-                                    ${myMemberships.map(m => html`
-                                        <li class="bg-base-100 p-4 rounded-md shadow-sm">
-                                            <div class="flex justify-between items-start">
-                                                <div>
-                                                    <div class="font-bold">${m.value.title}</div>
-                                                    <div class="text-sm"><a href="${m.value.url}" target="_blank" class="link hover:link-primary">${m.value.url}</a></div>
-                                                    <div class="text-xs mt-1 opacity-50">Ring: ${m.value.ring.uri}</div>
+                                                <div class="flex gap-2">
+                                                    ${r.isAdmin ? html`
+                                                        <button class="btn btn-ghost btn-sm btn-square" onclick="copyInviteLink('${r.uri}')" title="Copy Invite Link">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+                                                        </button>
+                                                        <button class="btn btn-ghost btn-sm btn-square" onclick="openConfigModal('${r.uri}', '${r.title}', '${r.description}', '${r.status}', '${(r as any).acceptancePolicy}')" title="Configure Ring">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37a1.724 1.724 0 002.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                                        </button>
+                                                    ` : ''}
                                                 </div>
-                                                <a href="/dashboard/ring/widget?ring_uri=${encodeURIComponent(m.value.ring.uri)}" class="btn btn-primary btn-xs">Generate Widget</a>
                                             </div>
-                                            <form action="/dashboard/ring/leave" method="POST" class="mt-2 text-right">
-                                                <input type="hidden" name="uri" value="${m.uri}" />
-                                                <button type="submit" class="btn btn-xs btn-error btn-outline">Leave Ring</button>
-                                            </form>
-                                        </li>
-                                    `)}
-                                </ul>
-                            ` : html`<p class="opacity-50 italic">You haven't joined any webrings yet.</p>`}
-                            
-                            <button class="btn btn-secondary mt-4 btn-sm" onclick="join_ring_modal.showModal()">Join a Webring</button>
-                        </div>
 
+                                            ${r.isMember ? html`
+                                                <div class="mt-4 pt-4 border-t border-base-300 flex justify-between items-center bg-base-300/30 -mx-5 -mb-5 px-5 py-3 rounded-b-xl">
+                                                    <div class="text-xs">
+                                                        <span class="opacity-50">Joined as:</span> <a href="${r.siteUrl}" target="_blank" class="link hover:link-primary font-medium">${r.siteUrl}</a>
+                                                    </div>
+                                                    <div class="flex gap-2">
+                                                        <a href="/dashboard/ring/widget?ring_uri=${encodeURIComponent(r.uri)}" class="btn btn-primary btn-xs">Widget</a>
+                                                        <form action="/dashboard/ring/leave" method="POST" onsubmit="return confirm('Really leave this ring?')">
+                                                            <input type="hidden" name="uri" value="${r.memberUri}" />
+                                                            <button type="submit" class="btn btn-xs btn-error btn-outline">Leave</button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            ` : r.isAdmin ? html`
+                                                <div class="mt-4 pt-4 border-t border-base-300 flex justify-end -mx-5 -mb-5 px-5 py-3 rounded-b-xl">
+                                                    <button class="btn btn-secondary btn-xs" onclick="openJoinModal('${r.uri}')">Join with my site</button>
+                                                </div>
+                                            ` : ''}
+                                        </div>
+                                    </div>
+                                `)}
+                            </div>
+                        ` : html`
+                            <div class="text-center py-12 bg-base-200 rounded-xl border-2 border-dashed border-base-300">
+                                <p class="opacity-50 italic mb-4">You haven't joined or created any rings yet.</p>
+                                <div class="flex justify-center gap-4">
+                                    <button class="btn btn-primary btn-sm" onclick="create_ring_modal.showModal()">Create First Ring</button>
+                                    <button class="btn btn-secondary btn-sm" onclick="join_ring_modal.showModal()">Join a Ring</button>
+                                </div>
+                            </div>
+                        `}
 
                         <!-- Existing Legacy Site Section -->
                          <div class="divider">Legacy</div>
@@ -312,11 +454,12 @@ app.get('/', async (c) => {
                 </dialog>
 
                 <script>
-                    function openConfigModal(uri, title, description, status) {
+                    function openConfigModal(uri, title, description, status, acceptance) {
                         document.getElementById('config-uri').value = uri;
                         document.getElementById('config-title').value = title;
                         document.getElementById('config-description').value = description;
                         document.getElementById('config-status').value = status;
+                        document.getElementById('config-acceptance').value = acceptance || 'automatic';
                         circle_config_modal.showModal();
                     }
 
@@ -324,6 +467,23 @@ app.get('/', async (c) => {
                         document.getElementById('join-ring-uri').value = uri;
                         join_ring_modal.showModal();
                     }
+
+                    function copyInviteLink(ringUri) {
+                        const baseUrl = window.location.origin;
+                        const inviteUrl = \`\${baseUrl}/rings/view?ring=\${encodeURIComponent(ringUri)}\`;
+                        navigator.clipboard.writeText(inviteUrl).then(() => {
+                            alert('Invite link copied to clipboard!');
+                        });
+                    }
+
+                    // Auto-open join modal if ring_uri is present in URL
+                    window.addEventListener('load', () => {
+                        const params = new URLSearchParams(window.location.search);
+                        const ringUri = params.get('ring_uri');
+                        if (ringUri) {
+                            openJoinModal(ringUri);
+                        }
+                    });
                 </script>
             `
         }));
@@ -614,7 +774,7 @@ app.get('/edit', async (c) => {
 app.get('/debug', async (c) => {
     const payload = c.get('jwtPayload');
     const did = payload.sub;
-    const agent = await restoreAgent(c.env.DB, PUBLIC_URL, did);
+    const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
     if (!agent) return c.redirect('/login');
 
     const rings = await AtProtoService.listRings(agent, did);
@@ -670,9 +830,43 @@ app.get('/debug', async (c) => {
                                 </div>
                             ` : html`<p class="italic opacity-50">No member records found in your PDS repo.</p>`}
                         </div>
+                    <section class="card bg-base-100 shadow-xl border-2 border-accent/20">
+                        <div class="card-body">
+                            <h2 class="card-title text-accent text-2xl mb-4">Development Tools</h2>
+                            <div class="bg-base-200 p-6 rounded-lg">
+                                <p class="mb-4 text-sm font-bold text-error">⚠️ Admin Only: Triggers global background tasks</p>
+                                <button onclick="manualFeedSync(this)" class="btn btn-accent w-full">Refresh All RSS Feeds</button>
+                                <p class="text-xs opacity-50 mt-2 text-center">Fetching RSS feeds for every site in the DB. Limited to once every 5 mins.</p>
+                            </div>
+                        </div>
                     </section>
                 </div>
             </div>
+
+            <script>
+                async function manualFeedSync(btn) {
+                    const originalText = btn.innerText;
+                    btn.disabled = true;
+                    btn.innerText = 'Refreshing...';
+                    try {
+                        const res = await fetch('/dashboard/sync/feeds', { method: 'POST' });
+                        const data = await res.json();
+                        if (data.skipped) {
+                            alert('Wait: Too frequent. Next sync possible at ' + data.nextPossibleAt);
+                        } else if (data.success) {
+                            alert('Success! Added ' + data.added + ' new items.');
+                            window.location.reload();
+                        } else {
+                            alert('Failed: ' + data.error);
+                        }
+                    } catch (e) {
+                        alert('Error: ' + e);
+                    } finally {
+                        btn.disabled = false;
+                        btn.innerText = originalText;
+                    }
+                }
+            </script>
         `
     }));
 });
@@ -685,7 +879,7 @@ const NSID = {
 app.post('/sync', async (c) => {
     const payload = c.get('jwtPayload');
     const did = payload.sub;
-    const agent = await restoreAgent(c.env.DB, PUBLIC_URL, did);
+    const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
     if (!agent) return c.redirect('/login');
 
     try {
@@ -805,7 +999,7 @@ app.post('/ring/create', async (c) => {
     if (!title) return c.text('Title required', 400);
 
     try {
-        const agent = await restoreAgent(c.env.DB, new URL(c.req.url).origin, did);
+        const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
         if (!agent) return c.redirect('/login');
 
         const ringUri = await AtProtoService.createRing(agent, title, description);
@@ -848,7 +1042,7 @@ app.post('/ring/join', async (c) => {
     const payload = c.get('jwtPayload');
     const did = payload.sub;
     const body = await c.req.parseBody();
-    const ringUri = body['ring_uri'] as string;
+    const ringUri = (body['ring_uri'] as string || '').trim();
     const url = body['url'] as string;
     const title = body['title'] as string;
     const rss = body['rss'] as string;
@@ -856,34 +1050,55 @@ app.post('/ring/join', async (c) => {
     if (!ringUri || !url || !title) return c.text('Missing required fields', 400);
 
     try {
-        const agent = await restoreAgent(c.env.DB, new URL(c.req.url).origin, did);
+        const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
         if (!agent) return c.redirect('/login');
 
-        const memberUri = await AtProtoService.joinRing(agent, ringUri, { url, title, rss });
-
-        // 1. Fetch Ring Metadata and Save locally
+        // 1. Fetch Ring Metadata and Save/Update locally
+        let acceptancePolicy = 'automatic';
         try {
             const ringData = await AtProtoService.getRing(agent, ringUri);
+            acceptancePolicy = ringData.value.acceptancePolicy || 'automatic';
+            
             await c.env.DB.prepare(
-                "INSERT OR IGNORE INTO rings (uri, owner_did, title, description) VALUES (?, ?, ?, ?)"
-            ).bind(ringUri, new AtUri(ringUri).hostname, ringData.value.title, ringData.value.description || null).run();
+                "INSERT OR REPLACE INTO rings (uri, owner_did, title, description, acceptance_policy, status) VALUES (?, ?, ?, ?, ?, ?)"
+            ).bind(
+                ringUri, 
+                new AtUri(ringUri).hostname, 
+                ringData.value.title, 
+                ringData.value.description || null,
+                acceptancePolicy,
+                ringData.value.status || 'open'
+            ).run();
         } catch (ringError) {
-            console.error("Failed to fetch ring metadata during join:", ringError);
+            console.error(`Failed to fetch ring metadata during join for URI: ${ringUri}`, ringError);
+            // Fallback to local DB if available
+            const localRing = await c.env.DB.prepare("SELECT acceptance_policy FROM rings WHERE uri = ?").bind(ringUri).first() as any;
+            if (localRing) {
+                console.log(`Fallback to local DB found policy: ${localRing.acceptance_policy}`);
+                acceptancePolicy = localRing.acceptance_policy;
+            } else {
+                console.log("No local ring found for fallback, defaulting to automatic");
+            }
         }
+
+        console.log(`Proceeding to join ring: ${ringUri} with policy: ${acceptancePolicy}`);
+        const memberUri = await AtProtoService.joinRing(agent, ringUri, { url, title, rss });
+        console.log(`Joined ring successfully! Member record URI: ${memberUri}`);
+        const initialStatus = acceptancePolicy === 'manual' ? 'pending' : 'approved';
 
         // 2. Save membership locally
         const mySite = await c.env.DB.prepare("SELECT id FROM sites WHERE user_did = ?").bind(did).first() as { id: number };
         if (mySite) {
             await c.env.DB.prepare(
-                "INSERT OR IGNORE INTO memberships (ring_uri, site_id, member_uri) VALUES (?, ?, ?)"
-            ).bind(ringUri, mySite.id, memberUri).run();
+                "INSERT OR IGNORE INTO memberships (ring_uri, site_id, member_uri, status) VALUES (?, ?, ?, ?)"
+            ).bind(ringUri, mySite.id, memberUri, initialStatus).run();
         }
     } catch (e) {
         console.error("Error joining ring:", e);
         return c.text('Failed to join ring', 500);
     }
 
-    return c.redirect('/dashboard?msg=joined');
+    return c.redirect(`/dashboard?msg=joined&policy=\${acceptancePolicy}`);
 });
 
 app.post('/ring/leave', async (c) => {
@@ -895,7 +1110,7 @@ app.post('/ring/leave', async (c) => {
     if (!uri) return c.text('URI required', 400);
 
     try {
-        const agent = await restoreAgent(c.env.DB, new URL(c.req.url).origin, did);
+        const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
         if (!agent) return c.redirect('/login');
 
         await AtProtoService.leaveRing(agent, uri);
@@ -923,16 +1138,16 @@ app.post('/ring/update', async (c) => {
     if (!uri || !title || !status || !acceptance) return c.text('Missing required fields', 400);
 
     try {
-        const agent = await restoreAgent(c.env.DB, new URL(c.req.url).origin, did);
+        const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
         if (!agent) return c.redirect('/login');
 
         // 1. Update Repository (ATProto)
-        await AtProtoService.updateRing(agent, uri, title, description, status);
+        await AtProtoService.updateRing(agent, uri, title, description, status, acceptance);
 
         // 2. Update AppView (Indexer)
         await c.env.DB.prepare(
-            "UPDATE sites SET acceptance_policy = ?, atproto_status = ? WHERE user_did = ?"
-        ).bind(acceptance, status, did).run();
+            "UPDATE rings SET acceptance_policy = ?, status = ? WHERE uri = ?"
+        ).bind(acceptance, status, uri).run();
 
     } catch (e) {
         console.error("Error updating circle:", e);
@@ -940,6 +1155,59 @@ app.post('/ring/update', async (c) => {
     }
 
     return c.redirect('/dashboard');
+});
+
+app.post('/ring/approve', async (c) => {
+    const payload = c.get('jwtPayload');
+    const did = payload.sub;
+    const body = await c.req.parseBody();
+    const memberUri = body['member_uri'] as string;
+
+    if (!memberUri) return c.text('Member URI required', 400);
+
+    // Verify ownership
+    const membership = await c.env.DB.prepare(`
+        SELECT m.id, r.owner_did 
+        FROM memberships m 
+        JOIN rings r ON m.ring_uri = r.uri 
+        WHERE m.member_uri = ?
+    `).bind(memberUri).first() as { id: number, owner_did: string };
+
+    if (!membership || membership.owner_did !== did) {
+        return c.text('Unauthorized or membership not found', 403);
+    }
+
+    await c.env.DB.prepare("UPDATE memberships SET status = 'approved' WHERE id = ?").bind(membership.id).run();
+
+    return c.redirect('/dashboard?msg=approved');
+});
+
+app.post('/ring/reject', async (c) => {
+    const payload = c.get('jwtPayload');
+    const did = payload.sub;
+    const body = await c.req.parseBody();
+    const memberUri = body['member_uri'] as string;
+
+    if (!memberUri) return c.text('Member URI required', 400);
+
+    // Verify ownership
+    const membership = await c.env.DB.prepare(`
+        SELECT m.id, r.owner_did 
+        FROM memberships m 
+        JOIN rings r ON m.ring_uri = r.uri 
+        WHERE m.member_uri = ?
+    `).bind(memberUri).first() as { id: number, owner_did: string };
+
+    if (!membership || membership.owner_did !== did) {
+        return c.text('Unauthorized or membership not found', 403);
+    }
+
+    // Rejecting means deleting the membership record locally
+    // Note: We don't delete the record from the user's PDS as we don't have write access to their repo.
+    // They can still "leave" or "delete" it from their end.
+    await c.env.DB.prepare("DELETE FROM memberships WHERE id = ?").bind(membership.id).run();
+
+    return c.redirect('/dashboard?msg=rejected');
 });
 
 export default app;

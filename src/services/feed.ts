@@ -1,8 +1,8 @@
 import Parser from "rss-parser";
+import { Bindings } from "../types/bindings.js";
 
 /**
  * Custom type for the expected feed item structure.
- * We prioritize content that is useful for the Antenna feature.
  */
 export interface FeedItem {
     title?: string;
@@ -21,19 +21,14 @@ export interface ParsedFeed {
 
 /**
  * Fetches and parses an RSS/Atom feed.
- * Utilizes the global `fetch` API which is compatible with Cloudflare Workers,
- * and uses `rss-parser` to parse the XML content.
  */
 export async function fetchAndParseFeed(url: string): Promise<ParsedFeed> {
-    const parser = new Parser({
-        // Customizing fields is optional but good for type safety if needed.
-        // For now, default behavior is usually sufficient for standard RSS/Atom.
-    });
+    const parser = new Parser();
 
     try {
         const response = await fetch(url, {
             headers: {
-                "User-Agent": "Webring-Antenna/1.0 (Cloudflare Workers)",
+                "User-Agent": "Webring-Antenna/1.0 (Node.js)",
             },
         });
 
@@ -61,5 +56,77 @@ export async function fetchAndParseFeed(url: string): Promise<ParsedFeed> {
     } catch (error) {
         console.error(`Error parsing feed at ${url}:`, error);
         throw error;
+    }
+}
+
+/**
+ * Iterates through all active sites with RSS URLs and updates the antenna_items table.
+ */
+let lastUpdateAt = 0;
+const MIN_UPDATE_INTERVAL = 5 * 60 * 1000; // 5 minutes
+
+export async function updateAllFeeds(db: Bindings["DB"], force = false) {
+    const now = Date.now();
+    if (!force && now - lastUpdateAt < MIN_UPDATE_INTERVAL) {
+        console.log("[Antenna] Skipping update: Too frequent.");
+        return {
+            skipped: true,
+            nextPossibleAt: new Date(lastUpdateAt + MIN_UPDATE_INTERVAL)
+                .toLocaleTimeString(),
+        };
+    }
+    lastUpdateAt = now;
+
+    console.log("[Antenna] Starting global feed update...");
+    try {
+        const sites = await db.prepare(
+            "SELECT * FROM sites WHERE rss_url IS NOT NULL AND is_active = 1",
+        ).all();
+        if (!sites.results) return { success: true, added: 0 };
+
+        let totalAdded = 0;
+        for (const site of sites.results as any[]) {
+            console.log(
+                `[Antenna] Processing: ${site.title} (${site.rss_url})`,
+            );
+            try {
+                const feed = await fetchAndParseFeed(site.rss_url);
+                const recentItems = feed.items.slice(0, 10); // Check last 10 items
+
+                for (const item of recentItems) {
+                    if (!item.link || !item.title) continue;
+
+                    // Check for duplicates
+                    const exists = await db.prepare(
+                        "SELECT 1 FROM antenna_items WHERE url = ?",
+                    ).bind(item.link).first();
+
+                    if (!exists) {
+                        const publishedAt = item.isoDate
+                            ? Math.floor(
+                                new Date(item.isoDate).getTime() / 1000,
+                            )
+                            : Math.floor(Date.now() / 1000);
+
+                        await db.prepare(
+                            "INSERT INTO antenna_items (site_id, title, url, published_at) VALUES (?, ?, ?, ?)",
+                        ).bind(site.id, item.title, item.link, publishedAt)
+                            .run();
+
+                        totalAdded++;
+                        console.log(`[Antenna] Added: ${item.title}`);
+                    }
+                }
+            } catch (e) {
+                console.error(`[Antenna] Error for site ${site.id}:`, e);
+            }
+        }
+        console.log(
+            `[Antenna] Update complete. Added ${totalAdded} total items.`,
+        );
+        return { success: true, added: totalAdded };
+    } catch (e) {
+        console.error("[Antenna] Failed to update feeds:", e);
+        throw e;
     }
 }

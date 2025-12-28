@@ -11,6 +11,7 @@ export interface RingRecord {
     title: string;
     description: string;
     status: "open" | "closed";
+    acceptancePolicy: "automatic" | "manual";
     createdAt: string;
 }
 
@@ -51,6 +52,7 @@ export const AtProtoService = {
             title,
             description,
             status: "open", // Default to open on creation
+            acceptancePolicy: "automatic", // Default to automatic
             createdAt: new Date().toISOString(),
         };
 
@@ -104,6 +106,7 @@ export const AtProtoService = {
         title: string,
         description: string,
         status: "open" | "closed",
+        acceptancePolicy: "automatic" | "manual",
     ) {
         const { rkey } = new AtUri(uri);
         const record = {
@@ -111,6 +114,7 @@ export const AtProtoService = {
             title,
             description,
             status,
+            acceptancePolicy,
             createdAt: new Date().toISOString(),
         };
 

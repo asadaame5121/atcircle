@@ -5,7 +5,7 @@
     "main": {
       "type": "record",
       "description": "An at-circle group definition",
-      "key": "tid",
+      "rkey": "tid",
       "record": {
         "type": "object",
         "required": ["title", "createdAt", "status"],
@@ -16,6 +16,11 @@
             "type": "string",
             "knownValues": ["open", "closed"],
             "description": "Recruitment status"
+          },
+          "acceptancePolicy": {
+            "type": "string",
+            "knownValues": ["automatic", "manual"],
+            "description": "How new members are accepted"
           },
           "createdAt": { "type": "string", "format": "datetime" }
         }

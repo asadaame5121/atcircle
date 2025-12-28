@@ -6,50 +6,99 @@ import { Bindings } from '../types/bindings.js';
 const app = new Hono<{ Bindings: Bindings }>();
 
 app.get('/', async (c) => {
+    const ringUri = c.req.query('ring');
+    
     try {
-        const items = await c.env.DB.prepare(`
-            SELECT 
-                ai.title as item_title, 
-                ai.url as item_url, 
-                ai.published_at, 
-                s.title as site_title, 
-                s.url as site_url 
-            FROM antenna_items ai
-            JOIN sites s ON ai.site_id = s.id
-            WHERE s.is_active = 1
-            ORDER BY ai.published_at DESC
-            LIMIT 50
-        `).all<any>();
+        let items;
+        let title = 'Webring Antenna';
+        let ringInfo = null;
+
+        if (ringUri) {
+            // Filter by ring
+            ringInfo = await c.env.DB.prepare("SELECT title FROM rings WHERE uri = ?").bind(ringUri).first<any>();
+            if (ringInfo) {
+                title = `${ringInfo.title} - Antenna`;
+            }
+
+            items = await c.env.DB.prepare(`
+                SELECT 
+                    ai.title as item_title, 
+                    ai.url as item_url, 
+                    ai.published_at, 
+                    s.title as site_title, 
+                    s.url as site_url 
+                FROM antenna_items ai
+                JOIN sites s ON ai.site_id = s.id
+                JOIN memberships m ON s.id = m.site_id
+                WHERE s.is_active = 1 AND m.ring_uri = ?
+                ORDER BY ai.published_at DESC
+                LIMIT 50
+            `).bind(ringUri).all<any>();
+        } else {
+            // Global view
+            items = await c.env.DB.prepare(`
+                SELECT 
+                    ai.title as item_title, 
+                    ai.url as item_url, 
+                    ai.published_at, 
+                    s.title as site_title, 
+                    s.url as site_url 
+                FROM antenna_items ai
+                JOIN sites s ON ai.site_id = s.id
+                WHERE s.is_active = 1
+                ORDER BY ai.published_at DESC
+                LIMIT 50
+            `).all<any>();
+        }
 
         return c.html(Layout({
-            title: 'Webring Antenna',
+            title: title,
             children: html`
-                <div class="card bg-base-100 shadow-xl">
+                <div class="card bg-base-100 shadow-xl max-w-4xl mx-auto">
                     <div class="card-body">
-                        <h2 class="card-title text-3xl mb-2">Antenna</h2>
-                        <p class="mb-6 opacity-70">Recent updates from the community.</p>
+                        <div class="flex justify-between items-end mb-6">
+                            <div>
+                                <h1 class="card-title text-4xl mb-1">${ringInfo ? ringInfo.title : 'Global Antenna'}</h1>
+                                <p class="opacity-70">${ringInfo ? 'Recent updates from this ring.' : 'Recent updates from across the community.'}</p>
+                            </div>
+                            ${ringUri ? html`<a href="/rings/view?ring=${encodeURIComponent(ringUri)}" class="btn btn-ghost btn-sm">Back to Ring</a>` : ''}
+                        </div>
                         
                         ${items.results && items.results.length > 0 ? html`
-                            <ul class="timeline timeline-vertical timeline-compact">
+                            <div class="space-y-6">
                                 ${items.results.map((item: any) => html`
-                                    <li>
-                                        <div class="timeline-middle">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 text-primary"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                                    <div class="flex gap-4 group">
+                                        <div class="hidden md:flex flex-col items-center">
+                                            <div class="w-1 bg-base-300 flex-1 group-first:bg-transparent"></div>
+                                            <div class="w-4 h-4 rounded-full border-2 border-primary bg-base-100"></div>
+                                            <div class="w-1 bg-base-300 flex-1 group-last:bg-transparent"></div>
                                         </div>
-                                        <div class="timeline-end mb-10 w-full card bg-base-200 p-4 rounded-box">
-                                            <div class="flex items-center gap-2 mb-1">
-                                                <a href="${item.site_url}" target="_blank" class="font-bold text-sm link link-hover">${item.site_title}</a>
-                                                <span class="text-xs opacity-50">${new Date(item.published_at * 1000).toLocaleString()}</span>
+                                        <div class="flex-1 pb-8">
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <span class="text-xs font-mono opacity-40 uppercase">${new Date(item.published_at * 1000).toLocaleDateString()}</span>
+                                                <div class="h-1 w-1 bg-base-300 rounded-full"></div>
+                                                <a href="${item.site_url}" target="_blank" class="text-xs font-bold link link-hover opacity-60 hover:opacity-100">
+                                                    ${item.site_title}
+                                                </a>
                                             </div>
-                                            <div class="text-lg font-semibold">
-                                                <a href="${item.item_url}" target="_blank" class="link link-primary no-underline hover:underline">${item.item_title}</a>
-                                            </div>
+                                            <h3 class="text-xl font-bold mb-2">
+                                                <a href="${item.item_url}" target="_blank" class="hover:text-primary transition-colors">
+                                                    ${item.item_title}
+                                                </a>
+                                            </h3>
                                         </div>
-                                        <hr/>
-                                    </li>
+                                    </div>
                                 `)}
-                            </ul>
-                        ` : html`<div class="alert">No updates yet. Check back later!</div>`}
+                            </div>
+                        ` : html`
+                            <div class="alert alert-ghost border-2 border-dashed py-12 flex flex-col gap-4 text-center">
+                                <span class="text-4xl">📭</span>
+                                <div>
+                                    <p class="font-bold">No updates found.</p>
+                                    <p class="text-sm opacity-60">Try checking back in a few hours! feeds are updated periodically.</p>
+                                </div>
+                            </div>
+                        `}
                     </div>
                 </div>
             `

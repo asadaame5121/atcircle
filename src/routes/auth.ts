@@ -1,18 +1,18 @@
 import { Hono } from "hono";
 import { html } from "hono/html";
-import { setCookie } from "hono/cookie";
+import { getCookie, setCookie } from "hono/cookie";
 import { sign } from "hono/jwt";
-import { Layout } from "../components/Layout";
-import { Bindings } from "../types/bindings";
-import { createClient } from "../services/oauth";
-import { PUBLIC_URL, SECRET_KEY } from "../config";
+import { Layout } from "../components/Layout.js";
+import { Bindings } from "../types/bindings.js";
+import { createClient } from "../services/oauth.js";
+import { PUBLIC_URL, SECRET_KEY } from "../config.js";
 import { D1Database } from "@cloudflare/workers-types";
 
 const app = new Hono<{ Bindings: Bindings }>();
 
 // Helper to get client (lazy init or per request)
 let oauthClient: any = null;
-const getOAuthClient = async (db: D1Database) => {
+const getOAuthClient = async (db: any) => {
     if (!oauthClient) {
         oauthClient = await createClient(db, PUBLIC_URL);
     }
@@ -20,6 +20,7 @@ const getOAuthClient = async (db: D1Database) => {
 };
 
 app.get("/login", (c) => {
+    const next = c.req.query("next") || "";
     return c.html(Layout({
         title: "Login",
         children: html`
@@ -30,6 +31,7 @@ app.get("/login", (c) => {
                     </h2>
                     <p class="text-center mb-4">Enter your Bluesky handle.</p>
                     <form action="/auth/login" method="POST">
+                        <input type="hidden" name="next" value="${next}" />
                         <div class="form-control w-full max-w-xs mb-4">
                             <label class="label">
                                 <span class="label-text">Bluesky Handle</span>
@@ -58,12 +60,21 @@ app.get("/login", (c) => {
 app.post("/auth/login", async (c) => {
     const body = await c.req.parseBody();
     const handle = body["handle"] as string;
+    const next = body["next"] as string;
+
+    if (next) {
+        setCookie(c, "auth_next", next, {
+            path: "/",
+            maxAge: 600,
+            sameSite: "Lax",
+        });
+    }
 
     try {
         console.log("Attempting login for:", handle);
         console.log("Worker Version: v9-fix (Handle Fetch)"); // Debug log
         const client = await getOAuthClient(
-            c.env.DB,
+            c.env.DB as any,
         );
         const url = await client.authorize(handle, {
             scope: "atproto transition:generic",
@@ -85,7 +96,7 @@ app.post("/auth/login", async (c) => {
 });
 
 app.get("/auth/callback", async (c) => {
-    const client = await getOAuthClient(c.env.DB);
+    const client = await getOAuthClient(c.env.DB as any);
     const params = new URLSearchParams(c.req.query());
     console.log(`[AuthCallback] Received callback: ${params.toString()}`);
 
@@ -148,7 +159,10 @@ app.get("/auth/callback", async (c) => {
             sameSite: "Lax",
         });
 
-        return c.redirect("/dashboard");
+        const next = getCookie(c, "auth_next") || "/dashboard";
+        setCookie(c, "auth_next", "", { path: "/", maxAge: 0 });
+
+        return c.redirect(next);
     } catch (e) {
         console.error(e);
         return c.text("Authentication failed", 401);
@@ -169,7 +183,7 @@ app.post("/logout", (c) => {
 
 app.get("/client-metadata.json", async (c) => {
     const client = await getOAuthClient(
-        c.env.DB,
+        c.env.DB as any,
     );
     return c.json(client.clientMetadata);
 });

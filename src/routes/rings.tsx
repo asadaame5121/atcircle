@@ -2,15 +2,27 @@ import { Hono } from 'hono';
 import { html } from 'hono/html';
 import { Layout } from '../components/Layout.js';
 import { Bindings } from '../types/bindings.js';
+import { generateOpml } from '../services/opml.js';
+import { injectMockData } from '../scripts/mock_data.js';
 
 const app = new Hono<{ Bindings: Bindings }>();
+
+// Temporary Debug route to inject mock data
+app.post('/debug/mock-data', async (c) => {
+    const ringUri = (await c.req.parseBody()).ring_uri as string;
+    if (!ringUri) return c.text('Missing ring URI', 400);
+    
+    await injectMockData(c.env.DB, ringUri);
+    return c.redirect(`/rings/view?ring=${encodeURIComponent(ringUri)}`);
+});
 
 // List all rings
 app.get('/', async (c) => {
     const rings = await c.env.DB.prepare(`
         SELECT r.*, 
-               (SELECT COUNT(*) FROM memberships m WHERE m.ring_uri = r.uri) as member_count 
+               (SELECT COUNT(*) FROM memberships m WHERE m.ring_uri = r.uri AND m.status = 'approved') as member_count 
         FROM rings r 
+        WHERE r.status = 'open'
         ORDER BY created_at DESC
     `).all<any>(); 
     
@@ -69,7 +81,7 @@ app.get('/view', async (c) => {
         SELECT s.*, m.member_uri
         FROM sites s
         JOIN memberships m ON s.id = m.site_id
-        WHERE m.ring_uri = ? AND s.is_active = 1
+        WHERE m.ring_uri = ? AND s.is_active = 1 AND m.status = 'approved'
         ORDER BY m.created_at ASC
     `).bind(ringUri).all<any>();
 
@@ -85,13 +97,15 @@ app.get('/view', async (c) => {
                         </ul>
                     </div>
 
-                    <div class="flex justify-between items-end mb-8">
-                        <div>
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
+                        <div class="flex-1">
                             <h1 class="card-title text-3xl mb-2">${ring.title}</h1>
                             <p class="opacity-75">${ring.description || 'No description provided.'}</p>
                         </div>
-                        <div class="flex gap-2">
-                            <a href="/nav/random?ring=${encodeURIComponent(ringUri)}" class="btn btn-primary">🎲 Random Jump</a>
+                        <div class="flex flex-wrap gap-2">
+                            <a href="/antenna?ring=${encodeURIComponent(ringUri)}" class="btn btn-outline btn-sm">📡 Antenna</a>
+                            <a href="/rings/opml?ring=${encodeURIComponent(ringUri)}" class="btn btn-outline btn-sm">📦 OPML</a>
+                            <a href="/nav/random?ring=${encodeURIComponent(ringUri)}" class="btn btn-primary btn-sm">🎲 Random Jump</a>
                         </div>
                     </div>
 
@@ -99,7 +113,7 @@ app.get('/view', async (c) => {
 
                     ${members.results && members.results.length > 0 ? html`
                         <div class="overflow-x-auto">
-                            <table class="table table-zebra w-full">
+                            <table class="table table-zebra w-full text-sm">
                                 <thead>
                                     <tr>
                                         <th>Site</th>
@@ -112,13 +126,13 @@ app.get('/view', async (c) => {
                                         <tr>
                                             <td>
                                                 <div class="font-bold">${site.title}</div>
-                                                <div class="text-xs opacity-50 underline"><a href="${site.url}" target="_blank">${site.url}</a></div>
+                                                <div class="text-xs opacity-50 underline truncate max-w-[200px]"><a href="${site.url}" target="_blank">${site.url}</a></div>
                                             </td>
-                                            <td class="max-w-xs truncate">${site.description || '-'}</td>
+                                            <td class="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">${site.description || '-'}</td>
                                             <td>
                                                 <div class="flex gap-2">
                                                     <a href="${site.url}" target="_blank" class="btn btn-xs btn-ghost">Visit</a>
-                                                    ${site.rss_url ? html`<a href="${site.rss_url}" target="_blank" class="badge badge-warning">RSS</a>` : ''}
+                                                    ${site.rss_url ? html`<a href="${site.rss_url}" target="_blank" class="badge badge-warning badge-sm">RSS</a>` : ''}
                                                 </div>
                                             </td>
                                         </tr>
@@ -129,13 +143,43 @@ app.get('/view', async (c) => {
                     ` : html`<div class="alert alert-ghost border-dashed">No sites have joined this ring yet.</div>`}
 
                     <div class="card-actions justify-center mt-12 gap-4">
-                        <a href="/dashboard/ring/join?ring_uri=${encodeURIComponent(ringUri)}" class="btn btn-secondary">Join this Ring</a>
+                        <a href="/dashboard?ring_uri=${encodeURIComponent(ringUri)}" class="btn btn-secondary">Join this Ring</a>
                         <a href="/rings" class="btn btn-ghost">Back to List</a>
                     </div>
                 </div>
             </div>
         `
     }));
+});
+
+// Export OPML for a specific ring
+app.get('/opml', async (c) => {
+    const ringUri = c.req.query('ring');
+    if (!ringUri) return c.text('Missing ring URI', 400);
+
+    const ring = await c.env.DB.prepare("SELECT title FROM rings WHERE uri = ?").bind(ringUri).first<any>();
+    const members = await c.env.DB.prepare(`
+        SELECT s.title, s.url, s.rss_url, s.description
+        FROM sites s
+        JOIN memberships m ON s.id = m.site_id
+        WHERE m.ring_uri = ? AND s.is_active = 1 AND s.rss_url IS NOT NULL
+    `).bind(ringUri).all<any>();
+
+    const opml = generateOpml({
+        title: ring ? `${ring.title} Members` : 'Webring Members',
+        outlines: (members.results || []).map(m => ({
+            text: m.title,
+            title: m.title,
+            type: 'rss',
+            xmlUrl: m.rss_url,
+            htmlUrl: m.url,
+            description: m.description
+        }))
+    });
+
+    c.header('Content-Type', 'text/x-opml+xml');
+    c.header('Content-Disposition', `attachment; filename="ring-${encodeURIComponent(ring?.title || 'members')}.opml"`);
+    return c.body(opml);
 });
 
 export default app;
