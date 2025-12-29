@@ -202,7 +202,7 @@ app.get("/opml", async (c) => {
         .all<any>();
 
     const opml = generateOpml({
-        title: ring ? `${ring.title} Members` : "Webring Members",
+        title: ring ? `${ring.title} Members` : "ATcircle Members",
         outlines: (members.results || []).map((m) => ({
             text: m.title,
             title: m.title,

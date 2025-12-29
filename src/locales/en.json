@@ -1,8 +1,8 @@
 {
     "common": {
-        "brand": "Webring",
+        "brand": "ATcircle",
         "home": "Home",
-        "rings": "Rings",
+        "rings": "Explore Webrings",
         "antenna": "Antenna",
         "dashboard": "Dashboard",
         "logout": "Logout",
@@ -10,35 +10,39 @@
         "cancel": "Cancel",
         "save": "Save",
         "delete": "Delete",
-        "back": "Back"
+        "back": "Back",
+        "terms": "Terms of Use",
+        "privacy": "Privacy Policy",
+        "footer_desc": "Webring system for personal sites leveraging ATProto"
     },
     "home": {
-        "welcome": "Welcome to the Webring",
-        "description": "Join the ring to discover amazing sites and connect with the community.",
+        "welcome": "Welcome to ATcircle",
+        "description": "Join a webring to discover amazing sites and connect with the community.",
         "login_button": "Login with Bluesky"
     },
     "auth": {
-        "login_title": "Join the Webring",
+        "login_title": "Join ATcircle",
         "enter_handle": "Enter your Bluesky handle.",
         "handle_placeholder": "example.bsky.social",
         "error_failed": "Authentication failed",
-        "try_again": "Try Again"
+        "try_again": "Try Again",
+        "permission_desc": "ATcircle only uses read-only access to your public Bluesky profile to discover links and simplify registration. We do not access your password or private data."
     },
     "dashboard": {
         "title": "Dashboard",
-        "create_ring": "Create Ring",
-        "join_ring": "Join Ring",
+        "create_ring": "Create Webring",
+        "join_ring": "Join Webring",
         "how_it_works_title": "How it works",
-        "how_it_works_body": "AT-Circle is a webring (community circle) for personal sites leveraging ATProto. You can 'Create' a ring to gather friends, or 'Join' an existing ring and place a widget on your site to connect sites with similar interests.",
-        "msg_created": "Circle created successfully!",
-        "msg_joined": "Joined circle successfully!",
+        "how_it_works_body": "ATcircle is a webring system for personal sites leveraging ATProto. You can 'Create' a webring to gather friends, or 'Join' an existing one and place a widget on your site to connect with similar interests.",
+        "msg_created": "Webring created successfully!",
+        "msg_joined": "Joined webring successfully!",
         "msg_joined_pending": "Join request submitted.",
-        "msg_left": "Left circle successfully.",
+        "msg_left": "Left webring successfully.",
         "msg_updated": "Updated successfully!",
         "msg_approved": "Member approved!",
         "msg_rejected": "Member request rejected.",
-        "managed_rings": "Your Managed Circles",
-        "joined_rings": "Your Joined Circles",
+        "managed_rings": "Your Managed Webrings",
+        "joined_rings": "Your Joined Webrings",
         "pending_requests": "Pending Member Requests",
         "btn_invite": "Invite",
         "btn_config": "Config",
@@ -46,16 +50,16 @@
         "btn_unregister": "Unregister",
         "btn_sync_feeds": "Sync Feeds",
         "danger_zone": "Danger Zone",
-        "leave_warning": "Once you leave the Webring, your site and account information will be permanently deleted. This action cannot be undone.",
-        "btn_leave": "Leave Webring",
-        "confirm_leave": "Are you sure you want to leave the Webring? Your account and site registration will be permanently deleted.",
+        "leave_warning": "Once you leave ATcircle, your site and account information will be permanently deleted.",
+        "btn_leave": "Leave ATcircle",
+        "confirm_leave": "Are you sure you want to leave ATcircle? Your account and site registration will be permanently deleted.",
         "btn_confirm_delete": "Yes, delete my account",
         "discovery_found": "Found {{count}} URL(s) in your profile!",
         "discovery_not_found": "No URL found in your BlueSky profile.",
         "discovery_failed": "Failed to check profile."
     },
     "ring_ops": {
-        "create_title": "Create a New Ring",
+        "create_title": "Create a New Webring",
         "field_title": "Title",
         "field_description": "Description",
         "field_status": "Status (Public)",
@@ -65,7 +69,7 @@
         "policy_manual": "MANUAL (Needs Approval)",
         "policy_automatic": "AUTOMATIC (Auto-accept)",
         "join_title": "Join a Webring",
-        "field_ring_uri": "Ring URI",
+        "field_ring_uri": "Webring URI",
         "your_site_details": "Your Site Details",
         "field_site_url": "Site URL",
         "field_site_title": "Site Title",
@@ -115,5 +119,11 @@
         "list": "List",
         "part_of": "This site is part of the webring:",
         "error_missing": "Webring error: Site or Ring attribute missing."
+    },
+    "legal": {
+        "terms_title": "Terms of Use",
+        "terms_content": "<h3>1. Purpose</h3><p>These terms govern the use of the ATcircle webring service.</p><h3>2. Registration</h3><p>Users must provide accurate information when using the service.</p><h3>3. Prohibited Conduct</h3><p>Registration of sites that violate public order, morals, or laws is prohibited.</p><h3>4. Disclaimer</h3><p>The operator is not liable for any damages arising from the use of this service.</p>",
+        "privacy_title": "Privacy Policy",
+        "privacy_content": "<h3>1. Information Collected</h3><p>The service collects Bluesky DID, handle, and profile info via OAuth.</p><h3>2. Use of Information</h3><p>Collected information is used for user identification and webring features.</p><h3>3. Third-Party Sharing</h3><p>Information is not shared with third parties except as required by law.</p><h3>4. Data Deletion</h3><p>Users can delete their account and data at any time via the dashboard.</p>"
     }
 }

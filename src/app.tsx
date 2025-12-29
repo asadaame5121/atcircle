@@ -8,6 +8,7 @@ import dashboard from "./routes/dashboard.js";
 import auth from "./routes/auth.js";
 import navigation from "./routes/navigation.js";
 import widgetBuilder from "./routes/widget_builder.js";
+import legal from "./routes/legal.js";
 import { updateAllFeeds } from "./services/feed.js";
 import db from "./db.js";
 
@@ -53,6 +54,7 @@ app.route("/rings", rings);
 app.route("/dashboard", dashboard);
 app.route("/dashboard/ring/widget", widgetBuilder);
 app.route("/", auth);
+app.route("/", legal);
 app.route("/nav", navigation);
 
 // Compatibility redirect for users who use /widget.js

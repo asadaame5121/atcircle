@@ -29,38 +29,46 @@ app.get("/login", (c) => {
             t,
             lang,
             children: html`
-            <div class="card w-96 bg-base-100 shadow-xl mx-auto mt-10">
-                <div class="card-body">
-                    <h2 class="card-title justify-center text-2xl mb-4">
-                        ${t("auth.login_title")}
-                    </h2>
-                    <p class="text-center mb-4">${t("auth.enter_handle")}</p>
-                    <form action="/auth/login" method="POST">
-                        <input type="hidden" name="next" value="${next}" />
-                        <div class="form-control w-full max-w-xs mb-4">
-                            <label class="label">
-                                <span class="label-text">${t(
-                                    "auth.enter_handle",
-                                )}</span>
-                            </label>
-                            <input
-                                type="text"
-                                name="handle"
-                                required
-                                placeholder="${t("auth.handle_placeholder")}"
-                                class="input input-bordered w-full max-w-xs"
-                            />
+                <div class="card w-96 bg-base-100 shadow-xl mx-auto mt-10">
+                    <div class="card-body">
+                        <h2 class="card-title justify-center text-2xl mb-4">
+                            ${t("auth.login_title")}
+                        </h2>
+                        <p class="text-center mb-4">${t(
+                            "auth.enter_handle",
+                        )}</p>
+                        <form action="/auth/login" method="POST">
+                            <input type="hidden" name="next" value="${next}" />
+                            <div class="form-control w-full max-w-xs mb-4">
+                                <label class="label">
+                                    <span class="label-text">${t(
+                                        "auth.enter_handle",
+                                    )}</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    name="handle"
+                                    required
+                                    placeholder="${t(
+                                        "auth.handle_placeholder",
+                                    )}"
+                                    class="input input-bordered w-full max-w-xs"
+                                />
+                            </div>
+                            <div class="card-actions justify-center">
+                                <button type="submit" class="btn btn-primary w-full">
+                                    ${t("common.login")}
+                                </button>
+                            </div>
+                        </form>
+                        <div class="divider mt-6 opacity-30"></div>
+                        <div class="text-xs opacity-60 leading-relaxed text-center px-4">
+                            ${t("auth.permission_desc")}
                         </div>
-                        <div class="card-actions justify-center">
-                            <button type="submit" class="btn btn-primary w-full">
-                                ${t("common.login")}
-                            </button>
-                        </div>
-                    </form>
+                    </div>
                 </div>
-            </div>
-            </div>
-        `,
+                </div>
+            `,
         }),
     );
 });
@@ -96,12 +104,12 @@ app.post("/auth/login", async (c) => {
                 t,
                 lang,
                 children: html`
-                <div class="card" style="max-width: 400px; margin: 0 auto; text-align: center;">
-                    <h2 class="error">${t("common.brand")} Error</h2>
-                    <p>${e.message}</p>
-                    <a href="/login" class="btn">${t("auth.try_again")}</a>
-                </div>
-            `,
+                    <div class="card" style="max-width: 400px; margin: 0 auto; text-align: center;">
+                        <h2 class="error">${t("common.brand")} Error</h2>
+                        <p>${e.message}</p>
+                        <a href="/login" class="btn">${t("auth.try_again")}</a>
+                    </div>
+                `,
             }),
         );
     }

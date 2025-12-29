@@ -134,7 +134,7 @@ class WebringNav extends HTMLElement {
     const customCss = this.getAttribute('css') || '';
     
     // Custom Labels
-    const labelTitle = this.getAttribute('label-title') || 'Webring';
+    const labelTitle = this.getAttribute('label-title') || 'ATcircle';
     const labelRandom = this.getAttribute('label-random') || 'Random';
     const labelList = this.getAttribute('label-list') || 'List';
 
@@ -297,7 +297,7 @@ class WebringNav extends HTMLElement {
       }
     \`;
 
-    const bannerHtml = banner ? \`<div class="webring-banner"><img src="\${banner}" alt="Webring Banner"></div>\` : '';
+    const bannerHtml = banner ? \`<div class="webring-banner"><img src="\${banner}" alt="ATcircle Banner"></div>\` : '';
     const cssHtml = customCss ? \`<link rel="stylesheet" href="\${customCss}">\` : '';
 
     let content = '';
