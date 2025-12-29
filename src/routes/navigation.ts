@@ -1,117 +1,123 @@
 import { Hono } from "hono";
-import { Bindings } from "../types/bindings.js";
+import { AppVariables, Bindings } from "../types/bindings.js";
 import { PUBLIC_URL } from "../config.js";
 
-const app = new Hono<{ Bindings: Bindings }>();
+const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
 
 // Helper to normalize URL for comparison (remove trailing slash)
 const normalizeUrl = (u: string) => u.replace(/\/$/, "");
 
 app.get("/random", async (c) => {
-  const ring = c.req.query("ring");
-  let site;
-  if (ring) {
-    site = await c.env.DB.prepare(
-      `SELECT s.url FROM sites s 
+    const ring = c.req.query("ring");
+    let site;
+    if (ring) {
+        site = await c.env.DB.prepare(
+            `SELECT s.url FROM sites s 
              JOIN memberships m ON s.id = m.site_id 
              WHERE s.is_active = 1 AND m.ring_uri = ? 
              ORDER BY RANDOM() LIMIT 1`,
-    ).bind(ring).first<{ url: string }>();
-  } else {
-    site = await c.env.DB.prepare(
-      "SELECT url FROM sites WHERE is_active = 1 ORDER BY RANDOM() LIMIT 1",
-    ).first<{ url: string }>();
-  }
+        )
+            .bind(ring)
+            .first<{ url: string }>();
+    } else {
+        site = await c.env.DB.prepare(
+            "SELECT url FROM sites WHERE is_active = 1 ORDER BY RANDOM() LIMIT 1",
+        ).first<{ url: string }>();
+    }
 
-  if (site) {
-    return c.redirect(site.url);
-  }
-  return c.text("No active sites in the ring yet!", 404);
+    if (site) {
+        return c.redirect(site.url);
+    }
+    return c.text("No active sites in the ring yet!", 404);
 });
 
 app.get("/next", async (c) => {
-  const from = c.req.query("from") || c.req.header("Referer");
-  const ring = c.req.query("ring");
-  if (!from) {
-    return c.redirect(
-      "/nav/random" + (ring ? `?ring=${encodeURIComponent(ring)}` : ""),
-    );
-  }
+    const from = c.req.query("from") || c.req.header("Referer");
+    const ring = c.req.query("ring");
+    if (!from) {
+        return c.redirect(
+            "/nav/random" + (ring ? `?ring=${encodeURIComponent(ring)}` : ""),
+        );
+    }
 
-  let sites;
-  if (ring) {
-    sites = await c.env.DB.prepare(
-      `SELECT s.id, s.url FROM sites s 
+    let sites;
+    if (ring) {
+        sites = await c.env.DB.prepare(
+            `SELECT s.id, s.url FROM sites s 
              JOIN memberships m ON s.id = m.site_id 
              WHERE s.is_active = 1 AND m.ring_uri = ? 
              ORDER BY s.id ASC`,
-    ).bind(ring).all<{ id: number; url: string }>();
-  } else {
-    sites = await c.env.DB.prepare(
-      "SELECT id, url FROM sites WHERE is_active = 1 ORDER BY id ASC",
-    ).all<{ id: number; url: string }>();
-  }
+        )
+            .bind(ring)
+            .all<{ id: number; url: string }>();
+    } else {
+        sites = await c.env.DB.prepare(
+            "SELECT id, url FROM sites WHERE is_active = 1 ORDER BY id ASC",
+        ).all<{ id: number; url: string }>();
+    }
 
-  if (!sites.results || sites.results.length === 0) {
-    return c.text("No sites.", 404);
-  }
+    if (!sites.results || sites.results.length === 0) {
+        return c.text("No sites.", 404);
+    }
 
-  const list = sites.results;
-  const normalizedFrom = normalizeUrl(from);
-  let currentIndex = list.findIndex((s) =>
-    normalizeUrl(s.url) === normalizedFrom
-  );
+    const list = sites.results;
+    const normalizedFrom = normalizeUrl(from);
+    let currentIndex = list.findIndex(
+        (s) => normalizeUrl(s.url) === normalizedFrom,
+    );
 
-  if (currentIndex === -1) currentIndex = -1;
+    if (currentIndex === -1) currentIndex = -1;
 
-  let nextIndex = currentIndex + 1;
-  if (nextIndex >= list.length) nextIndex = 0; // Loop
+    let nextIndex = currentIndex + 1;
+    if (nextIndex >= list.length) nextIndex = 0; // Loop
 
-  return c.redirect(list[nextIndex].url);
+    return c.redirect(list[nextIndex].url);
 });
 
 app.get("/prev", async (c) => {
-  const from = c.req.query("from") || c.req.header("Referer");
-  const ring = c.req.query("ring");
-  if (!from) {
-    return c.redirect(
-      "/nav/random" + (ring ? `?ring=${encodeURIComponent(ring)}` : ""),
-    );
-  }
+    const from = c.req.query("from") || c.req.header("Referer");
+    const ring = c.req.query("ring");
+    if (!from) {
+        return c.redirect(
+            "/nav/random" + (ring ? `?ring=${encodeURIComponent(ring)}` : ""),
+        );
+    }
 
-  let sites;
-  if (ring) {
-    sites = await c.env.DB.prepare(
-      `SELECT s.id, s.url FROM sites s 
+    let sites;
+    if (ring) {
+        sites = await c.env.DB.prepare(
+            `SELECT s.id, s.url FROM sites s 
              JOIN memberships m ON s.id = m.site_id 
              WHERE s.is_active = 1 AND m.ring_uri = ? 
              ORDER BY s.id ASC`,
-    ).bind(ring).all<{ id: number; url: string }>();
-  } else {
-    sites = await c.env.DB.prepare(
-      "SELECT id, url FROM sites WHERE is_active = 1 ORDER BY id ASC",
-    ).all<{ id: number; url: string }>();
-  }
+        )
+            .bind(ring)
+            .all<{ id: number; url: string }>();
+    } else {
+        sites = await c.env.DB.prepare(
+            "SELECT id, url FROM sites WHERE is_active = 1 ORDER BY id ASC",
+        ).all<{ id: number; url: string }>();
+    }
 
-  if (!sites.results || sites.results.length === 0) {
-    return c.text("No sites.", 404);
-  }
+    if (!sites.results || sites.results.length === 0) {
+        return c.text("No sites.", 404);
+    }
 
-  const list = sites.results;
-  const normalizedFrom = normalizeUrl(from);
-  let currentIndex = list.findIndex((s) =>
-    normalizeUrl(s.url) === normalizedFrom
-  );
+    const list = sites.results;
+    const normalizedFrom = normalizeUrl(from);
+    let currentIndex = list.findIndex(
+        (s) => normalizeUrl(s.url) === normalizedFrom,
+    );
 
-  let prevIndex = currentIndex - 1;
-  if (prevIndex < 0) prevIndex = list.length - 1; // Loop
+    let prevIndex = currentIndex - 1;
+    if (prevIndex < 0) prevIndex = list.length - 1; // Loop
 
-  return c.redirect(list[prevIndex].url);
+    return c.redirect(list[prevIndex].url);
 });
 
 app.get("/widget.js", (c) => {
-  const baseUrl = PUBLIC_URL;
-  const script = `
+    const baseUrl = PUBLIC_URL;
+    const script = `
 class WebringNav extends HTMLElement {
   constructor() {
     super();
@@ -124,6 +130,14 @@ class WebringNav extends HTMLElement {
     const theme = this.getAttribute('theme') || 'system';
     const layout = this.getAttribute('layout') || 'default';
     const transparent = this.hasAttribute('transparent');
+    const banner = this.getAttribute('banner') || '';
+    const customCss = this.getAttribute('css') || '';
+    
+    // Custom Labels
+    const labelTitle = this.getAttribute('label-title') || 'Webring';
+    const labelRandom = this.getAttribute('label-random') || 'Random';
+    const labelList = this.getAttribute('label-list') || 'List';
+
     const baseUrl = "${baseUrl}";
 
     const ringParam = ring ? \`&ring=\${encodeURIComponent(ring)}\` : '';
@@ -175,6 +189,18 @@ class WebringNav extends HTMLElement {
         -webkit-backdrop-filter: blur(8px);
         border: 1px solid var(--wr-border);
         transition: all 0.3s ease;
+        overflow: hidden;
+      }
+
+      /* Banner Stylings */
+      .webring-banner {
+        width: 100%;
+        display: block;
+      }
+      .webring-banner img {
+        width: 100%;
+        height: auto;
+        display: block;
       }
 
       /* Default Layout */
@@ -196,6 +222,17 @@ class WebringNav extends HTMLElement {
         padding: 5px;
         border-radius: 8px;
         gap: 5px;
+      }
+
+      /* Simple Layout */
+      .webring-widget.layout-simple {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 300px;
+        border-radius: 12px;
+        padding: 10px;
+        gap: 8px;
       }
 
       /* Common Elements */
@@ -225,15 +262,7 @@ class WebringNav extends HTMLElement {
         justify-content: center;
       }
 
-      /* Compact Nav Buttons */
-      .layout-compact .nav-btn {
-        width: 100%;
-        height: 30px;
-        border-radius: 4px; /* Square in compact */
-        background: var(--wr-hover); /* Always slight visible bg in compact */
-      }
-
-      /* Title Area */
+      /* Webring Info */
       .webring-info {
         display: flex;
         flex-direction: column;
@@ -249,60 +278,57 @@ class WebringNav extends HTMLElement {
         opacity: 0.8;
       }
 
-      /* Layout Specific Adjustments */
-      .layout-compact .webring-title {
-        grid-column: 2;
-        grid-row: 1;
-        align-self: center;
-        margin: 0;
-        font-size: 0.9rem;
-      }
-
-      .layout-compact .nav-prev { grid-column: 1; grid-row: 1; }
-      .layout-compact .nav-next { grid-column: 3; grid-row: 1; }
-
-      /* Menu Actions */
       .webring-actions {
         display: flex;
         gap: 8px;
         font-size: 0.8rem;
       }
 
-      .layout-compact .webring-actions {
-        grid-column: 1 / -1;
-        grid-row: 2;
-        justify-content: center;
-        border-top: 1px solid var(--wr-border);
-        padding-top: 4px;
+      /* Simple Layout Specific */
+      .layout-simple .webring-nav-controls {
+        display: flex;
+        align-items: center;
         gap: 12px;
+        font-size: 1.1rem;
       }
-      
-      .action-link {
-         text-decoration: underline;
-         font-size: 0.75rem;
-         opacity: 0.8;
-      }
-      .join-link {
-        color: var(--wr-accent);
+      .layout-simple .current-indicator {
         font-weight: bold;
+        font-size: 0.9rem;
       }
     \`;
 
-    // HTML Structure Construction
+    const bannerHtml = banner ? \`<div class="webring-banner"><img src="\${banner}" alt="Webring Banner"></div>\` : '';
+    const cssHtml = customCss ? \`<link rel="stylesheet" href="\${customCss}">\` : '';
+
     let content = '';
 
     if (layout === 'compact') {
         content = \`
             <div class="webring-widget layout-compact">
+                \${bannerHtml}
                 <a href="\${baseUrl}/nav/prev?from=\${encodeURIComponent(site)}\${ringParam}" class="webring-link nav-btn nav-prev">←</a>
-                <span class="webring-title">Webring</span>
+                <span class="webring-title">\${labelTitle}</span>
                 <a href="\${baseUrl}/nav/next?from=\${encodeURIComponent(site)}\${ringParam}" class="webring-link nav-btn nav-next">→</a>
                 
                 <div class="webring-actions">
-                    <a href="\${baseUrl}/nav/random\${ringRandomParam}" class="webring-link action-link">Random</a>
-                    <a href="\${ring ? \`\${baseUrl}/rings/view?ring=\${encodeURIComponent(ring)}\` : baseUrl}" target="_blank" class="webring-link action-link join-link">Join us</a>
-                    <a href="\${ring ? \`\${baseUrl}/rings/view?ring=\${encodeURIComponent(ring)}\` : \`\${baseUrl}/rings\`}" class="webring-link action-link">List</a>
+                    <a href="\${baseUrl}/nav/random\${ringRandomParam}" class="webring-link action-link">\${labelRandom}</a>
+                    <a href="\${ring ? \`\${baseUrl}/rings/view?ring=\${encodeURIComponent(ring)}\` : \`\${baseUrl}/rings\`}" class="webring-link action-link">\${labelList}</a>
                 </div>
+            </div>
+        \`;
+    } else if (layout === 'simple') {
+        content = \`
+            <div class="webring-widget layout-simple">
+                 \${bannerHtml}
+                 <div class="webring-nav-controls">
+                    <a href="\${baseUrl}/nav/prev?from=\${encodeURIComponent(site)}\${ringParam}" class="webring-link">← prev</a>
+                    <span class="current-indicator">\${labelTitle}</span>
+                    <a href="\${baseUrl}/nav/next?from=\${encodeURIComponent(site)}\${ringParam}" class="webring-link">next →</a>
+                 </div>
+                 <div class="webring-actions">
+                    <a href="\${baseUrl}/nav/random\${ringRandomParam}" class="webring-link action-link">\${labelRandom}</a>
+                    <a href="\${ring ? \`\${baseUrl}/rings/view?ring=\${encodeURIComponent(ring)}\` : \`\${baseUrl}/rings\`}" class="webring-link action-link">\${labelList}</a>
+                 </div>
             </div>
         \`;
     } else {
@@ -311,11 +337,11 @@ class WebringNav extends HTMLElement {
             <div class="webring-widget layout-default">
                 <a href="\${baseUrl}/nav/prev?from=\${encodeURIComponent(site)}\${ringParam}" class="webring-link nav-btn">←</a>
                 <div class="webring-info">
-                    <span class="webring-title">Webring</span>
+                    \${bannerHtml}
+                    <span class="webring-title">\${labelTitle}</span>
                     <div class="webring-actions">
-                        <a href="\${baseUrl}/nav/random\${ringRandomParam}" class="webring-link action-link">Random</a>
-                        <a href="\${ring ? \`\${baseUrl}/rings/view?ring=\${encodeURIComponent(ring)}\` : \`\${baseUrl}/rings\`}" class="webring-link action-link">List</a>
-                        <a href="\${ring ? \`\${baseUrl}/rings/view?ring=\${encodeURIComponent(ring)}\` : baseUrl}" target="_blank" class="webring-link action-link join-link">Join us</a>
+                        <a href="\${baseUrl}/nav/random\${ringRandomParam}" class="webring-link action-link">\${labelRandom}</a>
+                        <a href="\${ring ? \`\${baseUrl}/rings/view?ring=\${encodeURIComponent(ring)}\` : \`\${baseUrl}/rings\`}" class="webring-link action-link">\${labelList}</a>
                     </div>
                 </div>
                 <a href="\${baseUrl}/nav/next?from=\${encodeURIComponent(site)}\${ringParam}" class="webring-link nav-btn">→</a>
@@ -323,12 +349,12 @@ class WebringNav extends HTMLElement {
         \`;
     }
 
-    this.shadowRoot.innerHTML = \`<style>\${style}</style>\${content}\`;
+    this.shadowRoot.innerHTML = \`<style>\${style}</style>\${cssHtml}\${content}\`;
   }
 }
 customElements.define('webring-nav', WebringNav);
     `;
-  return c.text(script, 200, { "Content-Type": "application/javascript" });
+    return c.text(script, 200, { "Content-Type": "application/javascript" });
 });
 
 export default app;

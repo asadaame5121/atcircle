@@ -71,17 +71,20 @@ export async function updateAllFeeds(db: Bindings["DB"], force = false) {
         console.log("[Antenna] Skipping update: Too frequent.");
         return {
             skipped: true,
-            nextPossibleAt: new Date(lastUpdateAt + MIN_UPDATE_INTERVAL)
-                .toLocaleTimeString(),
+            nextPossibleAt: new Date(
+                lastUpdateAt + MIN_UPDATE_INTERVAL,
+            ).toLocaleTimeString(),
         };
     }
     lastUpdateAt = now;
 
     console.log("[Antenna] Starting global feed update...");
     try {
-        const sites = await db.prepare(
-            "SELECT * FROM sites WHERE rss_url IS NOT NULL AND is_active = 1",
-        ).all();
+        const sites = await db
+            .prepare(
+                "SELECT * FROM sites WHERE rss_url IS NOT NULL AND is_active = 1",
+            )
+            .all();
         if (!sites.results) return { success: true, added: 0 };
 
         let totalAdded = 0;
@@ -97,20 +100,23 @@ export async function updateAllFeeds(db: Bindings["DB"], force = false) {
                     if (!item.link || !item.title) continue;
 
                     // Check for duplicates
-                    const exists = await db.prepare(
-                        "SELECT 1 FROM antenna_items WHERE url = ?",
-                    ).bind(item.link).first();
+                    const exists = await db
+                        .prepare("SELECT 1 FROM antenna_items WHERE url = ?")
+                        .bind(item.link)
+                        .first();
 
                     if (!exists) {
                         const publishedAt = item.isoDate
                             ? Math.floor(
-                                new Date(item.isoDate).getTime() / 1000,
-                            )
+                                  new Date(item.isoDate).getTime() / 1000,
+                              )
                             : Math.floor(Date.now() / 1000);
 
-                        await db.prepare(
-                            "INSERT INTO antenna_items (site_id, title, url, published_at) VALUES (?, ?, ?, ?)",
-                        ).bind(site.id, item.title, item.link, publishedAt)
+                        await db
+                            .prepare(
+                                "INSERT INTO antenna_items (site_id, title, url, published_at) VALUES (?, ?, ?, ?)",
+                            )
+                            .bind(site.id, item.title, item.link, publishedAt)
                             .run();
 
                         totalAdded++;

@@ -1,4 +1,4 @@
-import { validateHandle } from "./auth";
+import { validateHandle } from "./auth.js";
 
 console.log("--- START DEBUG ---");
 const result = validateHandle("invalid_handle!");

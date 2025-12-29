@@ -3,54 +3,37 @@
  */
 
 import { l } from "@atproto/lex";
+import * as AtCircleDefs from "./defs.defs.js";
 
-const $nsid = "net.asadaame5121.at-circle.ring";
+const $nsid = "net.asadaame5121.at-circle.banner";
 
 export { $nsid };
 
 /**
- * An at-circle group definition
+ * A banner image for a ring
  */
 type Main = {
-    $type: "net.asadaame5121.at-circle.ring";
-
-    /**
-     * Name of the circle
-     */
-    title: string;
-
-    /**
-     * Description of the circle
-     */
-    description?: string;
-
-    /**
-     * Recruitment status
-     */
-    status: "open" | "closed" | l.UnknownString;
-
-    /**
-     * How new members are accepted
-     */
-    acceptancePolicy?: "automatic" | "manual" | l.UnknownString;
+    $type: "net.asadaame5121.at-circle.banner";
+    ring: AtCircleDefs.RingRef;
+    banner: l.BlobRef;
     createdAt: l.DatetimeString;
 };
 
 export type { Main };
 
 /**
- * An at-circle group definition
+ * A banner image for a ring
  */
 const main = l.record<"tid", Main>(
     "tid",
     $nsid,
     l.object({
-        title: l.string({ maxLength: 1000, maxGraphemes: 100 }),
-        description: l.optional(
-            l.string({ maxLength: 10000, maxGraphemes: 1000 }),
-        ),
-        status: l.string(),
-        acceptancePolicy: l.optional(l.string()),
+        ring: l.ref<AtCircleDefs.RingRef>((() => AtCircleDefs.ringRef) as any),
+        banner: l.blob({
+            accept: ["image/*"],
+            maxSize: 1000000,
+            allowLegacy: false,
+        }),
         createdAt: l.string({ format: "datetime" }),
     }),
 );

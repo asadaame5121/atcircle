@@ -9,9 +9,9 @@ const createMockDB = (data: any = {}) => {
             return {
                 bind: vi.fn().mockImplementation((...args: any[]) => {
                     return {
-                        first: vi.fn().mockImplementation(async () =>
-                            data.first
-                        ),
+                        first: vi
+                            .fn()
+                            .mockImplementation(async () => data.first),
                         all: vi.fn().mockImplementation(async () => ({
                             results: data.all || [],
                         })),
@@ -131,9 +131,7 @@ describe("Navigation Routes", () => {
         it("filters by ring", async () => {
             // ring parameter will trigger a different query
             // we mock DB results to reflect the ring members
-            const ringSites = [
-                { id: 2, url: "https://site-b.com" },
-            ];
+            const ringSites = [{ id: 2, url: "https://site-b.com" }];
             env.DB = createMockDB({ all: ringSites }) as any;
 
             const res = await navigationApp.request(

@@ -11,7 +11,10 @@ export class D1Result<T = unknown> {
 
 // Mimic D1PreparedStatement
 export class D1PreparedStatement {
-    constructor(private stmt: any, private params: any[] = []) {}
+    constructor(
+        private stmt: any,
+        private params: any[] = [],
+    ) {}
 
     bind(...params: any[]) {
         this.params = Array.isArray(params[0]) ? params[0] : params;
@@ -119,6 +122,7 @@ await db.exec(`
     description TEXT,
     acceptance_policy TEXT DEFAULT 'automatic',
     status TEXT DEFAULT 'open',
+    banner_url TEXT,
     created_at INTEGER DEFAULT (strftime('%s', 'now'))
   );
 
@@ -139,15 +143,17 @@ await db.exec(`
 
 // --- Migrations for existing DB ---
 // We use .catch(() => {}) because these might fail if columns already exist, and that's okay.
-await db.exec(
-    "ALTER TABLE rings ADD COLUMN acceptance_policy TEXT DEFAULT 'automatic';",
-).catch(() => {});
-await db.exec("ALTER TABLE rings ADD COLUMN status TEXT DEFAULT 'open';").catch(
-    () => {},
-);
-await db.exec(
-    "ALTER TABLE memberships ADD COLUMN status TEXT DEFAULT 'approved';",
-)
+await db
+    .exec(
+        "ALTER TABLE rings ADD COLUMN acceptance_policy TEXT DEFAULT 'automatic';",
+    )
     .catch(() => {});
+await db
+    .exec("ALTER TABLE rings ADD COLUMN status TEXT DEFAULT 'open';")
+    .catch(() => {});
+await db
+    .exec("ALTER TABLE memberships ADD COLUMN status TEXT DEFAULT 'approved';")
+    .catch(() => {});
+await db.exec("ALTER TABLE rings ADD COLUMN banner_url TEXT;").catch(() => {});
 
 export default db;

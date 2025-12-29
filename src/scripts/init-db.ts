@@ -1,4 +1,4 @@
-import db from "../db";
+import db from "../db.js";
 import fs from "node:fs";
 import path from "node:path";
 

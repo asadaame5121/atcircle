@@ -5,7 +5,7 @@
     "main": {
       "type": "record",
       "description": "Membership in an at-circle (Sidecar Record)",
-      "rkey": "tid",
+      "key": "tid",
       "record": {
         "type": "object",
         "required": ["ring", "url", "title", "createdAt"],

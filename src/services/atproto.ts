@@ -1,41 +1,18 @@
 import { Agent, AtpAgent, AtUri } from "@atproto/api";
+import * as AtCircle from "../lexicons/net/asadaame5121/at-circle.js";
 
 const NSID = {
-    RING: "net.asadaame5121.at-circle.ring",
-    MEMBER: "net.asadaame5121.at-circle.member",
-    BLOCK: "net.asadaame5121.at-circle.block",
-    DEFS: "net.asadaame5121.at-circle.defs",
+    RING: AtCircle.ring.$nsid,
+    MEMBER: AtCircle.member.$nsid,
+    BLOCK: AtCircle.block.$nsid,
+    DEFS: AtCircle.defs.$nsid,
+    BANNER: AtCircle.banner.$nsid,
 };
 
-export interface RingRecord {
-    title: string;
-    description: string;
-    status: "open" | "closed";
-    acceptancePolicy: "automatic" | "manual";
-    createdAt: string;
-}
-
-export interface MemberRecord {
-    ring: {
-        uri: string;
-        cid?: string;
-    };
-    url: string;
-    title: string;
-    rss?: string;
-    note?: string;
-    createdAt: string;
-}
-
-export interface BlockRecord {
-    subject: string; // DID
-    ring: {
-        uri: string;
-        cid?: string;
-    };
-    reason?: string;
-    createdAt: string;
-}
+export type BannerRecord = AtCircle.banner.Main;
+export type RingRecord = AtCircle.ring.Main;
+export type MemberRecord = AtCircle.member.Main;
+export type BlockRecord = AtCircle.block.Main;
 
 export const AtProtoService = {
     // -------------------------------------------------------------------------
@@ -47,8 +24,8 @@ export const AtProtoService = {
         title: string,
         description: string,
     ) {
-        const record = {
-            $type: NSID.RING,
+        const record: RingRecord = {
+            $type: AtCircle.ring.$nsid,
             title,
             description,
             status: "open", // Default to open on creation
@@ -109,8 +86,8 @@ export const AtProtoService = {
         acceptancePolicy: "automatic" | "manual",
     ) {
         const { rkey } = new AtUri(uri);
-        const record = {
-            $type: NSID.RING,
+        const record: RingRecord = {
+            $type: AtCircle.ring.$nsid,
             title,
             description,
             status,
@@ -136,14 +113,16 @@ export const AtProtoService = {
         ringUri: string,
         siteData: { url: string; title: string; rss?: string; note?: string },
     ) {
-        const record = {
-            $type: NSID.MEMBER,
+        const record: MemberRecord = {
+            $type: AtCircle.member.$nsid,
             ring: {
-                $type: `${NSID.DEFS}#ringRef`,
+                // @ts-ignore
                 uri: ringUri,
             },
+            // @ts-ignore
             url: siteData.url,
             title: siteData.title,
+            // @ts-ignore
             rss: siteData.rss,
             note: siteData.note,
             createdAt: new Date().toISOString(),
@@ -199,13 +178,14 @@ export const AtProtoService = {
         memberDid: string,
         reason?: string,
     ) {
-        const record = {
-            $type: NSID.BLOCK,
+        const record: BlockRecord = {
+            $type: AtCircle.block.$nsid,
+            // @ts-ignore
+            subject: memberDid,
             ring: {
-                $type: `${NSID.DEFS}#ringRef`,
+                // @ts-ignore
                 uri: ringUri,
             },
-            subject: memberDid,
             reason,
             createdAt: new Date().toISOString(),
         };
@@ -236,5 +216,85 @@ export const AtProtoService = {
             cid: string;
             value: BlockRecord;
         }[];
+    },
+
+    // -------------------------------------------------------------------------
+    // Blob & Banner Operations
+    // -------------------------------------------------------------------------
+
+    async uploadBlob(
+        agent: AtpAgent | Agent,
+        blob: Blob | Buffer | Uint8Array,
+        mimeType: string,
+    ) {
+        console.log(
+            `[AtProtoService] uploadBlob: mimeType=${mimeType}, size=${
+                (blob as any).length || (blob as any).size
+            }`,
+        );
+        // @ts-ignore
+        const response = await agent.api.com.atproto.repo.uploadBlob(blob, {
+            encoding: mimeType,
+        });
+        console.log(
+            `[AtProtoService] uploadBlob success: CID=${response.data.blob.ref.toString()}`,
+        );
+        return response.data.blob;
+    },
+
+    async setRingBanner(
+        agent: AtpAgent | Agent,
+        ringUri: string,
+        bannerBlob: any,
+    ) {
+        console.log(`[AtProtoService] setRingBanner: ringUri=${ringUri}`);
+        const record: BannerRecord = {
+            $type: AtCircle.banner.$nsid,
+            ring: {
+                // @ts-ignore
+                uri: ringUri,
+            },
+            banner: bannerBlob,
+            createdAt: new Date().toISOString(),
+        };
+
+        // We use the ring's rkey as the banner's rkey for simplicity (1 banner per ring)
+        const { rkey } = new AtUri(ringUri);
+        const repo = (agent as any).session?.did ?? (agent as any).did ?? "";
+        console.log(
+            `[AtProtoService] setRingBanner: putRecord repo=${repo}, rkey=${rkey}`,
+        );
+
+        await agent.api.com.atproto.repo.putRecord({
+            repo,
+            collection: NSID.BANNER,
+            rkey,
+            record,
+            validate: false,
+        });
+        console.log(`[AtProtoService] setRingBanner: success`);
+    },
+
+    async getRingBanner(agent: AtpAgent | Agent, ringUri: string) {
+        const { rkey } = new AtUri(ringUri);
+        const repo =
+            (agent as any).session?.did ??
+            (agent as any).did ??
+            new AtUri(ringUri).hostname;
+
+        try {
+            const response = await agent.api.com.atproto.repo.getRecord({
+                repo,
+                collection: NSID.BANNER,
+                rkey,
+            });
+            return response.data as unknown as {
+                uri: string;
+                cid: string;
+                value: BannerRecord;
+            };
+        } catch (e) {
+            return null;
+        }
     },
 };

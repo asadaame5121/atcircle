@@ -1,23 +1,29 @@
-import { Hono } from 'hono';
-import { html } from 'hono/html';
-import { Layout } from '../components/Layout.js';
-import { Bindings } from '../types/bindings.js';
+import { Hono } from "hono";
+import { html } from "hono/html";
+import { Layout } from "../components/Layout.js";
+import { Bindings, AppVariables } from "../types/bindings.js";
 
-const app = new Hono<{ Bindings: Bindings }>();
+const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
 
-app.get('/', async (c) => {
-    const ringUri = c.req.query('ring');
-    
+app.get("/", async (c) => {
+    const ringUri = c.req.query("ring");
+    const t = c.get("t");
+    const lang = c.get("lang");
+
     try {
         let items;
-        let title = 'Webring Antenna';
+        let title = t("antenna.title");
         let ringInfo = null;
 
         if (ringUri) {
             // Filter by ring
-            ringInfo = await c.env.DB.prepare("SELECT title FROM rings WHERE uri = ?").bind(ringUri).first<any>();
+            ringInfo = await c.env.DB.prepare(
+                "SELECT title FROM rings WHERE uri = ?",
+            )
+                .bind(ringUri)
+                .first<any>();
             if (ringInfo) {
-                title = `${ringInfo.title} - Antenna`;
+                title = `${ringInfo.title} - ${t("antenna.title")}`;
             }
 
             items = await c.env.DB.prepare(`
@@ -33,7 +39,9 @@ app.get('/', async (c) => {
                 WHERE s.is_active = 1 AND m.ring_uri = ?
                 ORDER BY ai.published_at DESC
                 LIMIT 50
-            `).bind(ringUri).all<any>();
+            `)
+                .bind(ringUri)
+                .all<any>();
         } else {
             // Global view
             items = await c.env.DB.prepare(`
@@ -51,22 +59,28 @@ app.get('/', async (c) => {
             `).all<any>();
         }
 
-        return c.html(Layout({
-            title: title,
-            children: html`
+        return c.html(
+            Layout({
+                title: title,
+                t,
+                lang,
+                children: html`
                 <div class="card bg-base-100 shadow-xl max-w-4xl mx-auto">
                     <div class="card-body">
                         <div class="flex justify-between items-end mb-6">
                             <div>
-                                <h1 class="card-title text-4xl mb-1">${ringInfo ? ringInfo.title : 'Global Antenna'}</h1>
-                                <p class="opacity-70">${ringInfo ? 'Recent updates from this ring.' : 'Recent updates from across the community.'}</p>
+                                <h1 class="card-title text-4xl mb-1">${ringInfo ? ringInfo.title : t("antenna.global_title")}</h1>
+                                <p class="opacity-70">${ringInfo ? t("antenna.ring_desc") : t("antenna.global_desc")}</p>
                             </div>
-                            ${ringUri ? html`<a href="/rings/view?ring=${encodeURIComponent(ringUri)}" class="btn btn-ghost btn-sm">Back to Ring</a>` : ''}
+                            ${ringUri ? html`<a href="/rings/view?ring=${encodeURIComponent(ringUri)}" class="btn btn-ghost btn-sm">${t("common.back")}</a>` : ""}
                         </div>
                         
-                        ${items.results && items.results.length > 0 ? html`
+                        ${
+                            items.results && items.results.length > 0
+                                ? html`
                             <div class="space-y-6">
-                                ${items.results.map((item: any) => html`
+                                ${items.results.map(
+                                    (item: any) => html`
                                     <div class="flex gap-4 group">
                                         <div class="hidden md:flex flex-col items-center">
                                             <div class="w-1 bg-base-300 flex-1 group-first:bg-transparent"></div>
@@ -88,24 +102,32 @@ app.get('/', async (c) => {
                                             </h3>
                                         </div>
                                     </div>
-                                `)}
+                                `,
+                                )}
                             </div>
-                        ` : html`
+                        `
+                                : html`
                             <div class="alert alert-ghost border-2 border-dashed py-12 flex flex-col gap-4 text-center">
                                 <span class="text-4xl">📭</span>
                                 <div>
-                                    <p class="font-bold">No updates found.</p>
-                                    <p class="text-sm opacity-60">Try checking back in a few hours! feeds are updated periodically.</p>
+                                    <p class="font-bold">${t("antenna.no_updates")}</p>
+                                    <p class="text-sm opacity-60">${t("antenna.no_updates_desc")}</p>
                                 </div>
                             </div>
-                        `}
+                        `
+                        }
                     </div>
                 </div>
-            `
-        }));
+            `,
+            }),
+        );
     } catch (e) {
         console.error(e);
-        return c.text('Failed to load antenna', 500);
+        const t = c.get("t");
+        return c.text(
+            t("error.failed_load_antenna") || "Failed to load antenna",
+            500,
+        );
     }
 });
 

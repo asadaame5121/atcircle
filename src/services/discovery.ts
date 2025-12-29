@@ -32,7 +32,8 @@ export function discoverMetadata(baseUrl: string, html: string): SiteMetadata {
         const href = $el.attr("href");
 
         if (
-            href && type &&
+            href &&
+            type &&
             (type === "application/rss+xml" || type === "application/atom+xml")
         ) {
             try {

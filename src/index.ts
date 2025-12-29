@@ -17,25 +17,33 @@ console.log(`[Startup] PUBLIC_URL: ${PUBLIC_URL}`);
 
 // Set up Cron Job
 function setupCron() {
-  // Run every day at 00:00
-  cron.schedule("0 0 * * *", async () => {
-    console.log("[Cron] Running scheduled feed update...");
-    try {
-      await updateAllFeeds(db as any);
-    } catch (e) {
-      console.error("[Cron] Scheduled update failed:", e);
-    }
-  });
-  console.log("[Startup] Cron job scheduled (Daily at 00:00)");
+    // Run every day at 00:00
+    cron.schedule("0 0 * * *", async () => {
+        console.log("[Cron] Running scheduled feed update...");
+        try {
+            await updateAllFeeds(db as any);
+        } catch (e) {
+            console.error("[Cron] Scheduled update failed:", e);
+        }
+    });
+    console.log("[Startup] Cron job scheduled (Daily at 00:00)");
 }
 
 setupCron();
-serve({
-  fetch: app.fetch,
-  hostname: "0.0.0.0",
-  port: PORT,
-}, (info) => {
-  console.log(
-    `[Startup] Server is listening on http://${info.address}:${info.port}`,
-  );
-});
+const isMain = import.meta.url === `file://${process.argv[1]}`;
+if (isMain || process.env.NODE_ENV === "production") {
+    serve(
+        {
+            fetch: app.fetch,
+            hostname: "0.0.0.0",
+            port: PORT,
+        },
+        (info) => {
+            console.log(
+                `[Startup] Server is listening on http://${info.address}:${info.port}`,
+            );
+        },
+    );
+}
+
+export default app;

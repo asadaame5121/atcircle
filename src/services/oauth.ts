@@ -13,7 +13,8 @@ import {
     OAUTH_PRIVATE_KEY,
     PLC_DIRECTORY_URL,
     PUBLIC_URL,
-} from "../config";
+    SECRET_KEY,
+} from "../config.js";
 import { Agent } from "@atproto/api";
 import { D1Database } from "@cloudflare/workers-types";
 
@@ -22,22 +23,27 @@ type Bindings = {
 };
 
 export class D1StateStore implements NodeSavedStateStore {
-    constructor(private db: D1Database) {}
+    constructor(private db: D1Database | any) {}
 
     async set(key: string, val: NodeSavedState): Promise<void> {
         console.log(`[D1StateStore] SET key=${key}`);
         const state = JSON.stringify(val);
-        await this.db.prepare(
-            "INSERT INTO oauth_states (key, state) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET state = excluded.state",
-        ).bind(key, state).run();
+        await this.db
+            .prepare(
+                "INSERT INTO oauth_states (key, state) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET state = excluded.state",
+            )
+            .bind(key, state)
+            .run();
         console.log(`[D1StateStore] SET complete for key=${key}`);
     }
 
     async get(key: string): Promise<NodeSavedState | undefined> {
         console.log(`[D1StateStore] GET key=${key}`);
-        const result = await this.db.prepare(
-            "SELECT state FROM oauth_states WHERE key = ?",
-        ).bind(key).first<{ state: string }>();
+        const result = await (
+            this.db
+                .prepare("SELECT state FROM oauth_states WHERE key = ?")
+                .bind(key).first as any
+        )();
         if (!result) {
             console.log(`[D1StateStore] GET key=${key} -> NOT FOUND`);
             return undefined;
@@ -48,39 +54,46 @@ export class D1StateStore implements NodeSavedStateStore {
 
     async del(key: string): Promise<void> {
         console.log(`[D1StateStore] DEL key=${key}`);
-        await this.db.prepare("DELETE FROM oauth_states WHERE key = ?").bind(
-            key,
-        ).run();
+        await this.db
+            .prepare("DELETE FROM oauth_states WHERE key = ?")
+            .bind(key)
+            .run();
     }
 }
 
 export class D1SessionStore implements NodeSavedSessionStore {
-    constructor(private db: D1Database) {}
+    constructor(private db: D1Database | any) {}
 
     async set(key: string, val: NodeSavedSession): Promise<void> {
         const session = JSON.stringify(val);
-        await this.db.prepare(
-            "INSERT INTO oauth_states (key, state) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET state = excluded.state",
-        ).bind(`session:${key}`, session).run();
+        await this.db
+            .prepare(
+                "INSERT INTO oauth_states (key, state) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET state = excluded.state",
+            )
+            .bind(`session:${key}`, session)
+            .run();
     }
 
     async get(key: string): Promise<NodeSavedSession | undefined> {
-        const result = await this.db.prepare(
-            "SELECT state FROM oauth_states WHERE key = ?",
-        ).bind(`session:${key}`).first<{ state: string }>();
+        const result = await (
+            this.db
+                .prepare("SELECT state FROM oauth_states WHERE key = ?")
+                .bind(`session:${key}`).first as any
+        )();
         if (!result) return undefined;
         return JSON.parse(result.state) as NodeSavedSession;
     }
 
     async del(key: string): Promise<void> {
-        await this.db.prepare("DELETE FROM oauth_states WHERE key = ?").bind(
-            `session:${key}`,
-        ).run();
+        await this.db
+            .prepare("DELETE FROM oauth_states WHERE key = ?")
+            .bind(`session:${key}`)
+            .run();
     }
 }
 
 export const createClient = async (
-    db: D1Database,
+    db: D1Database | any,
     publicUrl: string,
     bskyServiceUrl: string = BSKY_SERVICE_URL,
     plcDirectoryUrl: string = PLC_DIRECTORY_URL,
@@ -110,9 +123,10 @@ export const createClient = async (
             console.log("[OAuth] Successfully parsed persistent private key");
         } catch (e) {
             console.error(
-                `[OAuth] Failed to parse OAUTH_PRIVATE_KEY. First 20 chars: "${
-                    OAUTH_PRIVATE_KEY.substring(0, 20)
-                }..."`,
+                `[OAuth] Failed to parse OAUTH_PRIVATE_KEY. First 20 chars: "${OAUTH_PRIVATE_KEY.substring(
+                    0,
+                    20,
+                )}..."`,
             );
             console.error("[OAuth] Parse error:", e);
             const keyWrapper = await jose.generateKeyPair("ES256", {
@@ -132,10 +146,9 @@ export const createClient = async (
 
     // 1. localhost 文字列を 127.0.0.1 に置換する
     // これにより、ライブラリの「localhost専用のバグっぽい制限」を回避します
-    const appUrl = publicUrl.replace("localhost", "127.0.0.1").replace(
-        /\/$/,
-        "",
-    );
+    const appUrl = publicUrl
+        .replace("localhost", "127.0.0.1")
+        .replace(/\/$/, "");
 
     console.log(
         `[OAuth] Creating client with ID: ${appUrl}/client-metadata.json`,
@@ -195,7 +208,7 @@ export const createClient = async (
                         `${bskyServiceUrl}/xrpc/com.atproto.identity.resolveHandle?handle=${handle}`,
                     );
                     if (!res.ok) return null;
-                    const data = await res.json() as { did: string };
+                    const data = (await res.json()) as { did: string };
                     return data.did;
                 }
 
@@ -210,7 +223,7 @@ export const createClient = async (
                         );
                         return null;
                     }
-                    const data = await res.json() as { did: string };
+                    const data = (await res.json()) as { did: string };
                     console.log(
                         `[CustomResolver] Resolved to DID: ${data.did}`,
                     );
@@ -239,15 +252,13 @@ export const createClient = async (
                             );
                             return null;
                         }
-                        const doc = await res.json() as any;
+                        const doc = (await res.json()) as any;
 
                         // Rewrite Service Endpoint logic (from previous plan)
                         // If PDS is local/docker/ngrok, ensure we point to the accessible URL (bskyServiceUrl).
                         if (doc.service && Array.isArray(doc.service)) {
                             for (const svc of doc.service) {
-                                if (
-                                    svc.type === "AtprotoPersonalDataServer"
-                                ) {
+                                if (svc.type === "AtprotoPersonalDataServer") {
                                     // 開発環境（ローカルPDS/dev-env）の場合のみ、PDSの向き先を書き換える
                                     if (IS_DEV) {
                                         console.log(
@@ -280,7 +291,7 @@ export const createClient = async (
 };
 
 export async function restoreAgent(
-    db: D1Database,
+    db: D1Database | any,
     publicUrl: string,
     did: string,
 ): Promise<Agent | undefined> {

@@ -3,12 +3,11 @@ import { html } from "hono/html";
 import { getCookie, setCookie } from "hono/cookie";
 import { sign } from "hono/jwt";
 import { Layout } from "../components/Layout.js";
-import { Bindings } from "../types/bindings.js";
+import { AppVariables, Bindings } from "../types/bindings.js";
 import { createClient } from "../services/oauth.js";
 import { PUBLIC_URL, SECRET_KEY } from "../config.js";
-import { D1Database } from "@cloudflare/workers-types";
 
-const app = new Hono<{ Bindings: Bindings }>();
+const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
 
 // Helper to get client (lazy init or per request)
 let oauthClient: any = null;
@@ -21,32 +20,40 @@ const getOAuthClient = async (db: any) => {
 
 app.get("/login", (c) => {
     const next = c.req.query("next") || "";
-    return c.html(Layout({
-        title: "Login",
-        children: html`
+    const t = c.get("t");
+    const lang = c.get("lang");
+
+    return c.html(
+        Layout({
+            title: t("auth.login_title"),
+            t,
+            lang,
+            children: html`
             <div class="card w-96 bg-base-100 shadow-xl mx-auto mt-10">
                 <div class="card-body">
                     <h2 class="card-title justify-center text-2xl mb-4">
-                        Join the Webring
+                        ${t("auth.login_title")}
                     </h2>
-                    <p class="text-center mb-4">Enter your Bluesky handle.</p>
+                    <p class="text-center mb-4">${t("auth.enter_handle")}</p>
                     <form action="/auth/login" method="POST">
                         <input type="hidden" name="next" value="${next}" />
                         <div class="form-control w-full max-w-xs mb-4">
                             <label class="label">
-                                <span class="label-text">Bluesky Handle</span>
+                                <span class="label-text">${t(
+                                    "auth.enter_handle",
+                                )}</span>
                             </label>
                             <input
                                 type="text"
                                 name="handle"
                                 required
-                                placeholder="example.bsky.social"
+                                placeholder="${t("auth.handle_placeholder")}"
                                 class="input input-bordered w-full max-w-xs"
                             />
                         </div>
                         <div class="card-actions justify-center">
                             <button type="submit" class="btn btn-primary w-full">
-                                Login
+                                ${t("common.login")}
                             </button>
                         </div>
                     </form>
@@ -54,7 +61,8 @@ app.get("/login", (c) => {
             </div>
             </div>
         `,
-    }));
+        }),
+    );
 });
 
 app.post("/auth/login", async (c) => {
@@ -73,25 +81,29 @@ app.post("/auth/login", async (c) => {
     try {
         console.log("Attempting login for:", handle);
         console.log("Worker Version: v9-fix (Handle Fetch)"); // Debug log
-        const client = await getOAuthClient(
-            c.env.DB as any,
-        );
+        const client = await getOAuthClient(c.env.DB as any);
         const url = await client.authorize(handle, {
             scope: "atproto transition:generic",
         });
         return c.redirect(url.toString());
     } catch (e: any) {
         console.error(e);
-        return c.html(Layout({
-            title: "Login Error",
-            children: html`
+        const t = c.get("t");
+        const lang = c.get("lang");
+        return c.html(
+            Layout({
+                title: t("auth.error_failed"),
+                t,
+                lang,
+                children: html`
                 <div class="card" style="max-width: 400px; margin: 0 auto; text-align: center;">
-                    <h2 class="error">Error</h2>
+                    <h2 class="error">${t("common.brand")} Error</h2>
                     <p>${e.message}</p>
-                    <a href="/login" class="btn">Try Again</a>
+                    <a href="/login" class="btn">${t("auth.try_again")}</a>
                 </div>
             `,
-        }));
+            }),
+        );
     }
 });
 
@@ -117,7 +129,7 @@ app.get("/auth/callback", async (c) => {
                 `https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor=${session.did}`,
             );
             if (res.ok) {
-                const profile = await res.json() as { handle: string };
+                const profile = (await res.json()) as { handle: string };
                 handle = profile.handle;
             }
         } catch (e) {
@@ -127,18 +139,22 @@ app.get("/auth/callback", async (c) => {
         // Create or Update User in DB
         const existingUser = await c.env.DB.prepare(
             "SELECT did FROM users WHERE did = ?",
-        ).bind(session.did).first();
+        )
+            .bind(session.did)
+            .first();
 
         if (existingUser) {
             // Update handle if changed
-            await c.env.DB.prepare(
-                "UPDATE users SET handle = ? WHERE did = ?",
-            ).bind(handle, session.did).run();
+            await c.env.DB.prepare("UPDATE users SET handle = ? WHERE did = ?")
+                .bind(handle, session.did)
+                .run();
         } else {
             // Register new user
             await c.env.DB.prepare(
                 "INSERT INTO users (did, handle) VALUES (?, ?)",
-            ).bind(session.did, handle).run();
+            )
+                .bind(session.did, handle)
+                .run();
         }
 
         // Create App Session
@@ -165,7 +181,8 @@ app.get("/auth/callback", async (c) => {
         return c.redirect(next);
     } catch (e) {
         console.error(e);
-        return c.text("Authentication failed", 401);
+        const t = c.get("t");
+        return c.text(t("error.auth_failed") || "Authentication failed", 401);
     }
 });
 
@@ -182,9 +199,7 @@ app.post("/logout", (c) => {
 });
 
 app.get("/client-metadata.json", async (c) => {
-    const client = await getOAuthClient(
-        c.env.DB as any,
-    );
+    const client = await getOAuthClient(c.env.DB as any);
     return c.json(client.clientMetadata);
 });
 

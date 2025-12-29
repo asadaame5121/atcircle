@@ -5,7 +5,7 @@
     "main": {
       "type": "record",
       "description": "Block/Kick a member from the circle",
-      "rkey": "tid",
+      "key": "tid",
       "record": {
         "type": "object",
         "required": ["subject", "ring", "createdAt"],
