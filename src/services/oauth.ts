@@ -14,13 +14,13 @@ import {
     OAUTH_PRIVATE_KEY,
     PLC_DIRECTORY_URL,
 } from "../config.js";
-import type { MinimalD1Database } from "../types/db.js";
+import type { SqliteDatabaseInterface } from "../types/db.js";
 
-export class D1StateStore implements NodeSavedStateStore {
-    constructor(private db: MinimalD1Database) {}
+export class SqliteStateStore implements NodeSavedStateStore {
+    constructor(private db: SqliteDatabaseInterface) {}
 
     async set(key: string, val: NodeSavedState): Promise<void> {
-        console.log(`[D1StateStore] SET key=${key}`);
+        console.log(`[SqliteStateStore] SET key=${key}`);
         const state = JSON.stringify(val);
         await this.db
             .prepare(
@@ -28,25 +28,25 @@ export class D1StateStore implements NodeSavedStateStore {
             )
             .bind(key, state)
             .run();
-        console.log(`[D1StateStore] SET complete for key=${key}`);
+        console.log(`[SqliteStateStore] SET complete for key=${key}`);
     }
 
     async get(key: string): Promise<NodeSavedState | undefined> {
-        console.log(`[D1StateStore] GET key=${key}`);
+        console.log(`[SqliteStateStore] GET key=${key}`);
         const result = await this.db
             .prepare("SELECT state FROM oauth_states WHERE key = ?")
             .bind(key)
             .first<{ state: string }>();
         if (!result) {
-            console.log(`[D1StateStore] GET key=${key} -> NOT FOUND`);
+            console.log(`[SqliteStateStore] GET key=${key} -> NOT FOUND`);
             return undefined;
         }
-        console.log(`[D1StateStore] GET key=${key} -> FOUND`);
+        console.log(`[SqliteStateStore] GET key=${key} -> FOUND`);
         return JSON.parse(result.state) as NodeSavedState;
     }
 
     async del(key: string): Promise<void> {
-        console.log(`[D1StateStore] DEL key=${key}`);
+        console.log(`[SqliteStateStore] DEL key=${key}`);
         await this.db
             .prepare("DELETE FROM oauth_states WHERE key = ?")
             .bind(key)
@@ -54,8 +54,11 @@ export class D1StateStore implements NodeSavedStateStore {
     }
 }
 
-export class D1SessionStore implements NodeSavedSessionStore {
-    constructor(private db: MinimalD1Database) {}
+/** @deprecated Use SqliteStateStore */
+export const D1StateStore = SqliteStateStore;
+
+export class SqliteSessionStore implements NodeSavedSessionStore {
+    constructor(private db: SqliteDatabaseInterface) {}
 
     async set(key: string, val: NodeSavedSession): Promise<void> {
         const session = JSON.stringify(val);
@@ -84,8 +87,11 @@ export class D1SessionStore implements NodeSavedSessionStore {
     }
 }
 
+/** @deprecated Use SqliteSessionStore */
+export const D1SessionStore = SqliteSessionStore;
+
 export const createClient = async (
-    db: MinimalD1Database,
+    db: SqliteDatabaseInterface,
     publicUrl: string,
     bskyServiceUrl: string = BSKY_SERVICE_URL,
     plcDirectoryUrl: string = PLC_DIRECTORY_URL,
@@ -148,8 +154,8 @@ export const createClient = async (
             dpop_bound_access_tokens: true,
         },
         keyset: [privateJwk] as any,
-        stateStore: new D1StateStore(db),
-        sessionStore: new D1SessionStore(db),
+        stateStore: new SqliteStateStore(db),
+        sessionStore: new SqliteSessionStore(db),
         allowHttp: true,
         fetch: (async (input: any, init: any) => {
             const url = typeof input === "string" ? input : (input as any).url;
@@ -255,7 +261,7 @@ export const createClient = async (
 };
 
 export async function restoreAgent(
-    db: MinimalD1Database,
+    db: SqliteDatabaseInterface,
     publicUrl: string,
     did: string,
 ): Promise<Agent | undefined> {

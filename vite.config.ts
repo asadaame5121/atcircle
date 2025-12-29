@@ -7,6 +7,9 @@ export default defineConfig({
             entry: "src/index.ts",
         }),
     ],
+    test: {
+        exclude: ["node_modules/**", "dist/**", "tests/**", ".husky/**"],
+    },
     build: {
         outDir: "dist",
         rollupOptions: {

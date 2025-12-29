@@ -1,7 +1,7 @@
 import { DatabaseSync } from "node:sqlite";
 
-// D1 Result Types
-export class D1Result<T = unknown> {
+// SQLite Result Types
+export class SqliteResult<T = unknown> {
     constructor(
         public success: boolean,
         public results: T[],
@@ -9,8 +9,11 @@ export class D1Result<T = unknown> {
     ) {}
 }
 
-// Mimic D1PreparedStatement
-export class D1PreparedStatement {
+/** @deprecated Use SqliteResult */
+export const D1Result = SqliteResult;
+
+// SQLite Statement
+export class SqliteStatement {
     constructor(
         private stmt: any,
         private params: any[] = [],
@@ -35,12 +38,15 @@ export class D1PreparedStatement {
 
     async all<T = any>() {
         const results = this.stmt.all(...this.params);
-        return new D1Result(true, results as T[]);
+        return new SqliteResult(true, results as T[]);
     }
 }
 
-// Mimic D1Database
-export class D1DatabaseCompat {
+/** @deprecated Use SqliteStatement */
+export const D1PreparedStatement = SqliteStatement;
+
+// SQLite Database
+export class SqliteDatabase {
     private db: DatabaseSync;
 
     constructor(filename: string) {
@@ -49,15 +55,15 @@ export class D1DatabaseCompat {
     }
 
     prepare(query: string) {
-        return new D1PreparedStatement(this.db.prepare(query));
+        return new SqliteStatement(this.db.prepare(query));
     }
 
     async exec(query: string) {
         this.db.exec(query);
-        return new D1Result(true, []);
+        return new SqliteResult(true, []);
     }
 
-    async batch<_T = any>(statements: D1PreparedStatement[]) {
+    async batch<_T = any>(statements: SqliteStatement[]) {
         const results = [];
         for (const stmt of statements) {
             results.push(await stmt.all());
@@ -71,9 +77,12 @@ export class D1DatabaseCompat {
     }
 }
 
+/** @deprecated Use SqliteDatabase */
+export const D1DatabaseCompat = SqliteDatabase;
+
 // Initialize DB (singleton for the app)
 const dbPath = process.env.DB_PATH || "dev.db";
-const db = new D1DatabaseCompat(dbPath);
+const db = new SqliteDatabase(dbPath);
 
 // --- Auto-Migration / Schema Initialization ---
 // Ensure tables exist on startup

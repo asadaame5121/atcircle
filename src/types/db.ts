@@ -58,13 +58,10 @@ export interface Membership {
 }
 
 /**
- * Minimal interface for D1-like database, compatible with both Cloudflare D1 and our D1DatabaseCompat.
+ * Interface for SQLite database, used for typing the environment.
  */
-/**
- * Minimal interface for D1-like statement, compatible with both Cloudflare D1 and our D1DatabaseCompat.
- */
-export interface MinimalD1Statement {
-    bind(...params: unknown[]): MinimalD1Statement;
+export interface SqliteStatementInterface {
+    bind(...params: unknown[]): SqliteStatementInterface;
     first<T = unknown>(colName?: string): Promise<T | null>;
     all<T = unknown>(): Promise<{
         results: T[];
@@ -75,10 +72,10 @@ export interface MinimalD1Statement {
 }
 
 /**
- * Minimal interface for D1-like database, compatible with both Cloudflare D1 and our D1DatabaseCompat.
+ * Interface for SQLite database, used for typing the environment.
  */
-export interface MinimalD1Database {
-    prepare(query: string): MinimalD1Statement;
+export interface SqliteDatabaseInterface {
+    prepare(query: string): SqliteStatementInterface;
     batch?<_T = unknown>(statements: unknown[]): Promise<unknown[]>;
     exec?(query: string): Promise<unknown>;
 }

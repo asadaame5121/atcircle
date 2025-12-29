@@ -1,4 +1,4 @@
-import type { D1DatabaseCompat } from "../db.js";
+import type { SqliteDatabase } from "../db.js";
 
 export type i18nVariables = {
     lang: "en" | "ja";
@@ -9,7 +9,7 @@ export type AppVariables = i18nVariables & {
     jwtPayload?: any;
 };
 
-// Use our compat wrapper for node:sqlite
+// Use our wrapper for node:sqlite
 export type Bindings = {
-    DB: D1DatabaseCompat;
+    DB: SqliteDatabase;
 };

@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Bindings } from "../types/bindings";
 import navigationApp from "./navigation";
 
-// --- D1 Mock Helpers ---
+// --- SQLite Mock Helpers ---
 const createMockDB = (data: any = {}) => {
     return {
         prepare: vi.fn().mockImplementation((_query: string) => {

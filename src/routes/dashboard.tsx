@@ -72,7 +72,7 @@ app.get("/", async (c) => {
         }
     }
 
-    // 3. Check if user already has a site (Legacy D1)
+    // 3. Check if user already has a site (Legacy SQLite)
     const site = (await c.env.DB.prepare(
         "SELECT * FROM sites WHERE user_did = ?",
     )
