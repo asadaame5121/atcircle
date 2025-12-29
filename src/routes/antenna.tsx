@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { html } from "hono/html";
 import { Layout } from "../components/Layout.js";
-import { Bindings, AppVariables } from "../types/bindings.js";
+import type { AppVariables, Bindings } from "../types/bindings.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
 
@@ -11,7 +11,7 @@ app.get("/", async (c) => {
     const lang = c.get("lang");
 
     try {
-        let items;
+        let items: any;
         let title = t("antenna.title");
         let ringInfo = null;
 

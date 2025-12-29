@@ -57,7 +57,7 @@ export class D1DatabaseCompat {
         return new D1Result(true, []);
     }
 
-    async batch<T = any>(statements: D1PreparedStatement[]) {
+    async batch<_T = any>(statements: D1PreparedStatement[]) {
         const results = [];
         for (const stmt of statements) {
             results.push(await stmt.all());

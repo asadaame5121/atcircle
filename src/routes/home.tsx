@@ -1,8 +1,8 @@
 import { Hono } from "hono";
-import { html } from "hono/html";
 import { getCookie } from "hono/cookie";
+import { html } from "hono/html";
 import { Layout } from "../components/Layout.js";
-import { Bindings, AppVariables } from "../types/bindings.js";
+import type { AppVariables, Bindings } from "../types/bindings.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
 
@@ -16,7 +16,7 @@ app.get("/", (c) => {
 
     return c.html(
         Layout({
-            title: t("common.brand") + " - " + t("common.home"),
+            title: `${t("common.brand")} - ${t("common.home")}`,
             t,
             lang,
             children: html`

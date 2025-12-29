@@ -1,18 +1,17 @@
 import { Hono } from "hono";
 import { logger } from "hono/logger";
-import { Bindings } from "./types/bindings.js";
-import home from "./routes/home.js";
-import antenna from "./routes/antenna.js";
-import rings from "./routes/rings.js";
-import dashboard from "./routes/dashboard.js";
-import auth from "./routes/auth.js";
-import navigation from "./routes/navigation.js";
-import widgetBuilder from "./routes/widget_builder.js";
-import legal from "./routes/legal.js";
-import { updateAllFeeds } from "./services/feed.js";
 import db from "./db.js";
-
 import { i18nMiddleware } from "./middleware/i18n.js";
+import antenna from "./routes/antenna.js";
+import auth from "./routes/auth.js";
+import dashboard from "./routes/dashboard.js";
+import home from "./routes/home.js";
+import legal from "./routes/legal.js";
+import navigation from "./routes/navigation.js";
+import rings from "./routes/rings.js";
+import widgetBuilder from "./routes/widget_builder.js";
+import { updateAllFeeds } from "./services/feed.js";
+import type { Bindings } from "./types/bindings.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: any }>();
 
@@ -73,7 +72,7 @@ app.get("/xrpc/:id", async (c) => {
         const path = join(process.cwd(), "lexicons", filename);
         const content = readFileSync(path, "utf8");
         return c.json(JSON.parse(content));
-    } catch (e) {
+    } catch (_e) {
         return c.text("Not found", 404);
     }
 });

@@ -4,12 +4,13 @@ import { serve } from "@hono/node-server";
 import cron from "node-cron";
 
 dns.setDefaultResultOrder("ipv4first");
+
 import app from "./app.js";
-import db from "./db.js";
 import { DB_PATH, PORT, PUBLIC_URL } from "./config.js";
+import db from "./db.js";
 import { updateAllFeeds } from "./services/feed.js";
 
-console.log(`[Startup] ATcircle Node Server starting...`);
+console.log("[Startup] ATcircle Node Server starting...");
 console.log(`[Startup] Node Version: ${process.version}`);
 console.log(`[Startup] Port: ${PORT}`);
 console.log(`[Startup] Database Path: ${DB_PATH}`);

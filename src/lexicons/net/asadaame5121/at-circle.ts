@@ -3,7 +3,7 @@
  */
 
 export * as banner from "./at-circle/banner.js";
-export * as member from "./at-circle/member.js";
-export * as ring from "./at-circle/ring.js";
 export * as block from "./at-circle/block.js";
 export * as defs from "./at-circle/defs.js";
+export * as member from "./at-circle/member.js";
+export * as ring from "./at-circle/ring.js";

@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { Bindings } from "../types/bindings";
 import navigationApp from "./navigation";
-import { Bindings } from "../types/bindings";
 
 // --- D1 Mock Helpers ---
 const createMockDB = (data: any = {}) => {
     return {
-        prepare: vi.fn().mockImplementation((query: string) => {
+        prepare: vi.fn().mockImplementation((_query: string) => {
             return {
-                bind: vi.fn().mockImplementation((...args: any[]) => {
+                bind: vi.fn().mockImplementation((..._args: any[]) => {
                     return {
                         first: vi
                             .fn()
@@ -31,12 +31,12 @@ const createMockDB = (data: any = {}) => {
 
 describe("Navigation Routes", () => {
     let env: Bindings;
-    let mockPrepare: any;
+    let _mockPrepare: any;
 
     beforeEach(() => {
         // Reset env before each test
         const db = createMockDB();
-        mockPrepare = db.prepare;
+        _mockPrepare = db.prepare;
         env = { DB: db } as unknown as Bindings;
     });
 

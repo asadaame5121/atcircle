@@ -1,11 +1,11 @@
 import { Hono } from "hono";
-import { html } from "hono/html";
 import { getCookie, setCookie } from "hono/cookie";
+import { html } from "hono/html";
 import { sign } from "hono/jwt";
 import { Layout } from "../components/Layout.js";
-import { AppVariables, Bindings } from "../types/bindings.js";
-import { createClient } from "../services/oauth.js";
 import { PUBLIC_URL, SECRET_KEY } from "../config.js";
+import { createClient } from "../services/oauth.js";
+import type { AppVariables, Bindings } from "../types/bindings.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
 
@@ -75,8 +75,8 @@ app.get("/login", (c) => {
 
 app.post("/auth/login", async (c) => {
     const body = await c.req.parseBody();
-    const handle = body["handle"] as string;
-    const next = body["next"] as string;
+    const handle = body.handle as string;
+    const next = body.next as string;
 
     if (next) {
         setCookie(c, "auth_next", next, {

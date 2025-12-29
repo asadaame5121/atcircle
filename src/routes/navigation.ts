@@ -1,6 +1,6 @@
 import { Hono } from "hono";
-import { AppVariables, Bindings } from "../types/bindings.js";
 import { PUBLIC_URL } from "../config.js";
+import type { AppVariables, Bindings } from "../types/bindings.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
 
@@ -9,7 +9,7 @@ const normalizeUrl = (u: string) => u.replace(/\/$/, "");
 
 app.get("/random", async (c) => {
     const ring = c.req.query("ring");
-    let site;
+    let site: any;
     if (ring) {
         site = await c.env.DB.prepare(
             `SELECT s.url FROM sites s 
@@ -36,11 +36,11 @@ app.get("/next", async (c) => {
     const ring = c.req.query("ring");
     if (!from) {
         return c.redirect(
-            "/nav/random" + (ring ? `?ring=${encodeURIComponent(ring)}` : ""),
+            `/nav/random${ring ? `?ring=${encodeURIComponent(ring)}` : ""}`,
         );
     }
 
-    let sites;
+    let sites: { results?: { id: number; url: string }[] };
     if (ring) {
         sites = await c.env.DB.prepare(
             `SELECT s.id, s.url FROM sites s 
@@ -79,11 +79,11 @@ app.get("/prev", async (c) => {
     const ring = c.req.query("ring");
     if (!from) {
         return c.redirect(
-            "/nav/random" + (ring ? `?ring=${encodeURIComponent(ring)}` : ""),
+            `/nav/random${ring ? `?ring=${encodeURIComponent(ring)}` : ""}`,
         );
     }
 
-    let sites;
+    let sites: { results?: { id: number; url: string }[] };
     if (ring) {
         sites = await c.env.DB.prepare(
             `SELECT s.id, s.url FROM sites s 
@@ -105,7 +105,7 @@ app.get("/prev", async (c) => {
 
     const list = sites.results;
     const normalizedFrom = normalizeUrl(from);
-    let currentIndex = list.findIndex(
+    const currentIndex = list.findIndex(
         (s) => normalizeUrl(s.url) === normalizedFrom,
     );
 

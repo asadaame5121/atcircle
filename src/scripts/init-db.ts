@@ -1,6 +1,6 @@
-import db from "../db.js";
 import fs from "node:fs";
 import path from "node:path";
+import db from "../db.js";
 
 const schemaPath = path.join(process.cwd(), "schema.sql");
 const schema = fs.readFileSync(schemaPath, "utf8");

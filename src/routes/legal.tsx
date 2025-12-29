@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { html, raw } from "hono/html";
 import { Layout } from "../components/Layout.js";
-import { Bindings, AppVariables } from "../types/bindings.js";
+import type { AppVariables, Bindings } from "../types/bindings.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
 

@@ -1,18 +1,18 @@
+import { AtUri } from "@atproto/api";
 import { Hono } from "hono";
-import { html } from "hono/html";
 import { getCookie, setCookie } from "hono/cookie";
+import { html } from "hono/html";
 import { verify } from "hono/jwt";
 import { Layout } from "../components/Layout.js";
-import { Bindings, AppVariables } from "../types/bindings.js";
-import { SECRET_KEY, PUBLIC_URL } from "../config.js";
-import { fetchAndDiscoverMetadata } from "../services/discovery.js";
-import { createClient, restoreAgent } from "../services/oauth.js";
+import { PUBLIC_URL, SECRET_KEY } from "../config.js";
 import {
     AtProtoService,
-    RingRecord,
-    MemberRecord,
+    type MemberRecord,
+    type RingRecord,
 } from "../services/atproto.js";
-import { AtpAgent, Agent, AtUri } from "@atproto/api";
+import { fetchAndDiscoverMetadata } from "../services/discovery.js";
+import { restoreAgent } from "../services/oauth.js";
+import type { AppVariables, Bindings } from "../types/bindings.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
 
@@ -22,14 +22,14 @@ app.use("*", async (c, next) => {
     if (!token) {
         const url = new URL(c.req.url);
         return c.redirect(
-            "/login?next=" + encodeURIComponent(url.pathname + url.search),
+            `/login?next=${encodeURIComponent(url.pathname + url.search)}`,
         );
     }
     try {
         const payload = await verify(token, SECRET_KEY);
         c.set("jwtPayload", payload);
         await next();
-    } catch (e) {
+    } catch (_e) {
         return c.redirect("/login");
     }
 });
@@ -573,7 +573,7 @@ app.get("/", async (c) => {
     }
 
     // 2. Auto-Discovery Flow
-    let detectedSites: Array<{ url: string; title?: string; rss?: string }> =
+    const detectedSites: Array<{ url: string; title?: string; rss?: string }> =
         [];
     let discoveryStatus = "";
 
@@ -1088,7 +1088,7 @@ app.post("/sync", async (c) => {
         }
     } catch (e) {
         console.error("Sync failed:", e);
-        return c.text("Sync failed: " + (e as any).message, 500);
+        return c.text(`Sync failed: ${(e as any).message}`, 500);
     }
 
     return c.redirect("/dashboard?msg=updated");
@@ -1099,10 +1099,10 @@ app.post("/site", async (c) => {
     const did = payload.sub;
     const body = await c.req.parseBody();
 
-    const url = body["url"] as string;
-    const title = body["title"] as string;
-    const description = body["description"] as string;
-    const rss_url = body["rss_url"] as string;
+    const url = body.url as string;
+    const title = body.title as string;
+    const description = body.description as string;
+    const rss_url = body.rss_url as string;
 
     if (!url || !title) {
         return c.text("URL and Title are required", 400);
@@ -1122,10 +1122,10 @@ app.post("/site/update", async (c) => {
     const did = payload.sub;
     const body = await c.req.parseBody();
 
-    const url = body["url"] as string;
-    const title = body["title"] as string;
-    const description = body["description"] as string;
-    const rss_url = body["rss_url"] as string;
+    const url = body.url as string;
+    const title = body.title as string;
+    const description = body.description as string;
+    const rss_url = body.rss_url as string;
 
     if (!url || !title) {
         return c.text("URL and Title are required", 400);
@@ -1165,8 +1165,8 @@ app.post("/ring/create", async (c) => {
     const payload = c.get("jwtPayload");
     const did = payload.sub;
     const body = await c.req.parseBody();
-    const title = body["title"] as string;
-    const description = body["description"] as string;
+    const title = body.title as string;
+    const description = body.description as string;
 
     if (!title) return c.text("Title required", 400);
 
@@ -1230,10 +1230,10 @@ app.post("/ring/join", async (c) => {
     const payload = c.get("jwtPayload");
     const did = payload.sub;
     const body = await c.req.parseBody();
-    const ringUri = ((body["ring_uri"] as string) || "").trim();
-    const url = body["url"] as string;
-    const title = body["title"] as string;
-    const rss = body["rss"] as string;
+    const ringUri = ((body.ring_uri as string) || "").trim();
+    const url = body.url as string;
+    const title = body.title as string;
+    const rss = body.rss as string;
 
     if (!ringUri || !url || !title)
         return c.text("Missing required fields", 400);
@@ -1310,19 +1310,18 @@ app.post("/ring/join", async (c) => {
                 .bind(ringUri, mySite.id, memberUri, initialStatus)
                 .run();
         }
+        return c.redirect(`/dashboard?msg=joined&policy=${acceptancePolicy}`);
     } catch (e) {
         console.error("Error joining ring:", e);
         return c.text("Failed to join ring", 500);
     }
-
-    return c.redirect(`/dashboard?msg=joined&policy=\${acceptancePolicy}`);
 });
 
 app.post("/ring/leave", async (c) => {
     const payload = c.get("jwtPayload");
     const did = payload.sub;
     const body = await c.req.parseBody();
-    const uri = body["uri"] as string; // URI of the member record
+    const uri = body.uri as string; // URI of the member record
 
     if (!uri) return c.text("URI required", 400);
 
@@ -1348,11 +1347,11 @@ app.post("/ring/update", async (c) => {
     const payload = c.get("jwtPayload");
     const did = payload.sub;
     const body = await c.req.parseBody();
-    const uri = body["uri"] as string;
-    const title = body["title"] as string;
-    const description = body["description"] as string;
-    const status = body["status"] as "open" | "closed";
-    const acceptance = body["acceptance_policy"] as "automatic" | "manual";
+    const uri = body.uri as string;
+    const title = body.title as string;
+    const description = body.description as string;
+    const status = body.status as "open" | "closed";
+    const acceptance = body.acceptance_policy as "automatic" | "manual";
 
     if (!uri || !title || !status || !acceptance)
         return c.text("Missing required fields", 400);
@@ -1389,7 +1388,7 @@ app.post("/ring/approve", async (c) => {
     const payload = c.get("jwtPayload");
     const did = payload.sub;
     const body = await c.req.parseBody();
-    const memberUri = body["member_uri"] as string;
+    const memberUri = body.member_uri as string;
 
     if (!memberUri) return c.text("Member URI required", 400);
 
@@ -1420,7 +1419,7 @@ app.post("/ring/reject", async (c) => {
     const payload = c.get("jwtPayload");
     const did = payload.sub;
     const body = await c.req.parseBody();
-    const memberUri = body["member_uri"] as string;
+    const memberUri = body.member_uri as string;
 
     if (!memberUri) return c.text("Member URI required", 400);
 

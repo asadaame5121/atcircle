@@ -2,7 +2,7 @@
  * Mock data generator for testing Antenna and OPML features.
  * This can be called from a hidden route or manually run.
  */
-import { Bindings } from "../types/bindings.js";
+import type { Bindings } from "../types/bindings.js";
 
 export async function injectMockData(db: Bindings["DB"], ringUri: string) {
     console.log(`Injecting mock data for ring: ${ringUri}`);

@@ -1,7 +1,7 @@
-import { MiddlewareHandler } from "hono";
-import ja from "../locales/ja.json" with { type: "json" };
+import type { MiddlewareHandler } from "hono";
 import en from "../locales/en.json" with { type: "json" };
-import { i18nVariables } from "../types/bindings.js";
+import ja from "../locales/ja.json" with { type: "json" };
+import type { i18nVariables } from "../types/bindings.js";
 
 const locales: Record<string, any> = { ja, en };
 
@@ -15,7 +15,7 @@ export const i18nMiddleware = (): MiddlewareHandler<{
 
         if (!lang || !locales[lang]) {
             const acceptLang = c.req.header("accept-language");
-            if (acceptLang && acceptLang.startsWith("ja")) {
+            if (acceptLang?.startsWith("ja")) {
                 lang = "ja";
             } else {
                 lang = "en";
@@ -34,7 +34,7 @@ export const i18nMiddleware = (): MiddlewareHandler<{
 
             // Fallback to English if not found in current lang
             if (value === undefined && lang !== "en") {
-                let enValue = locales["en"];
+                let enValue = locales.en;
                 for (const key of keys) {
                     enValue = enValue?.[key];
                     if (enValue === undefined) break;

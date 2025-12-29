@@ -27,7 +27,7 @@ describe("Metadata Discovery (cheerio)", () => {
     });
 
     it("handles missing title", () => {
-        const html = `<div>No title</div>`;
+        const html = "<div>No title</div>";
         const meta = discoverMetadata("https://example.com", html);
         expect(meta.title).toBeUndefined();
     });

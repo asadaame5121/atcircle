@@ -1,9 +1,10 @@
+import { Agent } from "@atproto/api";
 import {
     NodeOAuthClient,
-    NodeSavedSession,
-    NodeSavedSessionStore,
-    NodeSavedState,
-    NodeSavedStateStore,
+    type NodeSavedSession,
+    type NodeSavedSessionStore,
+    type NodeSavedState,
+    type NodeSavedStateStore,
 } from "@atproto/oauth-client-node";
 import * as jose from "jose";
 import {
@@ -12,18 +13,11 @@ import {
     IS_DEV,
     OAUTH_PRIVATE_KEY,
     PLC_DIRECTORY_URL,
-    PUBLIC_URL,
-    SECRET_KEY,
 } from "../config.js";
-import { Agent } from "@atproto/api";
-import { D1Database } from "@cloudflare/workers-types";
-
-type Bindings = {
-    DB: D1Database;
-};
+import type { MinimalD1Database } from "../types/db.js";
 
 export class D1StateStore implements NodeSavedStateStore {
-    constructor(private db: D1Database | any) {}
+    constructor(private db: MinimalD1Database) {}
 
     async set(key: string, val: NodeSavedState): Promise<void> {
         console.log(`[D1StateStore] SET key=${key}`);
@@ -39,11 +33,10 @@ export class D1StateStore implements NodeSavedStateStore {
 
     async get(key: string): Promise<NodeSavedState | undefined> {
         console.log(`[D1StateStore] GET key=${key}`);
-        const result = await (
-            this.db
-                .prepare("SELECT state FROM oauth_states WHERE key = ?")
-                .bind(key).first as any
-        )();
+        const result = await this.db
+            .prepare("SELECT state FROM oauth_states WHERE key = ?")
+            .bind(key)
+            .first<{ state: string }>();
         if (!result) {
             console.log(`[D1StateStore] GET key=${key} -> NOT FOUND`);
             return undefined;
@@ -62,7 +55,7 @@ export class D1StateStore implements NodeSavedStateStore {
 }
 
 export class D1SessionStore implements NodeSavedSessionStore {
-    constructor(private db: D1Database | any) {}
+    constructor(private db: MinimalD1Database) {}
 
     async set(key: string, val: NodeSavedSession): Promise<void> {
         const session = JSON.stringify(val);
@@ -75,11 +68,10 @@ export class D1SessionStore implements NodeSavedSessionStore {
     }
 
     async get(key: string): Promise<NodeSavedSession | undefined> {
-        const result = await (
-            this.db
-                .prepare("SELECT state FROM oauth_states WHERE key = ?")
-                .bind(`session:${key}`).first as any
-        )();
+        const result = await this.db
+            .prepare("SELECT state FROM oauth_states WHERE key = ?")
+            .bind(`session:${key}`)
+            .first<{ state: string }>();
         if (!result) return undefined;
         return JSON.parse(result.state) as NodeSavedSession;
     }
@@ -93,7 +85,7 @@ export class D1SessionStore implements NodeSavedSessionStore {
 }
 
 export const createClient = async (
-    db: D1Database | any,
+    db: MinimalD1Database,
     publicUrl: string,
     bskyServiceUrl: string = BSKY_SERVICE_URL,
     plcDirectoryUrl: string = PLC_DIRECTORY_URL,
@@ -102,33 +94,23 @@ export const createClient = async (
     if (OAUTH_PRIVATE_KEY) {
         try {
             console.log("[OAuth] Attempting to parse OAUTH_PRIVATE_KEY");
-            let rawKey = OAUTH_PRIVATE_KEY.trim();
+            const rawKey = OAUTH_PRIVATE_KEY.trim();
 
-            // 1. Try raw JSON parsing first (with basic cleanup)
-            try {
-                // If it starts with '{' it's likely raw JSON
-                if (rawKey.startsWith("{")) {
-                    // Basic cleanup for redundant shell escapes just in case
-                    const cleaned = rawKey.replace(/\\([":,{}])/g, "$1");
-                    privateJwk = JSON.parse(cleaned);
-                } else {
-                    throw new Error("Not raw JSON");
-                }
-            } catch (e) {
-                // 2. Try Base64 decoding
-                console.log("[OAuth] Not raw JSON, attempting Base64 decode");
+            if (rawKey.startsWith("{")) {
+                const cleaned = rawKey.replace(/\\([":,{}])/g, "$1");
+                privateJwk = JSON.parse(cleaned);
+            } else {
                 const decoded = Buffer.from(rawKey, "base64").toString("utf-8");
                 privateJwk = JSON.parse(decoded);
             }
             console.log("[OAuth] Successfully parsed persistent private key");
-        } catch (e) {
+        } catch {
             console.error(
                 `[OAuth] Failed to parse OAUTH_PRIVATE_KEY. First 20 chars: "${OAUTH_PRIVATE_KEY.substring(
                     0,
                     20,
                 )}..."`,
             );
-            console.error("[OAuth] Parse error:", e);
             const keyWrapper = await jose.generateKeyPair("ES256", {
                 extractable: true,
             });
@@ -144,8 +126,6 @@ export const createClient = async (
         privateJwk = await jose.exportJWK(keyWrapper.privateKey);
     }
 
-    // 1. localhost 文字列を 127.0.0.1 に置換する
-    // これにより、ライブラリの「localhost専用のバグっぽい制限」を回避します
     const appUrl = publicUrl
         .replace("localhost", "127.0.0.1")
         .replace(/\/$/, "");
@@ -157,7 +137,6 @@ export const createClient = async (
     return new NodeOAuthClient({
         clientMetadata: {
             client_name: CLIENT_NAME,
-            // 2. 127.0.0.1 ならパスが付いていても TypeError になりにくい
             client_id: `${appUrl}/client-metadata.json`,
             client_uri: appUrl,
             redirect_uris: [`${appUrl}/auth/callback`],
@@ -168,18 +147,16 @@ export const createClient = async (
             token_endpoint_auth_method: "none",
             dpop_bound_access_tokens: true,
         },
-        keyset: [privateJwk as any],
+        keyset: [privateJwk] as any,
         stateStore: new D1StateStore(db),
         sessionStore: new D1SessionStore(db),
-        // 3. HTTP通信を許可
         allowHttp: true,
-        // 4. カスタム fetch (ログ出力付き)
         fetch: (async (input: any, init: any) => {
-            const url = typeof input === "string" ? input : input.url;
+            const url = typeof input === "string" ? input : (input as any).url;
             const start = Date.now();
             console.log(`[OAuthFetch] START: ${url}`);
             try {
-                const res = await fetch(input, init);
+                const res = await fetch(input as any, init as any);
                 console.log(
                     `[OAuthFetch] COMPLETED: ${url} (${res.status} ${res.statusText}) in ${
                         Date.now() - start
@@ -194,22 +171,19 @@ export const createClient = async (
                 throw e;
             }
         }) as any,
-        // 2. Custom Handle Resolver (Uses Public AppView XRPC)
         handleResolver: {
-            async resolve(handle: string): Promise<any> {
-                // Short-circuit for local testing handles if needed, or query local PDS.
-                // If handle is "alice.test", real Bsky won't know it.
+            async resolve(handleOrDid: string) {
+                const handle = handleOrDid;
                 if (handle.endsWith(".test")) {
                     console.log(
                         `[CustomResolver] Resolving test handle: ${handle}`,
                     );
-                    // Try resolving via local PDS (bskyServiceUrl)
                     const res = await fetch(
                         `${bskyServiceUrl}/xrpc/com.atproto.identity.resolveHandle?handle=${handle}`,
                     );
-                    if (!res.ok) return null;
+                    if (!res.ok) throw new Error("Handle not found");
                     const data = (await res.json()) as { did: string };
-                    return data.did;
+                    return { did: data.did };
                 }
 
                 try {
@@ -221,30 +195,24 @@ export const createClient = async (
                         console.error(
                             `[CustomResolver] Handle fetch failed: ${res.status}`,
                         );
-                        return null;
+                        throw new Error("Handle fetch failed");
                     }
                     const data = (await res.json()) as { did: string };
                     console.log(
                         `[CustomResolver] Resolved to DID: ${data.did}`,
                     );
-                    return data.did;
+                    return { did: data.did };
                 } catch (e) {
                     console.error("[CustomResolver] Error:", e);
-                    return null;
+                    throw e;
                 }
             },
-        },
-
-        // 3. Custom DID Resolver (Uses PLC Directory HTTP API)
-        // Update: Now that we are on Node, we can potentially reach "localhost" PDS ports if running locally.
-        // But if PDS is on ngrok, we use that.
+        } as any,
         didResolver: {
             async resolve(did: string): Promise<any> {
                 console.log(`[CustomResolver] Resolving DID: ${did}`);
-                // Only handle plc for now
                 if (did.startsWith("did:plc:")) {
                     try {
-                        // Use PLC Directory URL from config/env
                         const res = await fetch(`${plcDirectoryUrl}/${did}`);
                         if (!res.ok) {
                             console.error(
@@ -254,12 +222,9 @@ export const createClient = async (
                         }
                         const doc = (await res.json()) as any;
 
-                        // Rewrite Service Endpoint logic (from previous plan)
-                        // If PDS is local/docker/ngrok, ensure we point to the accessible URL (bskyServiceUrl).
                         if (doc.service && Array.isArray(doc.service)) {
                             for (const svc of doc.service) {
                                 if (svc.type === "AtprotoPersonalDataServer") {
-                                    // 開発環境（ローカルPDS/dev-env）の場合のみ、PDSの向き先を書き換える
                                     if (IS_DEV) {
                                         console.log(
                                             `[CustomResolver] Rewriting PDS endpoint ${svc.serviceEndpoint} to ${bskyServiceUrl}`,
@@ -270,7 +235,7 @@ export const createClient = async (
                             }
                         }
 
-                        console.log(`[CustomResolver] Resolved DID Doc`);
+                        console.log("[CustomResolver] Resolved DID Doc");
                         return {
                             id: did,
                             ...doc,
@@ -283,7 +248,6 @@ export const createClient = async (
                         return null;
                     }
                 }
-                // Fallback (will likely fail if it tries DNS)
                 return null;
             },
         },
@@ -291,7 +255,7 @@ export const createClient = async (
 };
 
 export async function restoreAgent(
-    db: D1Database | any,
+    db: MinimalD1Database,
     publicUrl: string,
     did: string,
 ): Promise<Agent | undefined> {
@@ -305,7 +269,7 @@ export async function restoreAgent(
             console.warn(`[RestoreAgent] No session found for DID: ${did}`);
             return undefined;
         }
-        console.log(`[RestoreAgent] Session restored successfully.`);
+        console.log("[RestoreAgent] Session restored successfully.");
         return new Agent(session);
     } catch (e) {
         console.error("[RestoreAgent] CRITICAL ERROR:", e);

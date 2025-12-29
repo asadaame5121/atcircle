@@ -21,15 +21,14 @@ export const validateHandle = (handle: string) => {
 };
 
 // Placeholder for future Auth implementation
-export class Auth {
+// Placeholder for future Auth implementation
+export const Auth = {
     // TODO: Implement OAuth flow
-    static async initiateLogin(handle: string) {
+    async initiateLogin(handle: string) {
         const validation = validateHandle(handle);
         if (!validation.success) {
-            if (!validation.success) {
-                // ZodError issues: validation.error.issues is the correct path for ZodError
-                throw new Error(validation.error.issues[0].message);
-            }
+            // ZodError issues: validation.error.issues is the correct path for ZodError
+            throw new Error(validation.error.issues[0].message);
         }
         // Logic to resolve DID and start OAuth would go here
         return {
@@ -38,11 +37,11 @@ export class Auth {
             // mock authorization URL
             authUrl: `https://bsky.social/oauth/authorize?handle=${handle}`,
         };
-    }
+    },
 
-    static async resolveDid(handle: string): Promise<string> {
+    async resolveDid(handle: string): Promise<string> {
         // Mock DID resolution
         // In reality, this would query the PLDS or Bsky API
         return `did:plc:mock-${handle.replace(/\./g, "-")}`;
-    }
-}
+    },
+};

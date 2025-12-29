@@ -1,13 +1,13 @@
-import { Hono } from "hono";
-import { html } from "hono/html";
-import { Layout } from "../components/Layout.js";
 import { AtUri } from "@atproto/api";
+import { Hono } from "hono";
+import { getCookie } from "hono/cookie";
+import { html } from "hono/html";
+import { verify } from "hono/jwt";
+import { Layout } from "../components/Layout.js";
+import { PUBLIC_URL, SECRET_KEY } from "../config.js";
 import { AtProtoService } from "../services/atproto.js";
 import { restoreAgent } from "../services/oauth.js";
-import { SECRET_KEY, PUBLIC_URL } from "../config.js";
-import { getCookie } from "hono/cookie";
-import { verify } from "hono/jwt";
-import { Bindings, AppVariables } from "../types/bindings.js";
+import type { AppVariables, Bindings } from "../types/bindings.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
 
@@ -16,7 +16,7 @@ app.use("*", async (c, next) => {
     const token = getCookie(c, "session");
     if (!token) {
         console.log("[WidgetBuilder] No session cookie found, redirecting... ");
-        return c.redirect("/login?next=" + encodeURIComponent(c.req.url));
+        return c.redirect(`/login?next=${encodeURIComponent(c.req.url)}`);
     }
     try {
         const payload = await verify(token, SECRET_KEY);
@@ -46,13 +46,13 @@ app.get("/", async (c) => {
     if (!site) return c.redirect("/dashboard");
 
     // Fetch ring data from local DB
-    let ring = (await c.env.DB.prepare(
+    const ring = (await c.env.DB.prepare(
         "SELECT title, banner_url FROM rings WHERE uri = ?",
     )
         .bind(ringUri)
         .first()) as { title: string; banner_url?: string } | null;
     let ringTitle = ring?.title;
-    let bannerUrl = ring?.banner_url || "";
+    const bannerUrl = ring?.banner_url || "";
 
     if (!ringTitle) {
         // Try fetching from ATProto and cache it
@@ -285,8 +285,8 @@ app.post("/upload-banner", async (c) => {
     const payload = c.get("jwtPayload");
     const did = payload.sub;
     const body = await c.req.parseBody();
-    const banner = body["banner"] as Blob;
-    const ringUri = body["ring_uri"] as string;
+    const banner = body.banner as Blob;
+    const ringUri = body.ring_uri as string;
 
     console.log(
         `[UploadBanner] Received upload request for DID: ${did}, Ring: ${ringUri}`,
@@ -340,7 +340,7 @@ app.post("/upload-banner", async (c) => {
         await c.env.DB.prepare("UPDATE rings SET banner_url = ? WHERE uri = ?")
             .bind(bannerUrl, ringUri)
             .run();
-        console.log(`[UploadBanner] Local database updated.`);
+        console.log("[UploadBanner] Local database updated.");
 
         return c.json({ success: true, url: bannerUrl });
     } catch (e: any) {

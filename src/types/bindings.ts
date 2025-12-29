@@ -1,4 +1,4 @@
-import { D1DatabaseCompat } from "../db.js";
+import type { D1DatabaseCompat } from "../db.js";
 
 export type i18nVariables = {
     lang: "en" | "ja";

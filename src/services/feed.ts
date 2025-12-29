@@ -1,5 +1,5 @@
 import Parser from "rss-parser";
-import { Bindings } from "../types/bindings.js";
+import type { Bindings } from "../types/bindings.js";
 
 /**
  * Custom type for the expected feed item structure.

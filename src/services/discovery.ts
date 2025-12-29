@@ -39,7 +39,7 @@ export function discoverMetadata(baseUrl: string, html: string): SiteMetadata {
             try {
                 const absUrl = new URL(href, baseUrl).toString();
                 feeds.push({ url: absUrl, type });
-            } catch (e) {
+            } catch (_e) {
                 // Ignore invalid URLs
             }
         }
