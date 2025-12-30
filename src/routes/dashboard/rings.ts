@@ -245,33 +245,4 @@ app.post("/update", async (c) => {
     return c.redirect("/dashboard?msg=updated");
 });
 
-// GET /dashboard/ring/widget
-app.get("/widget", async (c) => {
-    const ringUri = c.req.query("ring_uri");
-    if (!ringUri) return c.text("Ring URI required", 400);
-
-    const t = c.get("t");
-
-    return c.html(`
-        <div class="p-6 max-w-2xl mx-auto">
-            <h1 class="text-2xl font-bold mb-4">${t(
-                "dashboard.widget_title",
-            )}</h1>
-            <p class="mb-6">${t("dashboard.widget_desc")}</p>
-            
-            <div class="bg-base-300 p-4 rounded font-mono text-sm break-all mb-8">
-                &lt;iframe src="${PUBLIC_URL}/widget?ring=${encodeURIComponent(
-                    ringUri,
-                )}" width="100%" height="150" frameborder="0"&gt;&lt;/iframe&gt;
-            </div>
-
-            <div class="flex justify-between">
-                <a href="/dashboard" class="btn btn-ghost">${t(
-                    "common.back",
-                )}</a>
-            </div>
-        </div>
-    `);
-});
-
 export default app;

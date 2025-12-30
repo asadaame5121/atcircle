@@ -70,13 +70,33 @@ export const Layout = (props: {
           <a href="/terms" class="link link-hover">${props.t ? props.t("common.terms") : "Terms of Use"}</a>
           <a href="/privacy" class="link link-hover">${props.t ? props.t("common.privacy") : "Privacy Policy"}</a>
         </nav>
+        <nav>
+          <h6 class="footer-title">${props.t ? props.t("common.share") : "Share"}</h6>
+          <div class="grid grid-flow-col gap-4">
+            <a href="https://bsky.app/intent/compose?text=${encodeURIComponent(`${props.t ? props.t("seo.description") : ""} ${PUBLIC_URL}`)}" class="link link-hover" target="_blank" rel="noopener noreferrer">
+              ${props.t ? props.t("common.share_on_bluesky") : "Bluesky"}
+            </a>
+            <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(props.t ? props.t("seo.description") : "")}&url=${encodeURIComponent(PUBLIC_URL)}" class="link link-hover" target="_blank" rel="noopener noreferrer">
+              ${props.t ? props.t("common.share_on_twitter") : "Twitter"}
+            </a>
+          </div>
+        </nav>
         <aside>
           <p class="font-bold text-primary">${props.t ? props.t("common.brand") : "ATcircle"}</p>
           <p class="text-xs opacity-60">${props.t ? props.t("common.footer_desc") : "Webring system for personal sites"}</p>
+          <p class="mt-2">
+            <a href="https://bsky.app/profile/asadaame5121.bsky.social" class="link link-primary text-xs" target="_blank" rel="noopener noreferrer">
+               ${props.t ? props.t("common.contact") : "Contact (Bluesky)"}
+            </a>
+          </p>
         </aside>
       </footer>
     </div>
   </body>
+  <!-- BuyMeACoffee -->
+  <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="asadaame5121" data-color="#FFDD00" data-emoji=""  data-font="Cookie" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script>
+  <!-- Cloudflare Web Analytics -->
+  <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "15352b80eeac4249885a8aa15fde8930"}'></script>
 </html>
 `;
 };

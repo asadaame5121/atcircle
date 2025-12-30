@@ -24,7 +24,11 @@
         "copy_to_clipboard": "クリップボードにコピー",
         "terms": "利用規約",
         "privacy": "プライバシーポリシー",
-        "footer_desc": "ATProtoを活用した個人サイトのためのウェブリングシステム"
+        "footer_desc": "ATProtoを活用した個人サイトのためのウェブリングシステム",
+        "contact": "問い合わせ (Bluesky)",
+        "share": "シェア",
+        "share_on_bluesky": "Blueskyでシェア",
+        "share_on_twitter": "X (Twitter)でシェア"
     },
     "home": {
         "welcome": "ATcircleへようこそ",
@@ -183,11 +187,22 @@
         "field_layout": "レイアウト",
         "layout_default": "デフォルト (バナー)",
         "layout_compact": "コンパクト (グリッド)",
-        "field_label_random": "ランダムラベル",
-        "field_label_list": "リストラベル",
-        "field_label_css": "カスタムCSS URL",
+        "layout_simple": "シンプル",
+        "field_transparent": "背景を透過",
+        "banner_section": "バナー画像",
+        "banner_upload_desc": "ウェブリングウィジェットに表示するバナー画像をアップロードします。",
+        "labels_style_section": "ラベルとスタイル設定",
+        "label_title": "タイトル・ラベル",
+        "label_random": "「ランダム」ボタン",
+        "label_list": "「一覧」ボタン",
+        "label_css": "カスタムCSS URL",
         "divider_preview": "プレビュー",
         "divider_code": "埋め込みコード",
+        "preview": "プレビュー",
+        "embed_code": "埋め込みコード",
+        "alert_select_file": "ファイルを選択してください。",
+        "alert_upload_success": "バナーをアップロードしました！",
+        "alert_upload_failed": "アップロードに失敗しました",
         "copy_tooltip": "クリップボードにコピー"
     },
     "widget_script": {

@@ -19,8 +19,8 @@ export const LegacySiteSection = (props: {
                 </p>
             </div>
             <div class="card-actions mt-6">
-                <a href="/dashboard/edit" class="btn btn-success btn-sm">${t("dashboard.edit_site")}</a>
-                <a href="/dashboard/debug" class="btn btn-ghost btn-xs opacity-50">${t("dashboard.inspector")}</a>
+                <a href="/dashboard/site/edit" class="btn btn-success btn-sm">${t("dashboard.edit_site")}</a>
+                <a href="/dashboard/site/debug" class="btn btn-ghost btn-xs opacity-50">${t("dashboard.inspector")}</a>
             </div>
         </div>
     `;

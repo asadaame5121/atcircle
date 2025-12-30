@@ -23,6 +23,7 @@ import ringApp from "./dashboard/rings.js";
 import siteApp from "./dashboard/site.js";
 import syncApp from "./dashboard/sync.js";
 import userApp from "./dashboard/user.js";
+import widgetBuilder from "./widget_builder.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
 
@@ -45,6 +46,7 @@ app.use("*", async (c, next) => {
 });
 
 // Mounting Sub-apps
+app.route("/ring/widget", widgetBuilder);
 app.route("/ring", ringApp);
 app.route("/ring", moderationApp); // Both use /ring prefix
 app.route("/site", siteApp);

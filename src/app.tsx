@@ -10,7 +10,6 @@ import home from "./routes/home.js";
 import legal from "./routes/legal.js";
 import navigation from "./routes/navigation.js";
 import rings from "./routes/rings.js";
-import widgetBuilder from "./routes/widget_builder.js";
 import { updateAllFeeds } from "./services/feed.js";
 import type { Bindings } from "./types/bindings.js";
 
@@ -55,7 +54,6 @@ app.route("/", home);
 app.route("/antenna", antenna);
 app.route("/rings", rings);
 app.route("/dashboard", dashboard);
-app.route("/dashboard/ring/widget", widgetBuilder);
 app.route("/", auth);
 app.route("/", legal);
 app.route("/nav", navigation);
