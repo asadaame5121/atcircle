@@ -1,3 +1,4 @@
+import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
 import { logger } from "hono/logger";
 import db from "./db.js";
@@ -14,6 +15,9 @@ import { updateAllFeeds } from "./services/feed.js";
 import type { Bindings } from "./types/bindings.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: any }>();
+
+// Serve static assets
+app.use("/assets/*", serveStatic({ root: "./" }));
 
 app.use("*", logger());
 app.use("*", i18nMiddleware());

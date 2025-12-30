@@ -44,9 +44,25 @@ CREATE TABLE oauth_states (
 CREATE TABLE rings (
   uri TEXT PRIMARY KEY,
   owner_did TEXT NOT NULL,
+  admin_did TEXT,
   title TEXT NOT NULL,
   description TEXT,
+  acceptance_policy TEXT DEFAULT 'manual',
   created_at INTEGER DEFAULT (strftime('%s', 'now'))
+);
+
+CREATE TABLE join_requests (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  ring_uri TEXT NOT NULL,
+  user_did TEXT NOT NULL,
+  site_url TEXT NOT NULL,
+  site_title TEXT NOT NULL,
+  rss_url TEXT,
+  message TEXT,
+  status TEXT DEFAULT 'pending',
+  atproto_uri TEXT,
+  created_at INTEGER DEFAULT (strftime('%s', 'now')),
+  FOREIGN KEY (ring_uri) REFERENCES rings(uri)
 );
 
 CREATE TABLE memberships (

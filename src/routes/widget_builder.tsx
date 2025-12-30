@@ -1,7 +1,7 @@
 import { AtUri } from "@atproto/api";
 import { Hono } from "hono";
 import { getCookie } from "hono/cookie";
-import { html } from "hono/html";
+import { html, raw } from "hono/html";
 import { verify } from "hono/jwt";
 import { Layout } from "../components/Layout.js";
 import { PUBLIC_URL, SECRET_KEY } from "../config.js";
@@ -100,7 +100,7 @@ app.get("/", async (c) => {
 
                     <div class="alert alert-info mb-8 text-sm">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <span>${t("widget_builder.info_alert", { ring: ringTitle })}</span>
+                        <span>${raw(t("widget_builder.info_alert", { ring: ringTitle }))}</span>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -176,9 +176,6 @@ app.get("/", async (c) => {
                     </div>
                 </div>
             </div>
-                <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
-    <!-- TODO: Move to a proper CSS build for production -->
-    <script src="https://cdn.tailwindcss.com"></script>
             <script src="/nav/widget.js"></script>
             <script>
                 console.log("Webring Widget Builder Script Loaded (v3 - cache-buster)");
@@ -309,24 +306,21 @@ app.post("/upload-banner", async (c) => {
             );
         }
 
-        // 1. Upload Blob to PDS
+        // Create/Update Banner Record on PDS (includes blob upload)
         console.log(
-            `[UploadBanner] Uploading blob to PDS (Type: ${banner.type}, Size: ${banner.size})`,
+            `[UploadBanner] Uploading banner to PDS for ring: ${ringUri}`,
         );
         const arrayBuffer = await banner.arrayBuffer();
-        const blob = await AtProtoService.uploadBlob(
+        const blob = await AtProtoService.setRingBanner(
             agent,
+            ringUri,
             new Uint8Array(arrayBuffer),
             banner.type || "image/jpeg",
         );
         const cidString = blob.ref.toString();
-        console.log(`[UploadBanner] Blob uploaded. CID: ${cidString}`);
-
-        // 2. Create/Update Banner Record on PDS
         console.log(
-            `[UploadBanner] Creating banner record for ring: ${ringUri}`,
+            `[UploadBanner] Blob uploaded and record updated. CID: ${cidString}`,
         );
-        await AtProtoService.setRingBanner(agent, ringUri, blob);
 
         // 3. Update local DB with the banner URL (from PDS)
         // Note: The public URL for the blob: https://<pds-host>/xrpc/com.atproto.sync.getBlob?did=<did>&cid=<cid>

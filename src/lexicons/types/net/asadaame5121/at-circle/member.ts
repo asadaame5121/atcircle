@@ -1,0 +1,38 @@
+import { validate as _validate } from "../../../../lexicons";
+import { is$typed as _is$typed } from "../../../../util";
+import type * as NetAsadaame5121AtCircleDefs from "./defs.js";
+
+const is$typed = _is$typed,
+    validate = _validate;
+const id = "net.asadaame5121.at-circle.member";
+
+export interface Main {
+    $type: "net.asadaame5121.at-circle.member";
+    ring: NetAsadaame5121AtCircleDefs.RingRef;
+    /** URL of the participant's site */
+    url: string;
+    /** Title of the participant's site */
+    title: string;
+    /** RSS feed URL */
+    rss?: string;
+    createdAt: string;
+    /** Optional note */
+    note?: string;
+    [k: string]: unknown;
+}
+
+const hashMain = "main";
+
+export function isMain<V>(v: V) {
+    return is$typed(v, id, hashMain);
+}
+
+export function validateMain<V>(v: V) {
+    return validate<Main & V>(v, id, hashMain, true);
+}
+
+export {
+    type Main as Record,
+    isMain as isRecord,
+    validateMain as validateRecord,
+};

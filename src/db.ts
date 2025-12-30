@@ -127,12 +127,27 @@ await db.exec(`
   CREATE TABLE IF NOT EXISTS rings (
     uri TEXT PRIMARY KEY,
     owner_did TEXT NOT NULL,
+    admin_did TEXT,
     title TEXT NOT NULL,
     description TEXT,
     acceptance_policy TEXT DEFAULT 'automatic',
     status TEXT DEFAULT 'open',
     banner_url TEXT,
     created_at INTEGER DEFAULT (strftime('%s', 'now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS join_requests (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ring_uri TEXT NOT NULL,
+    user_did TEXT NOT NULL,
+    site_url TEXT NOT NULL,
+    site_title TEXT NOT NULL,
+    rss_url TEXT,
+    message TEXT,
+    status TEXT DEFAULT 'pending',
+    atproto_uri TEXT,
+    created_at INTEGER DEFAULT (strftime('%s', 'now')),
+    FOREIGN KEY (ring_uri) REFERENCES rings(uri)
   );
 
   CREATE TABLE IF NOT EXISTS memberships (
@@ -144,6 +159,14 @@ await db.exec(`
     created_at INTEGER DEFAULT (strftime('%s', 'now')),
     FOREIGN KEY (ring_uri) REFERENCES rings(uri),
     FOREIGN KEY (site_id) REFERENCES sites(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS block_records (
+    uri TEXT PRIMARY KEY,
+    ring_uri TEXT NOT NULL,
+    subject_did TEXT NOT NULL,
+    created_at INTEGER DEFAULT (strftime('%s', 'now')),
+    FOREIGN KEY (ring_uri) REFERENCES rings(uri)
   );
 
   CREATE INDEX IF NOT EXISTS idx_memberships_ring_uri ON memberships(ring_uri);
@@ -164,5 +187,6 @@ await db
     .exec("ALTER TABLE memberships ADD COLUMN status TEXT DEFAULT 'approved';")
     .catch(() => {});
 await db.exec("ALTER TABLE rings ADD COLUMN banner_url TEXT;").catch(() => {});
+await db.exec("ALTER TABLE rings ADD COLUMN admin_did TEXT;").catch(() => {});
 
 export default db;

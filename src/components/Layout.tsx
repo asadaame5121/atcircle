@@ -13,7 +13,7 @@ export const Layout = (props: {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${props.title}</title>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="/assets/index.css" rel="stylesheet" />
     <style>
       /* Custom overrides if needed */
       body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
