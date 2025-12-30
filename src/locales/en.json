@@ -125,5 +125,9 @@
         "terms_content": "<h3>1. Purpose</h3><p>These terms govern the use of the ATcircle webring service.</p><h3>2. Registration</h3><p>Users must provide accurate information when using the service.</p><h3>3. Prohibited Conduct</h3><p>Registration of sites that violate public order, morals, or laws is prohibited.</p><h3>4. Disclaimer</h3><p>The operator is not liable for any damages arising from the use of this service.</p>",
         "privacy_title": "Privacy Policy",
         "privacy_content": "<h3>1. Information Collected</h3><p>The service collects Bluesky DID, handle, and profile info via OAuth.</p><h3>2. Use of Information</h3><p>Collected information is used for user identification and webring features.</p><h3>3. Third-Party Sharing</h3><p>Information is not shared with third parties except as required by law.</p><h3>4. Data Deletion</h3><p>Users can delete their account and data at any time via the dashboard.</p>"
+    },
+    "seo": {
+        "description": "ATcircle is a webring system for personal sites leveraging ATProto. Connect with like-minded creators and build your community with Bluesky.",
+        "keywords": "ATProto, Bluesky, webring, personal site, community"
     }
 }

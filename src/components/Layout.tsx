@@ -1,17 +1,41 @@
 import { html } from "hono/html";
+import { PUBLIC_URL } from "../config.js";
 
 export const Layout = (props: {
     title: string;
     children: any;
     lang?: string;
     t?: (key: string) => string;
-}) => html`
+}) => {
+    const description = props.t ? props.t("seo.description") : "";
+    const keywords = props.t ? props.t("seo.keywords") : "";
+    const ogImage = `${PUBLIC_URL}/assets/ogp.png`;
+    const favicon = `${PUBLIC_URL}/assets/favicon.png`;
+
+    return html`
   <!DOCTYPE html>
   <html lang="${props.lang || "en"}" data-theme="light">
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${props.title}</title>
+    <meta name="description" content="${description}">
+    <meta name="keywords" content="${keywords}">
+    
+    <!-- OGP -->
+    <meta property="og:title" content="${props.title}">
+    <meta property="og:description" content="${description}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="${PUBLIC_URL}">
+    <meta property="og:image" content="${ogImage}">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="${props.title}">
+    <meta name="twitter:description" content="${description}">
+    <meta name="twitter:image" content="${ogImage}">
+
+    <link rel="icon" type="image/png" href="${favicon}">
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
     <link href="/assets/index.css" rel="stylesheet" />
     <style>
@@ -55,3 +79,4 @@ export const Layout = (props: {
   </body>
 </html>
 `;
+};
