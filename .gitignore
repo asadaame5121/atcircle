@@ -31,3 +31,11 @@ lerna-debug.log*
 
 # misc
 .DS_Store
+review.md
+roadmap.md
+app_summary.md
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+wrangler.jsonc

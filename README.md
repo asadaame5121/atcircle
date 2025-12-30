@@ -1,108 +1,97 @@
-# Bluesky Webring
+# ATcircle
 
-A modern Webring implementation integrated with Bluesky (ATProto) for
-authentication, built on Cloudflare Workers.
+ATProtoを利用したモダンなウェブリング。
+
+## 概要
+
+ATcircle は、分散型 SNS プロトコルである ATProto
+を活用し、個人サイト同士を繋ぐプラットフォームです。
+かつての個人サイト文化にあったウェブリングを、ATProtoで再現しようという試みです。
+
+## 特徴
+
+- **Bluesky 連携 (OAuth)**: Bluesky ハンドルでログインできます。
+- **ウェブリング作成・管理**:
+  独自のテーマでサークルを作成し、メンバーを招待・管理できます。
+- **カスタムウィジェット**:
+  サイトに埋め込み可能なナビゲーションウィジェット（前へ・次へ・ランダム）。
+- **アンテナ (RSS集約)**: 参加サイトの更新情報を一括で表示。
+- **OPML エクスポート**: リング内のサイトをまとめて RSS リーダーに登録可能。
+
+## 技術スタック
+
+- **Framework**: [Hono](https://hono.dev/)
+- **Runtime**: [Node.js](https://nodejs.org/) (>= 24)
+- **Database**: SQLite (`node:sqlite`)
+- **Infrastructure**: [Fly.io](https://fly.io/) (Docker)
+- **Auth**: [ATProto OAuthClient](https://github.com/bluesky-social/atproto)
+
+---
+
+# ATcircle
+
+A modern webring using ATProto.
 
 ## Overview
 
-This project allows users to join a webring using their Bluesky account. It
-provides a navigation widget for their sites and aggregates RSS feeds from
-member sites.
+ATcircle is a platform that connects personal websites using the decentralized
+SNS protocol, ATProto. It is an attempt to recreate the webring culture once
+found in personal sites using ATProto.
+
+## Features
+
+- **Bluesky Integration (OAuth)**: Log in with your Bluesky handle.
+- **Webring Management**: Create circles with custom themes and manage members.
+- **Custom Widget**: Embeddable navigation widget for member sites
+  (Prev/Next/Random).
+- **Antenna (RSS Aggregation)**: A unified feed of recent updates from all
+  members.
+- **OPML Export**: Easily export the subscription list for your favorite RSS
+  reader.
 
 ## Tech Stack
 
 - **Framework**: [Hono](https://hono.dev/)
-- **Platform**: [Cloudflare Workers](https://workers.cloudflare.com/)
-- **Database**: Cloudflare D1
-- **Styling**: [TailwindCSS](https://tailwindcss.com/) +
-  [DaisyUI](https://daisyui.com/) (via CDN)
-- **Auth**: [ATProto OAuth](https://atproto.com/specs/oauth)
-  (@atproto/oauth-client-node)
+- **Runtime**: [Node.js](https://nodejs.org/) (>= 24)
+- **Database**: SQLite (`node:sqlite`)
+- **Infrastructure**: [Fly.io](https://fly.io/) (Docker)
+- **Auth**: [ATProto OAuthClient](https://github.com/bluesky-social/atproto)
 
-## Features
+## Getting Started / 開発の始め方
 
-- **Bluesky Login**: Secure authentication using your Bluesky handle.
-- **Dashboard**:
-  - Register and manage your site.
-  - **Multi-site Detection**: Automatically scans your Bluesky profile for URLs
-    to register.
-  - **RSS Support**: Auto-detects RSS feeds for the antenna.
-- **Webring Navigation**:
-  - `/nav/next`, `/nav/prev`, `/nav/random` endpoints.
-  - JavaScript widget for easy embedding.
-- **Antenna**: A feed of recent posts from all webring members (Cron-based).
-- **Responsive UI**: Modern, mobile-friendly design using DaisyUI.
+### Prerequisites / 前提条件
 
-## Getting Started
+- **Node.js**: >= 24
+- **npm** or **bun**
 
-### Prerequisites
+### Installation / インストール
 
-- [Bun](https://bun.sh/) (or Node.js/npm)
-- [Wrangler](https://developers.cloudflare.com/workers/wrangler/install-and-update/)
-  CLI installed and authenticated.
-
-### Installation
-
-1. Clone the repository:
+1. Clone the repository / リポジトリをクローン:
    ```bash
-   git clone <repository-url>
-   cd webring
+   git clone https://github.com/asadaame5121/atcircle.git
+   cd atcircle
    ```
-
-2. Install dependencies:
+2. Install dependencies / 依存関係のインストール:
    ```bash
    npm install
-   # or
-   bun install
    ```
 
-### Local Development
+### Local Development / ローカル開発
 
-1. Start the development server:
+1. Start the dev server / 開発サーバーの起動:
    ```bash
    npm run dev
-   # or
-   bun run dev
    ```
-   This will start a local Wrangler session with a local D1 database.
+2. Open `http://localhost:8080` in your browser.
 
-2. Open `http://localhost:8787` in your browser.
+### Configuration / 設定
 
-### Database Setup (D1)
+以下の環境変数を設定してください (.env ファイルなど): Set the following
+environment variables (e.g., in a `.env` file):
 
-The project uses a D1 database named `webring-db`.
-
-- **Local Schema**: applied automatically in dev.
-- **Production Schema**: To apply schema changes to production:
-  ```bash
-  wrangler d1 execute webring-db --remote --file=./schema.sql
-  ```
-  _(Note: Ensure you have a `schema.sql` or create tables manually as needed)_
-
-### Configuration
-
-- **SECRET_KEY**: Used for JWT session signing.
-  - In production, set this via `wrangler secret put SECRET_KEY`.
-  - In `src/config.ts`, ensuring it matches the environment.
-
-## Deployment
-
-Deploy to Cloudflare Workers with a single command:
-
-```bash
-npm run deploy
-```
-
-## Embedding the Widget
-
-Add the following code to your website to join the ring navigation:
-
-```html
-<script src="https://<your-worker-domain>/nav/widget.js"></script>
-<webring-nav site="https://your-site.com"></webring-nav>
-```
-
-Replace `https://your-site.com` with your registered URL.
+- `PUBLIC_URL`: サイトの公開 URL (例: `https://at-circle.example.com`)
+- `SECRET_KEY`: JWT セッション署名用の秘密鍵
+- `OAUTH_PRIVATE_KEY`: ATProto OAuth 用の非公開鍵 (JWK形式をBase64変換したもの)
 
 ## License
 
