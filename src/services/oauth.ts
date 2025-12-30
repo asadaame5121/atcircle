@@ -178,7 +178,10 @@ export const createClient = async (
             }
         }) as any,
         handleResolver: {
-            async resolve(handleOrDid: string) {
+            async resolve(handleOrDid: string): Promise<string> {
+                if (handleOrDid.startsWith("did:")) {
+                    return handleOrDid;
+                }
                 const handle = handleOrDid;
                 if (handle.endsWith(".test")) {
                     console.log(
@@ -189,7 +192,7 @@ export const createClient = async (
                     );
                     if (!res.ok) throw new Error("Handle not found");
                     const data = (await res.json()) as { did: string };
-                    return { did: data.did };
+                    return data.did;
                 }
 
                 try {
@@ -207,7 +210,7 @@ export const createClient = async (
                     console.log(
                         `[CustomResolver] Resolved to DID: ${data.did}`,
                     );
-                    return { did: data.did };
+                    return data.did;
                 } catch (e) {
                     console.error("[CustomResolver] Error:", e);
                     throw e;
@@ -216,6 +219,14 @@ export const createClient = async (
         } as any,
         didResolver: {
             async resolve(did: string): Promise<any> {
+                if (typeof did !== "string") {
+                    console.error(
+                        "[CustomResolver] DID is not a string:",
+                        did,
+                        typeof did,
+                    );
+                    return null;
+                }
                 console.log(`[CustomResolver] Resolving DID: ${did}`);
                 if (did.startsWith("did:plc:")) {
                     try {
