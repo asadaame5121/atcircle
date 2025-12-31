@@ -23,8 +23,9 @@ git commit -m "feat: UI/UX improvements and AI feedback implementation"
 git push origin $(git branch --show-current)
 ```
 
-4. プルリクエストを作成する
+4. プルリクエストを作成する（説明文は作業内容に基づき日本語で記述してください）
 
 ```powershell
-gh pr create --fill
+# --body に日本語で作業内容を詳しく記載してください
+gh pr create --title "$(git log -1 --pretty=%s)" --body "## 作業内容`n`n- モバイル対応の強化`n- アイコンの導入`n- ダッシュボードの刷新"
 ```
