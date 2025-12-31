@@ -271,6 +271,12 @@ export const Modals = (props: {
                                     <span class="text-[10px] opacity-30 truncate">DID: \${m.user_did}</span>
                                 </div>
                                 <div class="flex items-center gap-2">
+                                    <select class="select select-bordered select-xs" 
+                                        onchange="updateMemberStatus('\${m.user_did}', this.value)">
+                                        <option value="approved" \${m.status === 'approved' ? 'selected' : ''}>${t("members.status_approved")}</option>
+                                        <option value="pending" \${m.status === 'pending' ? 'selected' : ''}>${t("members.status_pending")}</option>
+                                        <option value="suspended" \${m.status === 'suspended' ? 'selected' : ''}>${t("members.status_suspended")}</option>
+                                    </select>
                                     <button class="btn btn-ghost btn-xs btn-outline" 
                                         onclick="kickMember('\${m.user_did}', '\${m.title.replace(/'/g, "\\\\'")}')">
                                         ${t("members.kick")}
@@ -290,6 +296,29 @@ export const Modals = (props: {
                     loading.classList.add('hidden');
                     loading.classList.remove('flex');
                     container.innerHTML = '<div class="alert alert-error">Failed to fetch members</div>';
+                }
+            }
+
+            async function updateMemberStatus(memberDid, status) {
+                try {
+                    const res = await fetch('/dashboard/ring/members/update', {
+                        method: 'POST',
+                        body: new URLSearchParams({
+                            ring_uri: currentRingUri,
+                            member_did: memberDid,
+                            status: status
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        // Success - Optional feedback or just keep it silent
+                    } else {
+                        alert('Error: ' + data.error);
+                        await refreshMemberList(); // Revert on error
+                    }
+                } catch (e) {
+                    alert('Failed to update member status');
+                    await refreshMemberList();
                 }
             }
 

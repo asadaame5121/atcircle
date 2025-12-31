@@ -247,6 +247,9 @@
         "block": "ブロック (追放)",
         "confirm_block": "{{name}} をブロック（追放）しますか？\nATProto上にブロック記録が作成され、このユーザーは今後このリングへの申請ができなくなります。",
         "block_success": "ユーザーをブロックしました。",
+        "status_approved": "承認済み",
+        "status_pending": "保留中",
+        "status_suspended": "停止中",
         "no_members": "メンバーがいません。"
     }
 }

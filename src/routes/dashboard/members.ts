@@ -137,4 +137,45 @@ app.post("/block", async (c) => {
     }
 });
 
+// POST /dashboard/ring/members/update
+app.post("/update", async (c) => {
+    const payload = c.get("jwtPayload");
+    const did = payload.sub;
+    const body = await c.req.parseBody();
+    const ringUri = body.ring_uri as string;
+    const memberDid = body.member_did as string;
+    const status = body.status as "approved" | "pending" | "suspended";
+
+    if (!ringUri || !memberDid || !status) {
+        return c.json({ success: false, error: "Missing parameters" }, 400);
+    }
+
+    try {
+        // 1. Ownership check
+        const ring = (await c.env.DB.prepare(
+            "SELECT * FROM rings WHERE uri = ? AND (owner_did = ? OR admin_did = ?)",
+        )
+            .bind(ringUri, did, did)
+            .first()) as any;
+
+        if (!ring) {
+            return c.json({ success: false, error: "Unauthorized" }, 403);
+        }
+
+        // 2. Local DB: Update membership status
+        await c.env.DB.prepare(`
+            UPDATE memberships 
+            SET status = ? 
+            WHERE ring_uri = ? AND site_id IN (SELECT id FROM sites WHERE user_did = ?)
+        `)
+            .bind(status, ringUri, memberDid)
+            .run();
+
+        return c.json({ success: true });
+    } catch (e: any) {
+        console.error("Update failed:", e);
+        return c.json({ success: false, error: e.message }, 500);
+    }
+});
+
 export default app;
