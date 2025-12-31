@@ -110,6 +110,15 @@ export const AtProtoService = {
         });
     },
 
+    async deleteRing(agent: AtpAgent | Agent, ringUri: string) {
+        const { rkey } = new AtUri(ringUri);
+        await agent.api.com.atproto.repo.deleteRecord({
+            repo: (agent as any).session?.did ?? (agent as any).did ?? "",
+            collection: NSID.RING,
+            rkey,
+        });
+    },
+
     // -------------------------------------------------------------------------
     // Member Operations
     // -------------------------------------------------------------------------

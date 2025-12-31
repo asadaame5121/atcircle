@@ -123,9 +123,25 @@ export const Modals = (props: {
                         <p class="text-[10px] opacity-50 mt-1">Single administrator. Defaults to owner DID.</p>
                     </div>
 
-                    <div class="modal-action">
-                        <button type="button" class="btn" onclick="circle_config_modal.close()">${t("common.cancel")}</button>
-                        <button type="submit" class="btn btn-primary">${t("common.save")}</button>
+                    <div class="modal-action flex justify-between">
+                        <div class="flex gap-2">
+                             <button type="button" class="btn btn-error btn-outline" onclick="if(confirm('${t("dashboard.confirm_delete_ring")}')) { 
+                                const form = document.createElement('form');
+                                form.method = 'POST';
+                                form.action = '/dashboard/ring/delete';
+                                const input = document.createElement('input');
+                                input.type = 'hidden';
+                                input.name = 'uri';
+                                input.value = document.getElementById('config-uri').value;
+                                form.appendChild(input);
+                                document.body.appendChild(form);
+                                form.submit();
+                             }">${t("dashboard.delete_ring")}</button>
+                        </div>
+                        <div class="flex gap-2">
+                            <button type="button" class="btn" onclick="circle_config_modal.close()">${t("common.cancel")}</button>
+                            <button type="submit" class="btn btn-primary">${t("common.save")}</button>
+                        </div>
                     </div>
                 </form>
             </div>

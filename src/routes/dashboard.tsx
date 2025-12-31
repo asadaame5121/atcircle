@@ -1,3 +1,4 @@
+import { AtUri } from "@atproto/api";
 import { Hono } from "hono";
 import { getCookie } from "hono/cookie";
 import { html } from "hono/html";
@@ -182,6 +183,21 @@ app.get("/", async (c) => {
             existing.memberUri = m.uri;
             existing.siteUrl = m.value.url;
         } else {
+            // Check if this is an orphaned membership for a ring that SHOULD be owned by me
+            // (i.e. hostname of ringUri matches my DID)
+            try {
+                const ringAtUri = new AtUri(ringUri);
+                if (ringAtUri.hostname === did) {
+                    // This is an orphan of a deleted owned ring, skip it
+                    console.log(
+                        `[Dashboard] Skipping orphaned membership for deleted owned ring: ${ringUri}`,
+                    );
+                    continue;
+                }
+            } catch {
+                // Ignore parse error
+            }
+
             ringMap.set(ringUri, {
                 uri: ringUri,
                 title: "Loading...",

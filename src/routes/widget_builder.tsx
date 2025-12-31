@@ -116,6 +116,7 @@ app.get("/", async (c) => {
                         <div class="form-control">
                             <label class="label"><span class="label-text font-bold">${t("widget_builder.field_layout")}</span></label>
                             <select id="w-layout" class="select select-bordered w-full" onchange="updatePreview()">
+                                <option value="html" selected>${t("widget_builder.layout_html")}</option>
                                 <option value="default">${t("widget_builder.layout_default")}</option>
                                 <option value="compact">${t("widget_builder.layout_compact")}</option>
                                 <option value="simple">${t("widget_builder.layout_simple")}</option>
@@ -196,34 +197,82 @@ app.get("/", async (c) => {
                     // Update UI Preview
                     const previewArea = document.getElementById('preview-area');
                     previewArea.innerHTML = '';
-                    const nav = document.createElement('webring-nav');
-                    nav.setAttribute('site', siteUrl);
-                    nav.setAttribute('ring', ringUri);
-                    if (theme !== 'system') nav.setAttribute('theme', theme);
-                    if (layout !== 'default') nav.setAttribute('layout', layout);
-                    if (transparent) nav.setAttribute('transparent', '');
-                    if (currentBannerUrl) nav.setAttribute('banner', currentBannerUrl);
-                    if (labelTitle !== 'Webring' && labelTitle !== "${ringTitle}") nav.setAttribute('label-title', labelTitle);
-                    if (labelRandom !== 'Random') nav.setAttribute('label-random', labelRandom);
-                    if (labelList !== 'List') nav.setAttribute('label-list', labelList);
-                    if (customCss) nav.setAttribute('css', customCss);
                     
-                    previewArea.appendChild(nav);
+                    if (layout === 'html') {
+                        // Plain HTML Preview
+                        const div = document.createElement('div');
+                        div.style.cssText = 'border: 1px solid #ccc; padding: 15px; border-radius: 8px; text-align: center; background: white; color: black;';
+                        const title = document.createElement('strong');
+                        title.textContent = labelTitle;
+                        div.appendChild(title);
+                        div.appendChild(document.createElement('hr'));
+                        
+                        const links = document.createElement('div');
+                        links.style.display = 'flex';
+                        links.style.gap = '10px';
+                        links.style.justifyContent = 'center';
+                        
+                        const p = document.createElement('a');
+                        p.href = baseUrl + '/p?from=' + encodeURIComponent(siteUrl) + '&ring=' + encodeURIComponent(ringUri);
+                        p.textContent = 'Prev';
+                        p.style.color = '#0070f3';
+                        
+                        const r = document.createElement('a');
+                        r.href = baseUrl + '/r?ring=' + encodeURIComponent(ringUri);
+                        r.textContent = labelRandom === 'Random' ? 'Random' : labelRandom;
+                        r.style.color = '#0070f3';
+                        
+                        const n = document.createElement('a');
+                        n.href = baseUrl + '/n?from=' + encodeURIComponent(siteUrl) + '&ring=' + encodeURIComponent(ringUri);
+                        n.textContent = 'Next';
+                        n.style.color = '#0070f3';
+                        
+                        links.appendChild(p);
+                        links.appendChild(document.createTextNode('|'));
+                        links.appendChild(r);
+                        links.appendChild(document.createTextNode('|'));
+                        links.appendChild(n);
+                        div.appendChild(links);
+                        previewArea.appendChild(div);
+                        
+                        // Update Code (Short URLs)
+                        const htmlCode = '<div style="border: 1px solid #ccc; padding: 10px; border-radius: 8px; display: inline-block;">\\n' +
+                                       '  <strong>' + labelTitle + '</strong><br/>\\n' + 
+                                       '  <a href="' + baseUrl + '/p?from=' + encodeURIComponent(siteUrl) + '&ring=' + encodeURIComponent(ringUri) + '">Prev</a> | \\n' +
+                                       '  <a href="' + baseUrl + '/r?ring=' + encodeURIComponent(ringUri) + '">' + (labelRandom === 'Random' ? 'Random' : labelRandom) + '</a> | \\n' +
+                                       '  <a href="' + baseUrl + '/n?from=' + encodeURIComponent(siteUrl) + '&ring=' + encodeURIComponent(ringUri) + '">Next</a>\\n' +
+                                       '</div>';
+                        document.getElementById('w-code').textContent = htmlCode;
+                    } else {
+                        const nav = document.createElement('webring-nav');
+                        nav.setAttribute('site', siteUrl);
+                        nav.setAttribute('ring', ringUri);
+                        if (theme !== 'system') nav.setAttribute('theme', theme);
+                        if (layout !== 'default') nav.setAttribute('layout', layout);
+                        if (transparent) nav.setAttribute('transparent', '');
+                        if (currentBannerUrl) nav.setAttribute('banner', currentBannerUrl);
+                        if (labelTitle !== 'Webring' && labelTitle !== "${ringTitle}") nav.setAttribute('label-title', labelTitle);
+                        if (labelRandom !== 'Random') nav.setAttribute('label-random', labelRandom);
+                        if (labelList !== 'List') nav.setAttribute('label-list', labelList);
+                        if (customCss) nav.setAttribute('css', customCss);
+                        
+                        previewArea.appendChild(nav);
 
-                    // Update Code
-                    let tag = '<webring-nav site="' + siteUrl + '" ring="' + ringUri + '"';
-                    if (theme !== 'system') tag += ' theme="' + theme + '"';
-                    if (layout !== 'default') tag += ' layout="' + layout + '"';
-                    if (transparent) tag += ' transparent';
-                    if (currentBannerUrl) tag += ' banner="' + currentBannerUrl + '"';
-                    if (labelTitle !== 'Webring' && labelTitle !== "${ringTitle}") tag += ' label-title="' + labelTitle + '"';
-                    if (labelRandom !== 'Random') tag += ' label-random="' + labelRandom + '"';
-                    if (labelList !== 'List') tag += ' label-list="' + labelList + '"';
-                    if (customCss) tag += ' css="' + customCss + '"';
-                    tag += '></webring-nav>';
+                        // Update Code
+                        let tag = '<webring-nav site="' + siteUrl + '" ring="' + ringUri + '"';
+                        if (theme !== 'system') tag += ' theme="' + theme + '"';
+                        if (layout !== 'default') tag += ' layout="' + layout + '"';
+                        if (transparent) tag += ' transparent';
+                        if (currentBannerUrl) tag += ' banner="' + currentBannerUrl + '"';
+                        if (labelTitle !== 'Webring' && labelTitle !== "${ringTitle}") tag += ' label-title="' + labelTitle + '"';
+                        if (labelRandom !== 'Random') tag += ' label-random="' + labelRandom + '"';
+                        if (labelList !== 'List') tag += ' label-list="' + labelList + '"';
+                        if (customCss) tag += ' css="' + customCss + '"';
+                        tag += '></webring-nav>';
 
-                    const scriptTag = '<script src="' + baseUrl + '/nav/widget.js"><' + '/script>';
-                    document.getElementById('w-code').textContent = scriptTag + '\\n' + tag;
+                        const scriptTag = '<script src="' + baseUrl + '/nav/widget.js"><' + '/script>';
+                        document.getElementById('w-code').textContent = scriptTag + '\\n' + tag;
+                    }
                 }
 
                 async function uploadBanner() {

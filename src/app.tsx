@@ -61,6 +61,17 @@ app.route("/nav", navigation);
 // Compatibility redirect for users who use /widget.js
 app.get("/widget.js", (c) => c.redirect("/nav/widget.js"));
 
+// Short Aliases for SNS/No-JS
+app.get("/n", (c) =>
+    c.redirect(`/nav/next?${c.req.raw.url.split("?")[1] || ""}`),
+);
+app.get("/p", (c) =>
+    c.redirect(`/nav/prev?${c.req.raw.url.split("?")[1] || ""}`),
+);
+app.get("/r", (c) =>
+    c.redirect(`/nav/random?${c.req.raw.url.split("?")[1] || ""}`),
+);
+
 // Lexicon distribution (XRPC-style resolution with CORS)
 import { readFileSync } from "node:fs";
 import { join } from "node:path";

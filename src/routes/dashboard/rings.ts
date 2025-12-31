@@ -245,4 +245,68 @@ app.post("/update", async (c) => {
     return c.redirect("/dashboard?msg=updated");
 });
 
+// POST /dashboard/ring/delete
+app.post("/delete", async (c) => {
+    const payload = c.get("jwtPayload");
+    const did = payload.sub;
+    const body = await c.req.parseBody();
+    const uri = body.uri as string;
+
+    if (!uri) return c.text("Ring URI required", 400);
+
+    try {
+        const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
+        if (!agent) return c.redirect("/login");
+
+        // 1. Verify ownership (simple check: hostname of URI should match DID)
+        // More robust: check existing local DB record
+        const ring = (await c.env.DB.prepare(
+            "SELECT owner_did FROM rings WHERE uri = ?",
+        )
+            .bind(uri)
+            .first()) as { owner_did: string } | null;
+
+        if (!ring || ring.owner_did !== did) {
+            return c.text("Unauthorized or ring not found", 403);
+        }
+
+        // 2. Delete from ATProto
+        await AtProtoService.deleteRing(agent, uri);
+
+        // 3. Delete owner's own member record from ATProto if exists
+        const myMembership = (await c.env.DB.prepare(
+            "SELECT member_uri FROM memberships m JOIN sites s ON m.site_id = s.id WHERE m.ring_uri = ? AND s.user_did = ?",
+        )
+            .bind(uri, did)
+            .first()) as { member_uri: string } | null;
+
+        if (myMembership) {
+            console.log(
+                `[Delete] Deleting owner's member record: ${myMembership.member_uri}`,
+            );
+            await AtProtoService.leaveRing(agent, myMembership.member_uri);
+        }
+
+        // 4. Delete from Local DB
+        // Using batch to ensure atomicity for related data
+        await c.env.DB.batch([
+            c.env.DB.prepare("DELETE FROM memberships WHERE ring_uri = ?").bind(
+                uri,
+            ),
+            c.env.DB.prepare(
+                "DELETE FROM join_requests WHERE ring_uri = ?",
+            ).bind(uri),
+            c.env.DB.prepare(
+                "DELETE FROM block_records WHERE ring_uri = ?",
+            ).bind(uri),
+            c.env.DB.prepare("DELETE FROM rings WHERE uri = ?").bind(uri),
+        ]);
+    } catch (e) {
+        console.error("Error deleting ring:", e);
+        return c.text("Failed to delete ring", 500);
+    }
+
+    return c.redirect("/dashboard?msg=deleted");
+});
+
 export default app;
