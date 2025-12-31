@@ -40,35 +40,53 @@ export const Layout = (props: {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <link href="/assets/index.css" rel="stylesheet" />
     <style>
-      /* Custom overrides if needed */
-      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-      .container { width: 100% !important; max-width: 100% !important; }
-      @media (min-width: 640px) { .container { max-width: 640px !important; } }
-      @media (min-width: 768px) { .container { max-width: 768px !important; } }
-      @media (min-width: 1024px) { .container { max-width: 896px !important; } }
+      /* Custom overrides for responsive layout */
+      body { 
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        overflow-x: hidden;
+      }
+      .container { 
+        width: 100% !important; 
+        max-width: 896px !important; 
+        margin-left: auto; 
+        margin-right: auto; 
+        padding-left: 0.75rem !important; 
+        padding-right: 0.75rem !important; 
+      }
+      
+      /* Ensure everything stays within viewport */
+      * { max-width: 100%; box-sizing: border-box; }
     </style>
   </head>
   <body class="bg-base-200 min-h-screen">
     <div class="container mx-auto p-4 max-w-4xl">
-      <header class="navbar bg-base-100 rounded-box shadow-lg mb-8 flex-wrap">
-        <div class="flex-1">
-          <a href="/" class="btn btn-ghost text-xl text-primary font-black italic tracking-tighter">${props.t ? props.t("common.brand") : "ATcircle"}</a>
+      <header class="navbar bg-base-100 rounded-box shadow-lg mb-8">
+        <div class="navbar-start">
+          <div class="dropdown">
+            <div tabindex="0" role="button" class="btn btn-ghost lg:hidden pr-1">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16" /></svg>
+            </div>
+            <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-20 p-2 shadow bg-base-100 rounded-box w-52">
+              <li><a href="/">${props.t ? props.t("common.home") : "Home"}</a></li>
+              <li><a href="/rings">${props.t ? props.t("common.rings") : "Rings"}</a></li>
+              <li><a href="/dashboard">${props.t ? props.t("common.dashboard") : "Dashboard"}</a></li>
+            </ul>
+          </div>
+          <a href="/" class="btn btn-ghost text-xl text-primary font-black italic tracking-tighter px-2">${props.t ? props.t("common.brand") : "ATcircle"}</a>
         </div>
-        <div class="flex-none">
-          <ul class="menu menu-horizontal px-1 gap-1">
-            <li><a href="/" class="px-2 sm:px-4">${props.t ? props.t("common.home") : "Home"}</a></li>
-            <li><a href="/rings" class="px-2 sm:px-4">${props.t ? props.t("common.rings") : "Rings"}</a></li>
-            <li><a href="/dashboard" class="px-2 sm:px-4">${props.t ? props.t("common.dashboard") : "Dashboard"}</a></li>
-            <li>
-              <a href="https://github.com/asadaame5121/atcircle" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-circle btn-sm">
-                <i class="fa-brands fa-github text-lg"></i>
-              </a>
-            </li>
+        <div class="navbar-end">
+          <ul class="menu menu-horizontal px-1 gap-1 hidden lg:flex">
+            <li><a href="/">${props.t ? props.t("common.home") : "Home"}</a></li>
+            <li><a href="/rings">${props.t ? props.t("common.rings") : "Rings"}</a></li>
+            <li><a href="/dashboard">${props.t ? props.t("common.dashboard") : "Dashboard"}</a></li>
           </ul>
+          <a href="https://github.com/asadaame5121/atcircle" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-circle btn-sm">
+            <i class="fa-brands fa-github text-lg"></i>
+          </a>
         </div>
       </header>
       ${props.children}
-      <footer class="footer p-10 bg-base-100 text-base-content rounded-box shadow-lg mt-12">
+      <footer class="footer p-10 bg-base-100 text-base-content rounded-box shadow-lg mt-12 grid-cols-1 md:grid-cols-3">
         <nav>
           <h6 class="footer-title">Services</h6> 
           <a href="/rings" class="link link-hover">${props.t ? props.t("common.rings") : "Webrings"}</a>
@@ -81,7 +99,7 @@ export const Layout = (props: {
         </nav>
         <nav>
           <h6 class="footer-title">${props.t ? props.t("common.share") : "Share"}</h6>
-          <div class="grid grid-flow-col gap-4">
+          <div class="flex gap-4">
             <a href="https://bsky.app/intent/compose?text=${encodeURIComponent(`${props.t ? props.t("seo.description") : ""} ${PUBLIC_URL}`)}" class="btn btn-ghost btn-circle btn-sm" target="_blank" rel="noopener noreferrer" title="${props.t ? props.t("common.share_on_bluesky") : "Bluesky"}">
               <i class="fa-brands fa-bluesky text-lg"></i>
             </a>
@@ -93,7 +111,7 @@ export const Layout = (props: {
             </a>
           </div>
         </nav>
-        <aside>
+        <aside class="md:col-span-3 border-t border-base-300 pt-6 w-full">
           <p class="font-bold text-primary">${props.t ? props.t("common.brand") : "ATcircle"}</p>
           <p class="text-xs opacity-60">${props.t ? props.t("common.footer_desc") : "Webring system for personal sites"}</p>
           <p class="mt-2">
