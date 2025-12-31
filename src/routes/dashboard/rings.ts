@@ -91,6 +91,22 @@ app.post("/join", async (c) => {
         const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
         if (!agent) return c.redirect("/login");
 
+        // 0. Check for existing membership or request
+        const existing = await c.env.DB.prepare(`
+            SELECT 1 FROM memberships m 
+            JOIN sites s ON m.site_id = s.id
+            WHERE m.ring_uri = ? AND s.user_did = ? AND m.status = 'approved'
+            UNION ALL
+            SELECT 1 FROM join_requests WHERE ring_uri = ? AND user_did = ? AND status = 'pending'
+            LIMIT 1
+        `)
+            .bind(ringUri, did, ringUri, did)
+            .first();
+
+        if (existing) {
+            return c.redirect("/dashboard?msg=already_joined_or_requested");
+        }
+
         // 1. Fetch Ring Metadata and Save/Update locally
         let acceptancePolicy = "automatic";
         try {

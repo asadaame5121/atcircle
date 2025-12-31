@@ -14,7 +14,9 @@ app.get("/random", async (c) => {
         site = await c.env.DB.prepare(
             `SELECT s.url FROM sites s 
              JOIN memberships m ON s.id = m.site_id 
-             WHERE s.is_active = 1 AND m.ring_uri = ? 
+             LEFT JOIN block_records b ON (b.ring_uri = m.ring_uri AND b.subject_did = s.user_did)
+             WHERE s.is_active = 1 AND m.ring_uri = ? AND m.status = 'approved' AND b.uri IS NULL
+             GROUP BY s.id
              ORDER BY RANDOM() LIMIT 1`,
         )
             .bind(ring)
@@ -45,7 +47,9 @@ app.get("/next", async (c) => {
         sites = await c.env.DB.prepare(
             `SELECT s.id, s.url FROM sites s 
              JOIN memberships m ON s.id = m.site_id 
-             WHERE s.is_active = 1 AND m.ring_uri = ? 
+             LEFT JOIN block_records b ON (b.ring_uri = m.ring_uri AND b.subject_did = s.user_did)
+             WHERE s.is_active = 1 AND m.ring_uri = ? AND m.status = 'approved' AND b.uri IS NULL
+             GROUP BY s.id
              ORDER BY s.id ASC`,
         )
             .bind(ring)
@@ -88,7 +92,9 @@ app.get("/prev", async (c) => {
         sites = await c.env.DB.prepare(
             `SELECT s.id, s.url FROM sites s 
              JOIN memberships m ON s.id = m.site_id 
-             WHERE s.is_active = 1 AND m.ring_uri = ? 
+             LEFT JOIN block_records b ON (b.ring_uri = m.ring_uri AND b.subject_did = s.user_did)
+             WHERE s.is_active = 1 AND m.ring_uri = ? AND m.status = 'approved' AND b.uri IS NULL
+             GROUP BY s.id
              ORDER BY s.id ASC`,
         )
             .bind(ring)

@@ -35,8 +35,10 @@ app.get("/", async (c) => {
                     s.url as site_url 
                 FROM antenna_items ai
                 JOIN sites s ON ai.site_id = s.id
-                JOIN memberships m ON s.id = m.site_id
-                WHERE s.is_active = 1 AND m.ring_uri = ?
+                WHERE s.is_active = 1 AND EXISTS (
+                    SELECT 1 FROM memberships m 
+                    WHERE m.site_id = s.id AND m.ring_uri = ? AND m.status = 'approved'
+                )
                 ORDER BY ai.published_at DESC
                 LIMIT 50
             `)

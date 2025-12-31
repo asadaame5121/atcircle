@@ -22,7 +22,7 @@ app.post("/debug/mock-data", async (c) => {
 app.get("/", async (c) => {
     const rings = await c.env.DB.prepare(`
         SELECT r.*, 
-               (SELECT COUNT(*) FROM memberships m WHERE m.ring_uri = r.uri AND m.status = 'approved') as member_count 
+               (SELECT COUNT(DISTINCT site_id) FROM memberships m WHERE m.ring_uri = r.uri AND m.status = 'approved') as member_count 
         FROM rings r 
         WHERE r.status = 'open'
         ORDER BY created_at DESC
@@ -99,6 +99,7 @@ app.get("/view", async (c) => {
         FROM sites s
         JOIN memberships m ON s.id = m.site_id
         WHERE m.ring_uri = ? AND s.is_active = 1 AND m.status = 'approved'
+        GROUP BY s.id
         ORDER BY m.created_at ASC
     `)
         .bind(ringUri)

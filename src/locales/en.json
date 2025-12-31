@@ -10,6 +10,7 @@
         "cancel": "Cancel",
         "save": "Save",
         "delete": "Delete",
+        "close": "Close",
         "back": "Back",
         "terms": "Terms of Use",
         "privacy": "Privacy Policy",
@@ -51,11 +52,13 @@
         "msg_updated": "Updated successfully!",
         "msg_approved": "Member approved!",
         "msg_rejected": "Member request rejected.",
+        "msg_already_joined_or_requested": "You have already joined or have a pending request for this ring.",
         "managed_rings": "Your Managed Webrings",
         "joined_rings": "Your Joined Webrings",
         "pending_requests": "Pending Member Requests",
         "btn_invite": "Invite",
         "btn_config": "Config",
+        "manage_members": "Manage Members",
         "get_code": "Get Code",
         "btn_widget": "Widget",
         "btn_unregister": "Unregister",
@@ -147,5 +150,13 @@
     "seo": {
         "description": "ATcircle is a webring system for personal sites leveraging ATProto. Connect with like-minded creators and build your community with Bluesky.",
         "keywords": "ATProto, Bluesky, webring, personal site, community"
+    },
+    "members": {
+        "title": "Member List",
+        "subtitle": "Manage members of {{ring}}.",
+        "kick": "Kick",
+        "confirm_kick": "Are you sure you want to kick {{name}}?",
+        "kick_success": "Member removed successfully.",
+        "no_members": "No members found."
     }
 }

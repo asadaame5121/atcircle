@@ -62,7 +62,8 @@ CREATE TABLE join_requests (
   status TEXT DEFAULT 'pending',
   atproto_uri TEXT,
   created_at INTEGER DEFAULT (strftime('%s', 'now')),
-  FOREIGN KEY (ring_uri) REFERENCES rings(uri)
+  FOREIGN KEY (ring_uri) REFERENCES rings(uri),
+  UNIQUE (ring_uri, user_did)
 );
 
 CREATE TABLE memberships (
@@ -70,9 +71,11 @@ CREATE TABLE memberships (
   ring_uri TEXT NOT NULL,
   site_id INTEGER NOT NULL,
   member_uri TEXT NOT NULL UNIQUE,
+  status TEXT DEFAULT 'approved',
   created_at INTEGER DEFAULT (strftime('%s', 'now')),
   FOREIGN KEY (ring_uri) REFERENCES rings(uri),
-  FOREIGN KEY (site_id) REFERENCES sites(id)
+  FOREIGN KEY (site_id) REFERENCES sites(id),
+  UNIQUE (ring_uri, site_id)
 );
 
 CREATE INDEX idx_memberships_ring_uri ON memberships(ring_uri);

@@ -10,6 +10,7 @@
         "cancel": "キャンセル",
         "save": "保存",
         "delete": "削除",
+        "close": "閉じる",
         "back": "戻る",
         "create": "作成",
         "optional": "任意",
@@ -62,6 +63,7 @@
         "msg_updated": "更新しました！",
         "msg_approved": "メンバーを承認しました！",
         "msg_rejected": "リクエストを拒否しました。",
+        "msg_already_joined_or_requested": "既に参加済みか、承認待ちのリクエストがあります。",
         "pending_approvals": "承認待ちのリクエスト",
         "request_for": "承認待ち: {{ring_title}}",
         "approve": "承認",
@@ -74,6 +76,7 @@
         "no_description": "説明なし",
         "copy_invite_link": "招待リンクをコピー",
         "configure_ring": "ウェブリング設定",
+        "manage_members": "メンバー管理",
         "joined_as": "参加中:",
         "widget": "ウィジェット",
         "get_code": "コードを取得",
@@ -234,5 +237,16 @@
     "seo": {
         "description": "ATcircleは、ATProtoを活用した個人サイトのためのウェブリングシステムです。 Blueskyと連携して、同じ興味を持つ仲間と繋がりましょう。",
         "keywords": "ATProto, Bluesky, ウェブリング, 個人サイト, コミュニティ"
+    },
+    "members": {
+        "title": "メンバー一覧",
+        "subtitle": "{{ring}} のメンバーを管理します。",
+        "kick": "キック (削除)",
+        "confirm_kick": "{{name}} をキック（削除）しますか？\nこの操作はメンバーリストからの削除のみを行い、相手の再申請は妨げません。",
+        "kick_success": "メンバーを削除しました。",
+        "block": "ブロック (追放)",
+        "confirm_block": "{{name}} をブロック（追放）しますか？\nATProto上にブロック記録が作成され、このユーザーは今後このリングへの申請ができなくなります。",
+        "block_success": "ユーザーをブロックしました。",
+        "no_members": "メンバーがいません。"
     }
 }

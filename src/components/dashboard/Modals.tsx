@@ -189,7 +189,32 @@ export const Modals = (props: {
             </form>
         </dialog>
 
+        <!-- Member Management Modal -->
+        <dialog id="member_management_modal" class="modal">
+            <div class="modal-box max-w-2xl">
+                <h3 class="font-bold text-lg mb-1">${t("members.title")}</h3>
+                <p id="member-modal-subtitle" class="text-sm opacity-60 mb-4 font-mono truncate"></p>
+                
+                <div id="member-list-loading" class="justify-center py-10 hidden">
+                    <span class="loading loading-spinner loading-lg text-primary"></span>
+                </div>
+
+                <div id="member-list-container" class="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
+                    <!-- Members will be injected here -->
+                </div>
+
+                <div class="modal-action">
+                    <button class="btn" onclick="member_management_modal.close()">${t("common.close")}</button>
+                </div>
+            </div>
+            <form method="dialog" class="modal-backdrop">
+                <button>close</button>
+            </form>
+        </dialog>
+
         <script>
+            let currentRingUri = '';
+
             function openConfigModal(uri, title, description, status, acceptance, admin) {
                 document.getElementById('config-uri').value = uri;
                 document.getElementById('config-title').value = title;
@@ -203,6 +228,115 @@ export const Modals = (props: {
             function openConfigModalFromBtn(btn) {
                 const ds = btn.dataset;
                 openConfigModal(ds.uri, ds.title, ds.description, ds.status, ds.acceptance, ds.admin);
+            }
+
+            async function openMemberModal(uri, title) {
+                currentRingUri = uri;
+                document.getElementById('member-modal-subtitle').textContent = uri;
+                member_management_modal.showModal();
+                await refreshMemberList();
+            }
+
+            function openMemberModalFromBtn(btn) {
+                openMemberModal(btn.dataset.uri, btn.dataset.title);
+            }
+
+            async function refreshMemberList() {
+                const container = document.getElementById('member-list-container');
+                const loading = document.getElementById('member-list-loading');
+                
+                container.innerHTML = '';
+                loading.classList.remove('hidden');
+                loading.classList.add('flex');
+
+                try {
+                    const res = await fetch('/dashboard/ring/members/list?ring_uri=' + encodeURIComponent(currentRingUri));
+                    const data = await res.json();
+                    loading.classList.add('hidden');
+                    loading.classList.remove('flex');
+
+                    if (data.success) {
+                        if (data.members.length === 0) {
+                            container.innerHTML = '<div class="text-center py-8 opacity-50 italic">${t("members.no_members")}</div>';
+                            return;
+                        }
+
+                        data.members.forEach(m => {
+                            const div = document.createElement('div');
+                            div.className = 'flex items-center justify-between p-3 bg-base-200 rounded-lg border border-base-300';
+                            div.innerHTML = \`
+                                <div class="flex flex-col min-w-0">
+                                    <span class="font-bold truncate">\${m.title}</span>
+                                    <span class="text-xs opacity-50 truncate">\${m.url}</span>
+                                    <span class="text-[10px] opacity-30 truncate">DID: \${m.user_did}</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button class="btn btn-ghost btn-xs btn-outline" 
+                                        onclick="kickMember('\${m.user_did}', '\${m.title.replace(/'/g, "\\\\'")}')">
+                                        ${t("members.kick")}
+                                    </button>
+                                    <button class="btn btn-error btn-xs btn-outline" 
+                                        onclick="blockMember('\${m.user_did}', '\${m.title.replace(/'/g, "\\\\'")}')">
+                                        ${t("members.block")}
+                                    </button>
+                                </div>
+                            \`;
+                            container.appendChild(div);
+                        });
+                    } else {
+                        container.innerHTML = '<div class="alert alert-error font-bold">' + data.error + '</div>';
+                    }
+                } catch (e) {
+                    loading.classList.add('hidden');
+                    loading.classList.remove('flex');
+                    container.innerHTML = '<div class="alert alert-error">Failed to fetch members</div>';
+                }
+            }
+
+            async function kickMember(memberDid, name) {
+                if (!confirm(\`${t("members.confirm_kick")}\`.replace('{{name}}', name))) return;
+
+                try {
+                    const res = await fetch('/dashboard/ring/members/kick', {
+                        method: 'POST',
+                        body: new URLSearchParams({
+                            ring_uri: currentRingUri,
+                            member_did: memberDid
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        alert('${t("members.kick_success")}');
+                        await refreshMemberList();
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                } catch (e) {
+                    alert('Failed to kick member');
+                }
+            }
+
+            async function blockMember(memberDid, name) {
+                if (!confirm(\`${t("members.confirm_block")}\`.replace('{{name}}', name))) return;
+
+                try {
+                    const res = await fetch('/dashboard/ring/members/block', {
+                        method: 'POST',
+                        body: new URLSearchParams({
+                            ring_uri: currentRingUri,
+                            member_did: memberDid
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        alert('${t("members.block_success")}');
+                        await refreshMemberList();
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                } catch (e) {
+                    alert('Failed to block user');
+                }
             }
 
             function openJoinModal(uri) {

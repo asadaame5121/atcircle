@@ -18,6 +18,7 @@ import {
 import { fetchAndDiscoverMetadata } from "../services/discovery.js";
 import { restoreAgent } from "../services/oauth.js";
 import type { AppVariables, Bindings } from "../types/bindings.js";
+import memberApp from "./dashboard/members.js";
 import moderationApp from "./dashboard/moderation.js";
 // Sub-apps
 import ringApp from "./dashboard/rings.js";
@@ -48,6 +49,7 @@ app.use("*", async (c, next) => {
 
 // Mounting Sub-apps
 app.route("/ring/widget", widgetBuilder);
+app.route("/ring/members", memberApp);
 app.route("/ring", ringApp);
 app.route("/ring", moderationApp); // Both use /ring prefix
 app.route("/site", siteApp);
@@ -210,7 +212,7 @@ app.get("/", async (c) => {
 
     // Supplement with local DB data
     const localRings = (await c.env.DB.prepare(
-        "SELECT * FROM rings",
+        "SELECT r.*, (SELECT COUNT(*) FROM memberships m WHERE m.ring_uri = r.uri AND m.status = 'approved') as member_count FROM rings r",
     ).all()) as any;
     for (const local of localRings.results) {
         const ring = ringMap.get(local.uri);
@@ -219,6 +221,7 @@ app.get("/", async (c) => {
             ring.description = local.description;
             ring.status = local.status;
             ring.acceptancePolicy = local.acceptance_policy;
+            ring.memberCount = local.member_count;
             if (local.admin_did === did) ring.isAdmin = true;
         }
     }
@@ -230,6 +233,7 @@ app.get("/", async (c) => {
             FROM join_requests jr 
             JOIN rings r ON jr.ring_uri = r.uri 
             WHERE (r.owner_did = ? OR r.admin_did = ?) AND jr.status = 'pending'
+            GROUP BY jr.ring_uri, jr.user_did
         `)
             .bind(did, did)
             .all(),
@@ -239,6 +243,7 @@ app.get("/", async (c) => {
             JOIN sites s ON m.site_id = s.id 
             JOIN rings r ON m.ring_uri = r.uri 
             WHERE (r.owner_did = ? OR r.admin_did = ?) AND m.status = 'pending'
+            GROUP BY m.ring_uri, s.id
         `)
             .bind(did, did)
             .all(),
