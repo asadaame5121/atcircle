@@ -17,7 +17,8 @@
         "contact": "Contact (Bluesky)",
         "share": "Share",
         "share_on_bluesky": "Share on Bluesky",
-        "share_on_twitter": "Share on X (Twitter)"
+        "share_on_twitter": "Share on X (Twitter)",
+        "github": "GitHub"
     },
     "home": {
         "welcome": "Welcome to ATcircle",
@@ -34,6 +35,11 @@
     },
     "dashboard": {
         "title": "Dashboard",
+        "catchphrase": "Connect your blog to a circle of friends with your Bluesky account",
+        "usage_guide": "Usage Guide",
+        "usage_guide_step1": "1. Register your site",
+        "usage_guide_step2": "2. Find and join webrings",
+        "usage_guide_step3": "3. Install the widget",
         "create_ring": "Create Webring",
         "join_ring": "Join Webring",
         "how_it_works_title": "How it works",
@@ -50,6 +56,7 @@
         "pending_requests": "Pending Member Requests",
         "btn_invite": "Invite",
         "btn_config": "Config",
+        "get_code": "Get Code",
         "btn_widget": "Widget",
         "btn_unregister": "Unregister",
         "btn_sync_feeds": "Sync Feeds",
@@ -60,7 +67,10 @@
         "btn_confirm_delete": "Yes, delete my account",
         "discovery_found": "Found {{count}} URL(s) in your profile!",
         "discovery_not_found": "No URL found in your BlueSky profile.",
-        "discovery_failed": "Failed to check profile."
+        "discovery_failed": "Failed to check profile.",
+        "site_basic_settings": "Site Basic Settings",
+        "atproto_help": "A decentralized social network protocol that powers Bluesky. ATcircle uses it to manage data.",
+        "sync_from_pds_help": "Update your profile information from your Bluesky PDS."
     },
     "ring_ops": {
         "create_title": "Create a New Webring",
@@ -129,7 +139,7 @@
         "terms_title": "Terms of Use",
         "terms_content": "<h3>1. Purpose</h3><p>These terms govern the use of the ATcircle webring service.</p><h3>2. Registration</h3><p>Users must provide accurate information when using the service.</p><h3>3. Prohibited Conduct</h3><p>Registration of sites that violate public order, morals, or laws is prohibited.</p><h3>4. Disclaimer</h3><p>The operator is not liable for any damages arising from the use of this service.</p>",
         "privacy_title": "Privacy Policy",
-        "privacy_content": "<h3>1. Information Collected</h3><p>The service collects Bluesky DID, handle, and profile info via OAuth.</p><h3>2. Use of Information</h3><p>Collected information is used for user identification and webring features.</p><h3>3. Third-Party Sharing</h3><p>Information is not shared with third parties except as required by law.</p><h3>4. Data Deletion</h3><p>Users can delete their account and data at any time via the dashboard.</p>"
+        "privacy_content": "<h3>1. Information Collected</h3><p>The service collects Bluesky DID, handle, and profile info via OAuth.</p><h3>2. Use of Information</h3><p>Collected information is used for user identification and webring features.</p><h3>3. Analytics</h3><p>This service uses <a href='https://www.simpleanalytics.com/' target='_blank' rel='noopener noreferrer'>Simple Analytics</a>, a privacy-friendly analytics tool. It does not use cookies and does not collect personally identifiable information.</p><h3>4. Third-Party Sharing</h3><p>Information is not shared with third parties except as required by law.</p><h3>5. Data Deletion</h3><p>Users can delete their account and data at any time via the dashboard.</p>"
     },
     "seo": {
         "description": "ATcircle is a webring system for personal sites leveraging ATProto. Connect with like-minded creators and build your community with Bluesky.",

@@ -259,14 +259,20 @@ app.get("/", async (c) => {
             lang,
             children: html`
             <div class="space-y-8">
-                <div class="flex justify-between items-center bg-base-100 p-6 rounded-2xl shadow-sm border border-base-200">
+                <div class="flex justify-between items-start md:items-center bg-base-100 p-6 rounded-2xl shadow-sm border border-base-200 flex-wrap gap-4">
                     <div>
-                        <h1 class="text-3xl font-black italic tracking-tighter text-primary">DASHBOARD</h1>
-                        <p class="text-sm opacity-50 font-mono">${did}</p>
+                        <div class="flex items-center gap-3">
+                            <h1 class="text-3xl font-black italic tracking-tighter text-primary">DASHBOARD</h1>
+                            <button class="btn btn-circle btn-ghost btn-xs opacity-50 hover:opacity-100" onclick="usage_guide_modal.showModal()" title="${t("dashboard.usage_guide")}">
+                                <i class="fa-solid fa-circle-question text-lg"></i>
+                            </button>
+                        </div>
+                        <p class="text-sm font-bold opacity-80 mt-1">${t("dashboard.catchphrase")}</p>
+                        <p class="text-[10px] opacity-30 font-mono mt-1">${did}</p>
                     </div>
-                    <div class="flex gap-2">
-                        <button class="btn btn-primary btn-sm rounded-full px-6" onclick="create_ring_modal.showModal()">+ ${t("dashboard.create_ring")}</button>
-                        <button class="btn btn-outline btn-sm rounded-full" onclick="join_ring_modal.showModal()">${t("dashboard.join_ring")}</button>
+                    <div class="flex gap-2 w-full md:w-auto">
+                        <button class="btn btn-primary btn-sm rounded-full px-6 flex-1 md:flex-none" onclick="create_ring_modal.showModal()">+ ${t("dashboard.create_ring")}</button>
+                        <button class="btn btn-outline btn-sm rounded-full flex-1 md:flex-none" onclick="join_ring_modal.showModal()">${t("dashboard.join_ring")}</button>
                     </div>
                 </div>
 

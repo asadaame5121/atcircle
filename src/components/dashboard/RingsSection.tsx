@@ -9,8 +9,11 @@ export const RingsSection = (props: {
 
     if (unifiedRings.length === 0) {
         return html`
-            <div class="card bg-base-100 shadow-sm border border-dashed border-base-300 p-12 text-center opacity-70">
-                <p>${t("dashboard.no_rings")}</p>
+            <div class="card bg-base-100 shadow-sm border border-dashed border-base-300 p-12 text-center">
+                <div class="text-4xl mb-4 opacity-30">🌐</div>
+                <h3 class="font-bold text-lg mb-2">${t("dashboard.no_rings")}</h3>
+                <p class="text-sm opacity-60 mb-6">まだ参加しているリングがありません。<br/>既存のリングを探してみませんか？</p>
+                <a href="/rings" class="btn btn-primary btn-sm rounded-full px-8 mx-auto">${t("common.rings")}</a>
             </div>
         `;
     }
@@ -70,7 +73,10 @@ export const RingsSection = (props: {
                                     <span class="opacity-50">${t("dashboard.joined_as")}:</span> <a href="${r.siteUrl}" target="_blank" class="link hover:link-primary font-medium">${r.siteUrl}</a>
                                 </div>
                                 <div class="flex gap-2">
-                                    <a href="/dashboard/ring/widget?ring_uri=${encodeURIComponent(r.uri)}" class="btn btn-primary btn-xs" target="_blank">${t("dashboard.widget")}</a>
+                                    <a href="/dashboard/ring/widget?ring_uri=${encodeURIComponent(r.uri)}" class="btn btn-primary btn-xs gap-1" target="_blank">
+                                        <i class="fa-solid fa-code text-[10px]"></i>
+                                        ${t("dashboard.get_code")}
+                                    </a>
                                     <form action="/dashboard/ring/leave" method="POST" onsubmit="return confirm('${t("dashboard.confirm_leave")}')">
                                         <input type="hidden" name="uri" value="${r.memberUri}" />
                                         <button type="submit" class="btn btn-xs btn-error btn-outline">${t("dashboard.leave")}</button>
