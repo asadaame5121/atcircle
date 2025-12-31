@@ -280,6 +280,12 @@ export async function restoreAgent(
         console.log(
             `[RestoreAgent] Attempting to restore agent for DID: ${did}`,
         );
+        if (did === "did:plc:dev-mock-user") {
+            console.log(
+                "[RestoreAgent] Debug mock user detected. Skipping restoration.",
+            );
+            return undefined;
+        }
         const client = await createClient(db, publicUrl);
         const session = await client.restore(did);
         if (!session) {

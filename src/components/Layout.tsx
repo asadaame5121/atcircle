@@ -6,6 +6,7 @@ export const Layout = (props: {
     children: any;
     lang?: string;
     t?: (key: string) => string;
+    isDebug?: boolean;
 }) => {
     const description = props.t ? props.t("seo.description") : "";
     const keywords = props.t ? props.t("seo.keywords") : "";
@@ -60,6 +61,15 @@ export const Layout = (props: {
   </head>
   <body class="bg-base-200 min-h-screen">
     <div class="container mx-auto p-4 max-w-4xl">
+      ${
+          props.isDebug
+              ? html`
+      <div class="alert alert-warning py-1 px-3 mb-2 rounded-lg text-xs font-bold flex justify-center gap-2">
+        <i class="fa-solid fa-bug"></i> DEBUG MODE (Virtual Login)
+      </div>
+      `
+              : ""
+      }
       <header class="navbar bg-base-100 rounded-box shadow-lg mb-8">
         <div class="navbar-start">
           <div class="dropdown">

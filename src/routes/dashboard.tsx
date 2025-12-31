@@ -56,6 +56,7 @@ app.route("/", userApp);
 app.get("/", async (c) => {
     const payload = c.get("jwtPayload");
     const did = payload.sub;
+    const isDebug = !!payload.isDebug;
 
     const t = c.get("t");
     const lang = c.get("lang");
@@ -144,6 +145,7 @@ app.get("/", async (c) => {
                 title: t("dashboard.register_title"),
                 t,
                 lang,
+                isDebug,
                 children: RegistrationForm({
                     discoveryStatus,
                     detectedSites,
@@ -257,6 +259,7 @@ app.get("/", async (c) => {
             title: t("dashboard.title"),
             t,
             lang,
+            isDebug,
             children: html`
             <div class="space-y-8">
                 <div class="flex justify-between items-start md:items-center bg-base-100 p-6 rounded-2xl shadow-sm border border-base-200 flex-wrap gap-4">
