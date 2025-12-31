@@ -28,7 +28,8 @@
         "contact": "問い合わせ (Bluesky)",
         "share": "シェア",
         "share_on_bluesky": "Blueskyでシェア",
-        "share_on_twitter": "X (Twitter)でシェア"
+        "share_on_twitter": "X (Twitter)でシェア",
+        "github": "GitHub"
     },
     "home": {
         "welcome": "ATcircleへようこそ",
@@ -45,6 +46,11 @@
     },
     "dashboard": {
         "title": "ダッシュボード",
+        "catchphrase": "Blueskyアカウントで、あなたのブログを仲間の輪に繋げましょう",
+        "usage_guide": "使い方ガイド",
+        "usage_guide_step1": "1. サイトを登録する",
+        "usage_guide_step2": "2. リングを探して参加する",
+        "usage_guide_step3": "3. ウィジェットを設置する",
         "create_ring": "ウェブリング作成",
         "join_ring": "ウェブリング参加",
         "how_it_works": "仕組み",
@@ -70,14 +76,15 @@
         "configure_ring": "ウェブリング設定",
         "joined_as": "参加中:",
         "widget": "ウィジェット",
+        "get_code": "コードを取得",
         "confirm_leave": "本当にこのウェブリングから離脱しますか？",
         "leave": "離脱",
         "join_with_my_site": "自分のサイトで参加",
         "no_rings": "参加または作成したウェブリングはまだありません。",
         "create_first_ring": "最初のウェブリングを作成",
         "join_a_ring": "ウェブリングに参加する",
-        "legacy": "レガシー設定",
-        "legacy_site": "登録済みサイト (レガシー)",
+        "site_basic_settings": "サイト基本設定",
+        "legacy_site": "登録済みサイト",
         "site_title": "サイト名",
         "site_url": "サイトURL",
         "status": "ステータス",
@@ -86,6 +93,7 @@
         "edit_site": "サイト編集",
         "inspector": "インスペクター",
         "sync_from_pds": "PDSから同期",
+        "sync_from_pds_help": "Bluesky（PDS）のプロフィール情報を最新の状態に更新します。",
         "sync_desc": "PDSのレコードを使用してローカルDBを更新します。",
         "modal_create_title": "ウェブリングを作成",
         "modal_ring_name": "ウェブリング名",
@@ -113,6 +121,7 @@
         "discovery_failed": "プロフィールの確認に失敗しました。",
         "register_title": "サイトを登録",
         "register_desc": "ウェブリングに参加するために、あなたのウェブサイトを登録してください。",
+        "atproto_help": "Blueskyの基盤となっている分散型SNSプロトコルです。ATcircleはこれを利用してデータを管理しています。",
         "detected_sites": "検出されたサイト",
         "enter_manually": "手動で入力する",
         "btn_register_site": "サイトを登録",
@@ -217,7 +226,7 @@
         "terms_title": "利用規約",
         "terms_content": "<h3>第1条（目的）</h3><p>本規約は、ATcircle（以下「本サービス」）が提供するウェブリング機能の利用条件を定めるものです。</p><h3>第2条（登録）</h3><p>ユーザーは、本サービスの利用にあたり、正確な情報を提供するものとします。</p><h3>第3条（禁止事項）</h3><p>公序良俗に反するサイト、法律に違反するサイトの登録は禁止します。</p><h3>第4条（免責事項）</h3><p>本サービスの利用により生じた損害について、運営者は一切の責任を負いません。</p>",
         "privacy_title": "プライバシーポリシー",
-        "privacy_content": "<h3>1. 取得する情報</h3><p>本サービスはOAuth認証を通じて、BlueskyのDID、ハンドル、プロフィール情報を取得します。</p><h3>2. 利用目的</h3><p>取得した情報は、ユーザー識別、ウェブリング機能の提供、およびプロフィールリンクの提示に使用されます。</p><h3>3. 第三者提供</h3><p>法律に基づく場合を除き、取得した情報を第三者に提供することはありません。</p><h3>4. データの削除</h3><p>ユーザーはダッシュボードからアカウントを削除することで、いつでも自身のデータを消去できます。</p>"
+        "privacy_content": "<h3>1. 取得する情報</h3><p>本サービスはOAuth認証を通じて、BlueskyのDID、ハンドル、プロフィール情報を取得します。</p><h3>2. 利用目的</h3><p>取得した情報は、ユーザー識別、ウェブリング機能の提供、およびプロフィールリンクの提示に使用されます。</p><h3>3. アクセス解析</h3><p>本サービスでは、プライバシーに配慮したアクセス解析ツールである <a href='https://www.simpleanalytics.com/' target='_blank' rel='noopener noreferrer'>Simple Analytics</a> を使用しています。このツールはクッキーを使用せず、個人を特定できる情報を収集しません。</p><h3>4. 第三者提供</h3><p>法律に基づく場合を除き、取得した情報を第三者に提供することはありません。</p><h3>5. データの削除</h3><p>ユーザーはダッシュボードからアカウントを削除することで、いつでも自身のデータを消去できます。</p>"
     },
     "seo": {
         "description": "ATcircleは、ATProtoを活用した個人サイトのためのウェブリングシステムです。 Blueskyと連携して、同じ興味を持つ仲間と繋がりましょう。",

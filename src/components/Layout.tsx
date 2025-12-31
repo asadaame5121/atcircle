@@ -37,24 +37,33 @@ export const Layout = (props: {
 
     <link rel="icon" type="image/png" href="${favicon}">
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <link href="/assets/index.css" rel="stylesheet" />
     <style>
       /* Custom overrides if needed */
       body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+      .container { width: 100% !important; max-width: 100% !important; }
+      @media (min-width: 640px) { .container { max-width: 640px !important; } }
+      @media (min-width: 768px) { .container { max-width: 768px !important; } }
+      @media (min-width: 1024px) { .container { max-width: 896px !important; } }
     </style>
   </head>
   <body class="bg-base-200 min-h-screen">
     <div class="container mx-auto p-4 max-w-4xl">
-      <header class="navbar bg-base-100 rounded-box shadow-lg mb-8">
+      <header class="navbar bg-base-100 rounded-box shadow-lg mb-8 flex-wrap">
         <div class="flex-1">
-          <a href="/" class="btn btn-ghost text-xl text-primary">${props.t ? props.t("common.brand") : "ATcircle"}</a>
+          <a href="/" class="btn btn-ghost text-xl text-primary font-black italic tracking-tighter">${props.t ? props.t("common.brand") : "ATcircle"}</a>
         </div>
         <div class="flex-none">
-          <ul class="menu menu-horizontal px-1">
-            <li><a href="/">${props.t ? props.t("common.home") : "Home"}</a></li>
-            <li><a href="/rings">${props.t ? props.t("common.rings") : "Rings"}</a></li>
-            <li><a href="/antenna">${props.t ? props.t("common.antenna") : "Antenna"}</a></li>
-            <li><a href="/dashboard">${props.t ? props.t("common.dashboard") : "Dashboard"}</a></li>
+          <ul class="menu menu-horizontal px-1 gap-1">
+            <li><a href="/" class="px-2 sm:px-4">${props.t ? props.t("common.home") : "Home"}</a></li>
+            <li><a href="/rings" class="px-2 sm:px-4">${props.t ? props.t("common.rings") : "Rings"}</a></li>
+            <li><a href="/dashboard" class="px-2 sm:px-4">${props.t ? props.t("common.dashboard") : "Dashboard"}</a></li>
+            <li>
+              <a href="https://github.com/asadaame5121/atcircle" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-circle btn-sm">
+                <i class="fa-brands fa-github text-lg"></i>
+              </a>
+            </li>
           </ul>
         </div>
       </header>
@@ -73,11 +82,14 @@ export const Layout = (props: {
         <nav>
           <h6 class="footer-title">${props.t ? props.t("common.share") : "Share"}</h6>
           <div class="grid grid-flow-col gap-4">
-            <a href="https://bsky.app/intent/compose?text=${encodeURIComponent(`${props.t ? props.t("seo.description") : ""} ${PUBLIC_URL}`)}" class="link link-hover" target="_blank" rel="noopener noreferrer">
-              ${props.t ? props.t("common.share_on_bluesky") : "Bluesky"}
+            <a href="https://bsky.app/intent/compose?text=${encodeURIComponent(`${props.t ? props.t("seo.description") : ""} ${PUBLIC_URL}`)}" class="btn btn-ghost btn-circle btn-sm" target="_blank" rel="noopener noreferrer" title="${props.t ? props.t("common.share_on_bluesky") : "Bluesky"}">
+              <i class="fa-brands fa-bluesky text-lg"></i>
             </a>
-            <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(props.t ? props.t("seo.description") : "")}&url=${encodeURIComponent(PUBLIC_URL)}" class="link link-hover" target="_blank" rel="noopener noreferrer">
-              ${props.t ? props.t("common.share_on_twitter") : "Twitter"}
+            <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(props.t ? props.t("seo.description") : "")}&url=${encodeURIComponent(PUBLIC_URL)}" class="btn btn-ghost btn-circle btn-sm" target="_blank" rel="noopener noreferrer" title="${props.t ? props.t("common.share_on_twitter") : "Twitter"}">
+              <i class="fa-brands fa-x-twitter text-lg"></i>
+            </a>
+            <a href="https://github.com/asadaame5121/atcircle" class="btn btn-ghost btn-circle btn-sm" target="_blank" rel="noopener noreferrer" title="GitHub">
+              <i class="fa-brands fa-github text-lg"></i>
             </a>
           </div>
         </nav>
@@ -92,11 +104,10 @@ export const Layout = (props: {
         </aside>
       </footer>
     </div>
+    <script async src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
   </body>
   <!-- BuyMeACoffee -->
   <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="asadaame5121" data-color="#FFDD00" data-emoji=""  data-font="Cookie" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script>
-  <!-- Cloudflare Web Analytics -->
-  <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "15352b80eeac4249885a8aa15fde8930"}'></script>
 </html>
 `;
 };

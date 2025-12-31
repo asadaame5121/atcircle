@@ -12,7 +12,19 @@ export const RegistrationForm = (props: {
         <div class="card bg-base-100 shadow-xl max-w-2xl mx-auto">
             <div class="card-body">
                 <h1 class="card-title text-3xl mb-4 text-center justify-center">${t("dashboard.register_title")}</h1>
-                <p class="text-center mb-6 opacity-75">${t("dashboard.register_desc")}</p>
+                <p class="text-center opacity-75">${t("dashboard.register_desc")}</p>
+                <div class="text-center mb-6">
+                    <div class="dropdown dropdown-hover dropdown-center">
+                        <label tabindex="0" class="btn btn-ghost btn-xs text-primary low-case gap-1">
+                            <i class="fa-solid fa-circle-info"></i> What is AT-Proto?
+                        </label>
+                        <div tabindex="0" class="dropdown-content z-1 card card-compact w-64 p-2 shadow bg-base-100 border border-base-200 text-xs">
+                            <div class="card-body">
+                                <p>${t("dashboard.atproto_help")}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
                 ${
                     discoveryStatus
