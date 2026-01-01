@@ -36,6 +36,7 @@ export interface Ring {
     uri: string;
     owner_did: string;
     title: string;
+    slug?: string | null;
     description: string | null;
     created_at?: number;
     // Calculated fields often used in SELECT

@@ -227,6 +227,7 @@ app.post("/update", async (c) => {
     const status = body.status as "open" | "closed";
     const acceptance = body.acceptance_policy as "automatic" | "manual";
     const adminDid = body.admin_did as string;
+    const slug = ((body.slug as string) || "").trim().toLowerCase() || null;
 
     if (!uri || !title || !status || !acceptance || !adminDid) {
         return c.text("Missing required fields", 400);
@@ -249,9 +250,9 @@ app.post("/update", async (c) => {
 
         // 2. Update AppView (Indexer)
         await c.env.DB.prepare(
-            "UPDATE rings SET acceptance_policy = ?, status = ?, admin_did = ? WHERE uri = ?",
+            "UPDATE rings SET acceptance_policy = ?, status = ?, admin_did = ?, slug = ? WHERE uri = ?",
         )
-            .bind(acceptance, status, adminDid, uri)
+            .bind(acceptance, status, adminDid, slug, uri)
             .run();
     } catch (e) {
         console.error("Error updating circle:", e);

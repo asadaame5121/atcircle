@@ -49,9 +49,9 @@
         "title": "ダッシュボード",
         "catchphrase": "Blueskyアカウントで、あなたのブログを仲間の輪に繋げましょう",
         "usage_guide": "使い方ガイド",
-        "usage_guide_step1": "1. サイトを登録する",
-        "usage_guide_step2": "2. リングを探して参加する",
-        "usage_guide_step3": "3. ウィジェットを設置する",
+        "usage_guide_step1": "1. サイトを登録しよう",
+        "usage_guide_step2": "2. リングを探して参加しよう",
+        "usage_guide_step3": "3. あなたのウェブサイトにウィジェットを設置しよう",
         "create_ring": "ウェブリング作成",
         "join_ring": "ウェブリング参加",
         "how_it_works": "仕組み",
@@ -133,7 +133,11 @@
         "edit_title": "サイトを編集",
         "btn_update_site": "サイトを更新",
         "embed_widget": "ウィジェットを埋め込む",
-        "embed_widget_desc": "ウィジェットの見た目をカスタマイズします。"
+        "embed_widget_desc": "ウィジェットの見た目をカスタマイズします。",
+        "field_slug": "公開URLスラッグ",
+        "field_slug_help": "人間が読みやすいURL（例: /r/my-ring）。3〜32文字の英数字とハイフン。",
+        "error_slug_exists": "このスラッグは既に使用されています。",
+        "error_slug_invalid": "スラッグの形式が正しくありません。"
     },
     "ring_ops": {
         "create_title": "新しいウェブリングを作成",

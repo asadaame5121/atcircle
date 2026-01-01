@@ -38,7 +38,7 @@ export const Layout = (props: {
 
     <link rel="icon" type="image/png" href="${favicon}">
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
     <link href="/assets/index.css" rel="stylesheet" />
     <style>
       /* Custom overrides for responsive layout */

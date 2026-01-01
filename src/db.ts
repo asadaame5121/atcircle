@@ -129,6 +129,7 @@ await db.exec(`
     owner_did TEXT NOT NULL,
     admin_did TEXT,
     title TEXT NOT NULL,
+    slug TEXT UNIQUE,
     description TEXT,
     acceptance_policy TEXT DEFAULT 'automatic',
     status TEXT DEFAULT 'open',
@@ -188,5 +189,11 @@ await db
     .catch(() => {});
 await db.exec("ALTER TABLE rings ADD COLUMN banner_url TEXT;").catch(() => {});
 await db.exec("ALTER TABLE rings ADD COLUMN admin_did TEXT;").catch(() => {});
+await db.exec("ALTER TABLE rings ADD COLUMN slug TEXT;").catch(() => {});
+await db
+    .exec(
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_rings_slug ON rings(slug) WHERE slug IS NOT NULL;",
+    )
+    .catch(() => {});
 
 export default db;

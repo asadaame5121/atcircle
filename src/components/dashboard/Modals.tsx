@@ -123,6 +123,15 @@ export const Modals = (props: {
                         <p class="text-[10px] opacity-50 mt-1">Single administrator. Defaults to owner DID.</p>
                     </div>
 
+                    <div class="form-control w-full mt-4">
+                        <label class="label"><span class="label-text">${t("dashboard.field_slug")}</span></label>
+                        <div class="join w-full">
+                            <span class="join-item bg-base-200 border border-base-300 px-3 flex items-center text-xs font-mono">/r/</span>
+                            <input type="text" name="slug" id="config-slug" class="input input-bordered join-item w-full font-mono text-sm" placeholder="my-awesome-ring" pattern="[a-z0-9-]{3,32}" title="${t("dashboard.field_slug_help")}" />
+                        </div>
+                        <p class="text-[10px] opacity-50 mt-1">${t("dashboard.field_slug_help")}</p>
+                    </div>
+
                     <div class="modal-action flex justify-between">
                         <div class="flex gap-2">
                              <button type="button" class="btn btn-error btn-outline" onclick="if(confirm('${t("dashboard.confirm_delete_ring")}')) { 
@@ -215,19 +224,20 @@ export const Modals = (props: {
         <script>
             let currentRingUri = '';
 
-            function openConfigModal(uri, title, description, status, acceptance, admin) {
+            function openConfigModalFromBtn(btn) {
+                const ds = btn.dataset;
+                openConfigModal(ds.uri, ds.title, ds.description, ds.status, ds.acceptance, ds.admin, ds.slug);
+            }
+
+            function openConfigModal(uri, title, description, status, acceptance, admin, slug) {
                 document.getElementById('config-uri').value = uri;
                 document.getElementById('config-title').value = title;
                 document.getElementById('config-description').value = description;
                 document.getElementById('config-status').value = status;
                 document.getElementById('config-acceptance').value = acceptance || 'automatic';
                 document.getElementById('config-admin').value = admin || '';
+                document.getElementById('config-slug').value = slug || '';
                 circle_config_modal.showModal();
-            }
-
-            function openConfigModalFromBtn(btn) {
-                const ds = btn.dataset;
-                openConfigModal(ds.uri, ds.title, ds.description, ds.status, ds.acceptance, ds.admin);
             }
 
             async function openMemberModal(uri, title) {

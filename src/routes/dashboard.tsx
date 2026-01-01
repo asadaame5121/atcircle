@@ -171,6 +171,7 @@ app.get("/", async (c) => {
             status: r.value.status || "open",
             isAdmin: true,
             isMember: false,
+            slug: r.value.slug || "",
             adminDid: r.value.admin || did,
             acceptancePolicy: r.value.acceptancePolicy || "automatic",
             pendingCount: 0,
@@ -222,6 +223,7 @@ app.get("/", async (c) => {
             ring.status = local.status;
             ring.acceptancePolicy = local.acceptance_policy;
             ring.memberCount = local.member_count;
+            ring.slug = local.slug;
             if (local.admin_did === did) ring.isAdmin = true;
         }
     }
