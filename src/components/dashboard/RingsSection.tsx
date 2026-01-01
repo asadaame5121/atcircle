@@ -25,20 +25,19 @@ export const RingsSection = (props: {
                 <div class="card bg-base-200 shadow-sm border border-base-300">
                     <div class="card-body p-5">
                         <div class="flex justify-between items-start">
-                            <div>
-                                <div class="flex items-center gap-2 mb-1">
-                                    <h3 class="font-bold text-lg">${r.title}</h3>
-                                    <div class="flex gap-1">
-                                        ${r.isAdmin ? html`<span class="badge badge-primary badge-outline badge-xs">${t("dashboard.owner")}</span>` : ""}
-                                        ${r.isMember ? html`<span class="badge badge-secondary badge-outline badge-xs">${t("dashboard.member")}</span>` : ""}
-                                        ${r.memberCount !== undefined ? html`<span class="badge badge-ghost badge-xs opacity-50">${t("rings.member_count", { count: r.memberCount })}</span>` : ""}
-                                        ${r.pendingCount > 0 ? html`<span class="badge badge-warning badge-xs">${t("dashboard.pending_count", { count: r.pendingCount })}</span>` : ""}
+                            <div class="flex-1 min-w-0">
+                                <div class="flex flex-wrap items-center gap-2 mb-1">
+                                    <h3 class="font-bold text-lg break-all lg:break-normal leading-tight">${r.title}</h3>
+                                    <div class="flex flex-wrap gap-1">
+                                        ${r.isAdmin ? html`<span class="badge badge-primary badge-outline badge-xs whitespace-nowrap">${t("dashboard.owner")}</span>` : ""}
+                                        ${r.memberCount !== undefined ? html`<span class="badge badge-ghost badge-xs opacity-50 whitespace-nowrap">${t("rings.member_count", { count: r.memberCount })}</span>` : ""}
+                                        ${r.pendingCount > 0 ? html`<span class="badge badge-warning badge-xs whitespace-nowrap">${t("dashboard.pending_count", { count: r.pendingCount })}</span>` : ""}
                                     </div>
                                 </div>
                                 <p class="text-sm opacity-70 mb-2">${r.description || html`<span class="italic opacity-50">${t("dashboard.no_description")}</span>`}</p>
                                 
                                 <div class="flex flex-wrap gap-2 items-center text-xs opacity-50 font-mono">
-                                    <span>URI: ${r.uri}</span>
+                                    <span class="break-all">URI: ${r.uri}</span>
                                 </div>
                             </div>
 

@@ -162,5 +162,8 @@
         "confirm_kick": "Are you sure you want to kick {{name}}?",
         "kick_success": "Member removed successfully.",
         "no_members": "No members found."
+    },
+    "rings": {
+        "member_count": "{{count}} members"
     }
 }
