@@ -339,4 +339,52 @@ export const AtProtoService = {
             return null; // No banner
         }
     },
+
+    // -------------------------------------------------------------------------
+    // Bluesky / Profile / Graph Operations
+    // -------------------------------------------------------------------------
+
+    async getProfile(agent: AtpAgent | Agent, actor: string) {
+        const response = await agent.api.app.bsky.actor.getProfile({
+            actor,
+        });
+        return response.data;
+    },
+
+    async getFollows(
+        agent: AtpAgent | Agent,
+        actor: string,
+        cursor?: string,
+        limit: number = 50,
+    ) {
+        const response = await agent.api.app.bsky.graph.getFollows({
+            actor,
+            cursor,
+            limit,
+        });
+        return response.data;
+    },
+
+    async getProfiles(agent: AtpAgent | Agent, actors: string[]) {
+        if (actors.length === 0) return { profiles: [] };
+        const response = await agent.api.app.bsky.actor.getProfiles({
+            actors,
+        });
+        return response.data;
+    },
+
+    async resolveHandle(handle: string) {
+        try {
+            const res = await fetch(
+                `https://bsky.social/xrpc/com.atproto.identity.resolveHandle?handle=${encodeURIComponent(
+                    handle,
+                )}`,
+            );
+            const data = (await res.json()) as { did: string };
+            return data.did;
+        } catch (e) {
+            console.error("Failed to resolve handle:", handle, e);
+            return null;
+        }
+    },
 };

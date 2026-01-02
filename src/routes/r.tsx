@@ -1,3 +1,7 @@
+/**
+ * Webring Short URL Proxy
+ * Handles redirects from /r/[slug] to the actual webring view page.
+ */
 import { Hono } from "hono";
 import type { AppVariables, Bindings } from "../types/bindings.js";
 

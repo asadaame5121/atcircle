@@ -326,4 +326,38 @@ app.post("/delete", async (c) => {
     return c.redirect("/dashboard?msg=deleted");
 });
 
+// GET /dashboard/ring/invite/friends
+app.get("/invite/friends", async (c) => {
+    const payload = c.get("jwtPayload");
+    const did = payload.sub;
+    const cursor = c.req.query("cursor");
+    const limit = Number.parseInt(c.req.query("limit") || "50", 10);
+
+    try {
+        const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
+        if (!agent) {
+            return c.json({ success: false, error: "Unauthorized" }, 401);
+        }
+
+        const result = await AtProtoService.getFollows(
+            agent,
+            did,
+            cursor,
+            limit,
+        );
+
+        return c.json({
+            success: true,
+            follows: result.follows,
+            cursor: result.cursor,
+        });
+    } catch (e) {
+        console.error("Error fetching follows:", e);
+        return c.json(
+            { success: false, error: (e as any).message || "Internal Error" },
+            500,
+        );
+    }
+});
+
 export default app;

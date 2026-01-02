@@ -11,6 +11,7 @@ import legal from "./routes/legal.js";
 import navigation from "./routes/navigation.js";
 import r from "./routes/r.js";
 import rings from "./routes/rings.js";
+import u from "./routes/u.js";
 import { updateAllFeeds } from "./services/feed.js";
 import type { Bindings } from "./types/bindings.js";
 
@@ -56,6 +57,7 @@ app.route("/antenna", antenna);
 app.route("/rings", rings);
 app.route("/dashboard", dashboard);
 app.route("/r", r);
+app.route("/u", u);
 app.route("/", auth);
 app.route("/", legal);
 app.route("/nav", navigation);

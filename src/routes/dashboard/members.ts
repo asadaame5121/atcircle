@@ -26,7 +26,6 @@ app.get("/list", async (c) => {
     if (!ring) return c.json({ success: false, error: "Unauthorized" }, 403);
 
     // 2. Fetch members from local DB
-    // We join with sites to get titles and URLs
     const members = (await c.env.DB.prepare(`
         SELECT m.id, m.member_uri, s.url, s.title, s.user_did, m.status, m.created_at
         FROM memberships m
@@ -38,9 +37,39 @@ app.get("/list", async (c) => {
         .bind(ringUri)
         .all()) as any;
 
+    const memberList = members.results || [];
+
+    // 3. Enrich with profile data
+    if (memberList.length > 0) {
+        try {
+            const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
+            if (agent) {
+                const dids = memberList.map((m: any) => m.user_did);
+                const profileResult = await AtProtoService.getProfiles(
+                    agent,
+                    dids,
+                );
+                const profileMap = new Map(
+                    profileResult.profiles.map((p) => [p.did, p]),
+                );
+
+                for (const m of memberList) {
+                    const profile = profileMap.get(m.user_did);
+                    if (profile) {
+                        m.handle = profile.handle;
+                        m.displayName = profile.displayName;
+                        m.avatar = profile.avatar;
+                    }
+                }
+            }
+        } catch (e) {
+            console.error("Failed to fetch member profiles:", e);
+        }
+    }
+
     return c.json({
         success: true,
-        members: members.results,
+        members: memberList,
     });
 });
 

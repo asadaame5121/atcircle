@@ -45,18 +45,25 @@ export const RingsSection = (props: {
                                 ${
                                     r.isAdmin
                                         ? html`
-                                    <button class="btn btn-ghost btn-sm btn-square" onclick="copyInviteLinkFromBtn(this)" data-uri="${r.uri}" title="${t("dashboard.copy_invite_link")}">
+                                    <button class="btn btn-ghost btn-sm btn-square" onclick="window.copyInviteLinkFromBtn(this)" data-uri="${r.uri}" title="${t("dashboard.copy_invite_link")}">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
                                     </button>
                                     <button class="btn btn-ghost btn-sm btn-square" 
-                                        onclick="openMemberModalFromBtn(this)" 
+                                        onclick="window.openInviteModalFromBtn(this)" 
+                                        data-uri="${r.uri}" 
+                                        data-title="${r.title}" 
+                                        title="${t("dashboard.invite_friends")}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+                                    </button>
+                                    <button class="btn btn-ghost btn-sm btn-square" 
+                                        onclick="window.openMemberModalFromBtn(this)" 
                                         data-uri="${r.uri}" 
                                         data-title="${r.title}" 
                                         title="${t("dashboard.manage_members")}">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                                     </button>
                                     <button class="btn btn-ghost btn-sm btn-square" 
-                                        onclick="openConfigModalFromBtn(this)" 
+                                        onclick="window.openConfigModalFromBtn(this)" 
                                         data-uri="${r.uri}" 
                                         data-title="${r.title}" 
                                         data-description="${r.description || ""}" 
