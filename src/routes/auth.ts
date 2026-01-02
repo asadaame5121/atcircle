@@ -62,22 +62,6 @@ app.get("/login", (c) => {
                             </div>
                         </form>
 
-                        ${
-                            process.env.NODE_ENV === "development"
-                                ? html`
-                                <div class="divider text-xs opacity-30 mt-6">DEBUG</div>
-                                <form action="/auth/debug" method="POST">
-                                    <button type="submit" class="btn btn-outline btn-error btn-sm w-full gap-2">
-                                        <i class="fa-solid fa-bug"></i> Debug Login (Mock)
-                                    </button>
-                                    <p class="text-[10px] opacity-40 text-center mt-2">
-                                        Skip ATProto OAuth for UI testing
-                                    </p>
-                                </form>
-                            `
-                                : ""
-                        }
-
                         <div class="divider mt-6 opacity-30"></div>
                         <div class="text-xs opacity-60 leading-relaxed text-center px-4">
                             ${t("auth.permission_desc")}
@@ -209,47 +193,6 @@ app.get("/auth/callback", async (c) => {
         const t = c.get("t");
         return c.text(t("error.auth_failed") || "Authentication failed", 401);
     }
-});
-
-app.post("/auth/debug", async (c) => {
-    if (process.env.NODE_ENV !== "development") {
-        return c.text("Forbidden", 403);
-    }
-
-    const mockDid = "did:plc:dev-mock-user";
-    const mockHandle = "debug-user.test";
-
-    // Ensure mock user exists in DB
-    const existingUser = await c.env.DB.prepare(
-        "SELECT did FROM users WHERE did = ?",
-    )
-        .bind(mockDid)
-        .first();
-
-    if (!existingUser) {
-        await c.env.DB.prepare("INSERT INTO users (did, handle) VALUES (?, ?)")
-            .bind(mockDid, mockHandle)
-            .run();
-    }
-
-    const payload = {
-        sub: mockDid,
-        handle: mockHandle,
-        role: "user",
-        exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24, // 1 day
-        isDebug: true,
-    };
-
-    const token = await sign(payload, SECRET_KEY);
-
-    setCookie(c, "session", token, {
-        path: "/",
-        httpOnly: true,
-        maxAge: 60 * 60 * 24,
-        sameSite: "Lax",
-    });
-
-    return c.redirect("/dashboard");
 });
 
 app.get("/logout", (c) => {

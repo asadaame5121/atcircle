@@ -1,6 +1,6 @@
 {
     "common": {
-        "brand": "ATcircle",
+        "brand": "AT CIRCLE",
         "home": "Home",
         "rings": "Explore Webrings",
         "antenna": "Antenna",
@@ -14,6 +14,7 @@
         "back": "Back",
         "terms": "Terms of Use",
         "privacy": "Privacy Policy",
+        "legal": "Legal",
         "footer_desc": "Webring system for personal sites leveraging ATProto",
         "contact": "Contact (Bluesky)",
         "share": "Share",
@@ -22,17 +23,17 @@
         "github": "GitHub"
     },
     "home": {
-        "welcome": "Welcome to ATcircle",
+        "welcome": "Welcome to AT CIRCLE",
         "description": "Join a webring to discover amazing sites and connect with the community.",
         "login_button": "Login with Bluesky"
     },
     "auth": {
-        "login_title": "Join ATcircle",
+        "login_title": "Join AT CIRCLE",
         "enter_handle": "Enter your Bluesky handle.",
         "handle_placeholder": "example.bsky.social",
         "error_failed": "Authentication failed",
         "try_again": "Try Again",
-        "permission_desc": "ATcircle only uses read-only access to your public Bluesky profile to discover links and simplify registration. We do not access your password or private data."
+        "permission_desc": "AT CIRCLE only uses read-only access to your public Bluesky profile to discover links and simplify registration. We do not access your password or private data."
     },
     "dashboard": {
         "title": "Dashboard",
@@ -44,7 +45,7 @@
         "create_ring": "Create Webring",
         "join_ring": "Join Webring",
         "how_it_works_title": "How it works",
-        "how_it_works_body": "ATcircle is a webring system for personal sites leveraging ATProto. You can 'Create' a webring to gather friends, or 'Join' an existing one and place a widget on your site to connect with similar interests.",
+        "how_it_works_body": "AT CIRCLE is a webring system for personal sites leveraging ATProto. You can 'Create' a webring to gather friends, or 'Join' an existing one and place a widget on your site to connect with similar interests.",
         "msg_created": "Webring created successfully!",
         "msg_joined": "Joined webring successfully!",
         "msg_joined_pending": "Join request submitted.",
@@ -64,9 +65,9 @@
         "btn_unregister": "Unregister",
         "btn_sync_feeds": "Sync Feeds",
         "danger_zone": "Danger Zone",
-        "leave_warning": "Once you leave ATcircle, your site and account information will be permanently deleted.",
-        "btn_leave": "Leave ATcircle",
-        "confirm_leave": "Are you sure you want to leave ATcircle? Your account and site registration will be permanently deleted.",
+        "leave_warning": "Once you leave AT CIRCLE, your site and account information will be permanently deleted.",
+        "btn_leave": "Leave AT CIRCLE",
+        "confirm_leave": "Are you sure you want to leave AT CIRCLE? Your account and site registration will be permanently deleted.",
         "confirm_delete_ring": "Are you sure you want to delete this webring? This action cannot be undone. All memberships and requests will be deleted.",
         "delete_ring": "Delete Webring",
         "btn_confirm_delete": "Yes, delete my account",
@@ -74,12 +75,14 @@
         "discovery_not_found": "No URL found in your BlueSky profile.",
         "discovery_failed": "Failed to check profile.",
         "site_basic_settings": "Site Basic Settings",
-        "atproto_help": "A decentralized social network protocol that powers Bluesky. ATcircle uses it to manage data.",
+        "atproto_help": "A decentralized social network protocol that powers Bluesky. AT CIRCLE uses it to manage data.",
         "sync_from_pds_help": "Update your profile information from your Bluesky PDS.",
         "field_slug": "Public URL Slug",
         "field_slug_help": "A human-friendly URL (e.g. /r/my-ring). 3-32 characters, alphanumeric and hyphens.",
         "error_slug_exists": "This slug is already in use.",
-        "error_slug_invalid": "Invalid slug format."
+        "error_slug_invalid": "Invalid slug format.",
+        "updates_title": "News & Updates",
+        "updates_desc": "Check here for new features and documentation (External site)"
     },
     "ring_ops": {
         "create_title": "Create a New Webring",
@@ -152,7 +155,7 @@
         "privacy_content": "<h3>1. Information Collected</h3><p>The service collects Bluesky DID, handle, and profile info via OAuth.</p><h3>2. Use of Information</h3><p>Collected information is used for user identification and webring features.</p><h3>3. Analytics</h3><p>This service uses <a href='https://www.simpleanalytics.com/' target='_blank' rel='noopener noreferrer'>Simple Analytics</a>, a privacy-friendly analytics tool. It does not use cookies and does not collect personally identifiable information.</p><h3>4. Third-Party Sharing</h3><p>Information is not shared with third parties except as required by law.</p><h3>5. Data Deletion</h3><p>Users can delete their account and data at any time via the dashboard.</p>"
     },
     "seo": {
-        "description": "ATcircle is a webring system for personal sites leveraging ATProto. Connect with like-minded creators and build your community with Bluesky.",
+        "description": "AT CIRCLE is a webring system for personal sites leveraging ATProto. Connect with like-minded creators and build your community with Bluesky.",
         "keywords": "ATProto, Bluesky, webring, personal site, community"
     },
     "members": {

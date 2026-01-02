@@ -1,22 +1,10 @@
 import { Hono } from "hono";
 import { html } from "hono/html";
 import { Layout } from "../components/Layout.js";
-import { injectMockData } from "../scripts/mock_data.js";
 import { generateOpml } from "../services/opml.js";
 import type { AppVariables, Bindings } from "../types/bindings.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
-
-// Temporary Debug route to inject mock data
-app.post("/debug/mock-data", async (c) => {
-    const ringUri = (await c.req.parseBody()).ring_uri as string;
-    const t = c.get("t");
-    if (!ringUri)
-        return c.text(t("error.missing_ring_uri") || "Missing ring URI", 400);
-
-    await injectMockData(c.env.DB, ringUri);
-    return c.redirect(`/rings/view?ring=${encodeURIComponent(ringUri)}`);
-});
 
 // List all rings
 app.get("/", async (c) => {
@@ -203,7 +191,7 @@ app.get("/opml", async (c) => {
         .all<any>();
 
     const opml = generateOpml({
-        title: ring ? `${ring.title} Members` : "ATcircle Members",
+        title: ring ? `${ring.title} Members` : "AT CIRCLE Members",
         outlines: (members.results || []).map((m) => ({
             text: m.title,
             title: m.title,

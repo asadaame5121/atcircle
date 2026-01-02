@@ -1,6 +1,6 @@
 {
     "common": {
-        "brand": "ATcircle",
+        "brand": "AT CIRCLE",
         "home": "ホーム",
         "rings": "ウェブリングを探す",
         "antenna": "アンテナ",
@@ -25,6 +25,7 @@
         "copy_to_clipboard": "クリップボードにコピー",
         "terms": "利用規約",
         "privacy": "プライバシーポリシー",
+        "legal": "法務・規約",
         "footer_desc": "ATProtoを活用した個人サイトのためのウェブリングシステム",
         "contact": "問い合わせ (Bluesky)",
         "share": "シェア",
@@ -33,17 +34,17 @@
         "github": "GitHub"
     },
     "home": {
-        "welcome": "ATcircleへようこそ",
+        "welcome": "AT CIRCLEへようこそ",
         "description": "ウェブリングに参加して、素晴らしいサイトを見つけ、コミュニティと繋がりましょう。",
         "login_button": "Blueskyでログイン"
     },
     "auth": {
-        "login_title": "ATcircleに参加する",
+        "login_title": "AT CIRCLEに参加する",
         "enter_handle": "Blueskyのハンドルを入力してください。",
         "handle_placeholder": "example.bsky.social",
         "error_failed": "認証に失敗しました",
         "try_again": "やり直す",
-        "permission_desc": "ATcircleは、あなたのBlueskyプロフィールからリンクを探索し、ウェブリングへの登録を簡略化するために、プロフィールの読み取り権限（公開情報）のみを使用します。パスワードやプライベートな情報にはアクセスしません。"
+        "permission_desc": "AT CIRCLEは、あなたのBlueskyプロフィールからリンクを探索し、ウェブリングへの登録を簡略化するために、プロフィールの読み取り権限（公開情報）のみを使用します。パスワードやプライベートな情報にはアクセスしません。"
     },
     "dashboard": {
         "title": "ダッシュボード",
@@ -55,7 +56,7 @@
         "create_ring": "ウェブリング作成",
         "join_ring": "ウェブリング参加",
         "how_it_works": "仕組み",
-        "how_it_works_desc": "<strong>ATcircle</strong> は ATProto を活用した個人サイトのためのウェブリング（コミュニティの輪）です。<br/>ウェブリングを「作成」して仲間を集めたり、既存のウェブリングに「参加」してウィジェットをサイトに設置することで、同じ興味関心を持つサイト同士を繋ぐことができます。",
+        "how_it_works_desc": "<strong>AT CIRCLE</strong> は ATProto を活用した個人サイトのためのウェブリング（コミュニティの輪）です。<br/>ウェブリングを「作成」して仲間を集めたり、既存のウェブリングに「参加」してウィジェットをサイトに設置することで、同じ興味関心を持つサイト同士を繋ぐことができます。",
         "msg_created": "ウェブリングを作成しました！",
         "msg_joined": "ウェブリングに参加しました！",
         "msg_membership_requested": "加入許可を申請しました。",
@@ -109,9 +110,9 @@
         "modal_ring_uri": "ウェブリングURI",
         "modal_your_site_details": "あなたのサイト詳細",
         "delete_account_desc": "ウェブリングを離脱すると、サイトとアカウントの情報が永久に削除されます。この操作は取り消せません。",
-        "delete_account_button": "ATcircleから離脱する",
+        "delete_account_button": "AT CIRCLEから離脱する",
         "warning": "警告！",
-        "confirm_delete_account": "本当にATcircleから離脱しますか？アカウントとサイト登録が永久に削除されます。",
+        "confirm_delete_account": "本当にAT CIRCLEから離脱しますか？アカウントとサイト登録が永久に削除されます。",
         "yes_delete_account": "はい、アカウントを削除します",
         "modal_config_title": "ウェブリング設定",
         "status_public": "公開ステータス",
@@ -126,7 +127,7 @@
         "discovery_failed": "プロフィールの確認に失敗しました。",
         "register_title": "サイトを登録",
         "register_desc": "ウェブリングに参加するために、あなたのウェブサイトを登録してください。",
-        "atproto_help": "Blueskyの基盤となっている分散型SNSプロトコルです。ATcircleはこれを利用してデータを管理しています。",
+        "atproto_help": "Blueskyの基盤となっている分散型SNSプロトコルです。AT CIRCLEはこれを利用してデータを管理しています。",
         "detected_sites": "検出されたサイト",
         "enter_manually": "手動で入力する",
         "btn_register_site": "サイトを登録",
@@ -137,7 +138,9 @@
         "field_slug": "公開URLスラッグ",
         "field_slug_help": "人間が読みやすいURL（例: /r/my-ring）。3〜32文字の英数字とハイフン。",
         "error_slug_exists": "このスラッグは既に使用されています。",
-        "error_slug_invalid": "スラッグの形式が正しくありません。"
+        "error_slug_invalid": "スラッグの形式が正しくありません。",
+        "updates_title": "お知らせ・更新情報",
+        "updates_desc": "機能追加や使い方はこちらを確認してください（外部サイト）"
     },
     "ring_ops": {
         "create_title": "新しいウェブリングを作成",
@@ -163,7 +166,7 @@
     "explore": {
         "title": "ウェブリングを探索",
         "description": "Atprotoエコシステムのコミュニティ運営ウェブリングを見つけましょう。",
-        "members_count": "{{count}} メンバー",
+        "members_count": "{{count}} 人",
         "by_owner": "作成者: ",
         "no_rings": "ウェブリングがまだ見つかりません。",
         "btn_details_join": "詳細・参加"
@@ -176,7 +179,7 @@
         "view_sites": "サイトを見る",
         "random_jump": "ランダムジャンプ",
         "no_rings_found": "まだウェブリングが見つかりません。",
-        "members_count_label": "メンバー ({{count}})",
+        "members_count_label": "参加：{{count}}",
         "no_members_found": "このウェブリングにはまだサイトが参加していません。",
         "join_this_ring": "このウェブリングに参加する"
     },
@@ -239,7 +242,7 @@
         "privacy_content": "<h3>1. 取得する情報</h3><p>本サービスはOAuth認証を通じて、BlueskyのDID、ハンドル、プロフィール情報を取得します。</p><h3>2. 利用目的</h3><p>取得した情報は、ユーザー識別、ウェブリング機能の提供、およびプロフィールリンクの提示に使用されます。</p><h3>3. アクセス解析</h3><p>本サービスでは、プライバシーに配慮したアクセス解析ツールである <a href='https://www.simpleanalytics.com/' target='_blank' rel='noopener noreferrer'>Simple Analytics</a> を使用しています。このツールはクッキーを使用せず、個人を特定できる情報を収集しません。</p><h3>4. 第三者提供</h3><p>法律に基づく場合を除き、取得した情報を第三者に提供することはありません。</p><h3>5. データの削除</h3><p>ユーザーはダッシュボードからアカウントを削除することで、いつでも自身のデータを消去できます。</p>"
     },
     "seo": {
-        "description": "ATcircleは、ATProtoを活用した個人サイトのためのウェブリングシステムです。 Blueskyと連携して、同じ興味を持つ仲間と繋がりましょう。",
+        "description": "AT CIRCLEは、ATProtoを活用した個人サイトのためのウェブリングシステムです。 Blueskyと連携して、同じ興味を持つ仲間と繋がりましょう。",
         "keywords": "ATProto, Bluesky, ウェブリング, 個人サイト, コミュニティ"
     },
     "members": {

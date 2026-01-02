@@ -302,6 +302,22 @@ app.get("/", async (c) => {
                     </div>
                 </div>
 
+                <!-- Updates / News Section -->
+                <div class="bg-primary/5 border border-primary/10 p-4 rounded-xl flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-primary/10 p-2 rounded-lg text-primary">
+                            <i class="fa-solid fa-bullhorn"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-primary">${t("dashboard.updates_title") || "Updates"}</h3>
+                            <p class="text-xs opacity-70">${t("dashboard.updates_desc") || "Check the latest news and documentation."}</p>
+                        </div>
+                    </div>
+                    <a href="https://asadaame5121.net/Article/AT%20CIRCLE.html" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm btn-circle" title="${t("common.visit")}">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                </div>
+
                 ${ModerationSection({
                     joinRequests: joinRequests.results || [],
                     pendingMemberships: pendingMemberships.results || [],

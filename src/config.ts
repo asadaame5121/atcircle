@@ -9,7 +9,7 @@ export const PLC_DIRECTORY_URL =
     process.env.PLC_DIRECTORY_URL || "https://plc.directory";
 export const SECRET_KEY =
     process.env.SECRET_KEY || "dev-secret-key-change-this-in-prod";
-export const CLIENT_NAME = process.env.CLIENT_NAME || "ATcircle Dev";
+export const CLIENT_NAME = process.env.CLIENT_NAME || "AT CIRCLE";
 export const NODE_ENV = process.env.NODE_ENV || "development";
 export const IS_DEV = NODE_ENV === "development";
 export const OAUTH_PRIVATE_KEY = process.env.OAUTH_PRIVATE_KEY;

@@ -1,8 +1,6 @@
 import { Hono } from "hono";
 import { html } from "hono/html";
 import { Layout } from "../../components/Layout.js";
-import { PUBLIC_URL } from "../../config.js";
-import { restoreAgent } from "../../services/oauth.js";
 import type { AppVariables, Bindings } from "../../types/bindings.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
@@ -133,60 +131,6 @@ app.post("/update", async (c) => {
         .run();
 
     return c.redirect("/dashboard?msg=updated");
-});
-
-// GET /dashboard/site/debug
-app.get("/debug", async (c) => {
-    const payload = c.get("jwtPayload");
-    const did = payload.sub;
-
-    const t = c.get("t");
-    const lang = c.get("lang");
-
-    const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
-
-    return c.html(
-        Layout({
-            title: "Debug - ATProto Session",
-            t,
-            lang,
-            children: html`
-                <div class="card bg-base-100 shadow-xl max-w-4xl mx-auto font-mono text-xs">
-                    <div class="card-body">
-                        <h1 class="card-title text-lg mb-4">ATProto Debug Info</h1>
-                        <div class="space-y-4">
-                            <section>
-                                <h2 class="font-bold border-b mb-1">Session Info</h2>
-                                <pre
-                                    class="bg-base-200 p-2 rounded overflow-x-auto"
-                                >${JSON.stringify(
-                                    {
-                                        did,
-                                        hasAgent: !!agent,
-                                        serviceUrl: (
-                                            agent as any
-                                        )?.service?.toString(),
-                                    },
-                                    null,
-                                    2,
-                                )}</pre>
-                            </section>
-                            <section>
-                                <h2 class="font-bold border-b mb-1">Raw Session Header</h2>
-                                <pre
-                                    class="bg-base-200 p-2 rounded overflow-x-auto"
-                                >session=${c.req.header("cookie")}</pre>
-                            </section>
-                            <div class="card-actions mt-4">
-                                <a href="/dashboard" class="btn btn-sm btn-ghost"
-                                >Back to Dashboard</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `,
-        }),
-    );
 });
 
 export default app;

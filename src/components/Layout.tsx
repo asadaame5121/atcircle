@@ -82,14 +82,18 @@ export const Layout = (props: {
               <li><a href="/dashboard">${props.t ? props.t("common.dashboard") : "Dashboard"}</a></li>
             </ul>
           </div>
-          <a href="/" class="btn btn-ghost text-xl text-primary font-black italic tracking-tighter px-2">${props.t ? props.t("common.brand") : "ATcircle"}</a>
+          <a href="/" class="flex items-center gap-2 btn btn-ghost px-2">
+            <img src="${favicon}" alt="AT CIRCLE Logo" class="w-8 h-8 rounded-lg shadow-sm" />
+            <span class="text-xl text-primary font-black italic tracking-tighter">${props.t ? props.t("common.brand") : "AT CIRCLE"}</span>
+          </a>
         </div>
-        <div class="navbar-end">
-          <ul class="menu menu-horizontal px-1 gap-1 hidden lg:flex">
-            <li><a href="/">${props.t ? props.t("common.home") : "Home"}</a></li>
+        <div class="navbar-center hidden lg:flex">
+          <ul class="menu menu-horizontal px-1 gap-1">
             <li><a href="/rings">${props.t ? props.t("common.rings") : "Rings"}</a></li>
             <li><a href="/dashboard">${props.t ? props.t("common.dashboard") : "Dashboard"}</a></li>
           </ul>
+        </div>
+        <div class="navbar-end">
           <a href="https://github.com/asadaame5121/atcircle" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-circle btn-sm">
             <i class="fa-brands fa-github text-lg"></i>
           </a>
@@ -98,12 +102,7 @@ export const Layout = (props: {
       ${props.children}
       <footer class="footer p-10 bg-base-100 text-base-content rounded-box shadow-lg mt-12 grid-cols-1 md:grid-cols-3">
         <nav>
-          <h6 class="footer-title">Services</h6> 
-          <a href="/rings" class="link link-hover">${props.t ? props.t("common.rings") : "Webrings"}</a>
-          <a href="/antenna" class="link link-hover">${props.t ? props.t("common.antenna") : "Antenna"}</a>
-        </nav> 
-        <nav>
-          <h6 class="footer-title">Legal</h6> 
+          <h6 class="footer-title">${props.t ? props.t("common.legal") : "Legal"}</h6> 
           <a href="/terms" class="link link-hover">${props.t ? props.t("common.terms") : "Terms of Use"}</a>
           <a href="/privacy" class="link link-hover">${props.t ? props.t("common.privacy") : "Privacy Policy"}</a>
         </nav>
