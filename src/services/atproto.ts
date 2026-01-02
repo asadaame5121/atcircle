@@ -351,18 +351,21 @@ export const AtProtoService = {
         return response.data;
     },
 
-    async getFollows(
-        agent: AtpAgent | Agent,
-        actor: string,
-        cursor?: string,
-        limit: number = 50,
-    ) {
-        const response = await agent.api.app.bsky.graph.getFollows({
-            actor,
-            cursor,
-            limit,
-        });
-        return response.data;
+    async getFollowers(agent: AtpAgent | Agent, actor: string) {
+        let followers: any[] = [];
+        let cursor: string | undefined;
+
+        do {
+            const response = await agent.api.app.bsky.graph.getFollowers({
+                actor,
+                cursor,
+                limit: 100,
+            });
+            followers = followers.concat(response.data.followers);
+            cursor = response.data.cursor;
+        } while (cursor);
+
+        return { followers };
     },
 
     async getProfiles(agent: AtpAgent | Agent, actors: string[]) {

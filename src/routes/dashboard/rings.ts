@@ -330,26 +330,17 @@ app.post("/delete", async (c) => {
 app.get("/invite/friends", async (c) => {
     const payload = c.get("jwtPayload");
     const did = payload.sub;
-    const cursor = c.req.query("cursor");
-    const limit = Number.parseInt(c.req.query("limit") || "50", 10);
-
     try {
         const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
         if (!agent) {
             return c.json({ success: false, error: "Unauthorized" }, 401);
         }
 
-        const result = await AtProtoService.getFollows(
-            agent,
-            did,
-            cursor,
-            limit,
-        );
+        const result = await AtProtoService.getFollowers(agent, did);
 
         return c.json({
             success: true,
-            follows: result.follows,
-            cursor: result.cursor,
+            follows: result.followers,
         });
     } catch (e) {
         console.error("Error fetching follows:", e);
