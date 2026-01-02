@@ -10,6 +10,7 @@ import { RegistrationForm } from "../components/dashboard/RegistrationForm.js";
 import { RingsSection } from "../components/dashboard/RingsSection.js";
 import { Layout } from "../components/Layout.js";
 import { PUBLIC_URL, SECRET_KEY } from "../config.js";
+import { logger as pinoLogger } from "../lib/logger.js";
 import {
     AtProtoService,
     type MemberRecord,
@@ -77,7 +78,11 @@ app.get("/", async (c) => {
                 AtProtoService.listMemberRecords(agent, did),
             ]);
         } catch (e) {
-            console.error("Failed to list ATProto data:", e);
+            pinoLogger.error({
+                msg: "Failed to list ATProto data",
+                did,
+                error: e,
+            });
         }
     }
 
@@ -192,9 +197,10 @@ app.get("/", async (c) => {
                 const ringAtUri = new AtUri(ringUri);
                 if (ringAtUri.hostname === did) {
                     // This is an orphan of a deleted owned ring, skip it
-                    console.log(
-                        `[Dashboard] Skipping orphaned membership for deleted owned ring: ${ringUri}`,
-                    );
+                    pinoLogger.debug({
+                        msg: "[Dashboard] Skipping orphaned membership for deleted owned ring",
+                        ringUri,
+                    });
                     continue;
                 }
             } catch {

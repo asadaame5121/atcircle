@@ -1,6 +1,7 @@
 import { AtUri } from "@atproto/api";
 import { Hono } from "hono";
 import { PUBLIC_URL } from "../../config.js";
+import { logger as pinoLogger } from "../../lib/logger.js";
 import { AtProtoService } from "../../services/atproto.js";
 import { restoreAgent } from "../../services/oauth.js";
 import type { AppVariables, Bindings } from "../../types/bindings.js";
@@ -41,9 +42,11 @@ app.post("/create", async (c) => {
             .bind(did)
             .first()) as any;
         if (mySite && ringUri) {
-            console.log(
-                `[AutoJoin] Automatically joining ${did}'s site to new ring ${ringUri}`,
-            );
+            pinoLogger.info({
+                msg: "[AutoJoin] Automatically joining site to new ring",
+                did,
+                ringUri,
+            });
             try {
                 const memberUri = await AtProtoService.joinRing(
                     agent,
@@ -62,11 +65,14 @@ app.post("/create", async (c) => {
                     .bind(ringUri, mySite.id, memberUri)
                     .run();
             } catch (joinError) {
-                console.error("Failed to auto-join ring:", joinError);
+                pinoLogger.error({
+                    msg: "Failed to auto-join ring",
+                    error: joinError,
+                });
             }
         }
     } catch (e) {
-        console.error("Error creating ring:", e);
+        pinoLogger.error({ msg: "Error creating ring", error: e });
         return c.text("Failed to create ring", 500);
     }
 
@@ -126,10 +132,11 @@ app.post("/join", async (c) => {
                 )
                 .run();
         } catch (ringError) {
-            console.error(
-                `Failed to fetch ring metadata during join for URI: ${ringUri}`,
-                ringError,
-            );
+            pinoLogger.error({
+                msg: "Failed to fetch ring metadata during join",
+                ringUri,
+                error: ringError,
+            });
             // Fallback to local DB if available
             const localRing = (await c.env.DB.prepare(
                 "SELECT acceptance_policy FROM rings WHERE uri = ?",
@@ -183,7 +190,7 @@ app.post("/join", async (c) => {
 
         return c.redirect(`/dashboard?msg=joined&policy=${acceptancePolicy}`);
     } catch (e) {
-        console.error("Error joining ring:", e);
+        pinoLogger.error({ msg: "Error joining ring", error: e });
         return c.text("Failed to join ring", 500);
     }
 });
@@ -210,7 +217,7 @@ app.post("/leave", async (c) => {
 
         return c.redirect("/dashboard?msg=left");
     } catch (e) {
-        console.error("Error leaving ring:", e);
+        pinoLogger.error({ msg: "Error leaving ring", error: e });
         return c.text("Failed to leave ring", 500);
     }
 });
@@ -255,7 +262,7 @@ app.post("/update", async (c) => {
             .bind(acceptance, status, adminDid, slug, uri)
             .run();
     } catch (e) {
-        console.error("Error updating circle:", e);
+        pinoLogger.error({ msg: "Error updating circle", error: e });
         return c.text("Failed to update circle", 500);
     }
 
@@ -298,9 +305,10 @@ app.post("/delete", async (c) => {
             .first()) as { member_uri: string } | null;
 
         if (myMembership) {
-            console.log(
-                `[Delete] Deleting owner's member record: ${myMembership.member_uri}`,
-            );
+            pinoLogger.info({
+                msg: "[Delete] Deleting owner's member record",
+                memberUri: myMembership.member_uri,
+            });
             await AtProtoService.leaveRing(agent, myMembership.member_uri);
         }
 
@@ -319,7 +327,7 @@ app.post("/delete", async (c) => {
             c.env.DB.prepare("DELETE FROM rings WHERE uri = ?").bind(uri),
         ]);
     } catch (e) {
-        console.error("Error deleting ring:", e);
+        pinoLogger.error({ msg: "Error deleting ring", error: e });
         return c.text("Failed to delete ring", 500);
     }
 
@@ -343,7 +351,7 @@ app.get("/invite/friends", async (c) => {
             follows: result.followers,
         });
     } catch (e) {
-        console.error("Error fetching follows:", e);
+        pinoLogger.error({ msg: "Error fetching follows", error: e });
         return c.json(
             { success: false, error: (e as any).message || "Internal Error" },
             500,

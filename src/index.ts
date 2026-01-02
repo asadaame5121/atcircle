@@ -8,26 +8,30 @@ dns.setDefaultResultOrder("ipv4first");
 import app from "./app.js";
 import { DB_PATH, PORT, PUBLIC_URL } from "./config.js";
 import db from "./db.js";
+import { logger as pinoLogger } from "./lib/logger.js";
 import { updateAllFeeds } from "./services/feed.js";
 
-console.log("[Startup] AT CIRCLE Node Server starting...");
-console.log(`[Startup] Node Version: ${process.version}`);
-console.log(`[Startup] Port: ${PORT}`);
-console.log(`[Startup] Database Path: ${DB_PATH}`);
-console.log(`[Startup] PUBLIC_URL: ${PUBLIC_URL}`);
+pinoLogger.info("[Startup] AT CIRCLE Node Server starting...");
+pinoLogger.info(`[Startup] Node Version: ${process.version}`);
+pinoLogger.info(`[Startup] Port: ${PORT}`);
+pinoLogger.info(`[Startup] Database Path: ${DB_PATH}`);
+pinoLogger.info(`[Startup] PUBLIC_URL: ${PUBLIC_URL}`);
 
 // Set up Cron Job
 function setupCron() {
     // Run every day at 00:00
     cron.schedule("0 0 * * *", async () => {
-        console.log("[Cron] Running scheduled feed update...");
+        pinoLogger.info("[Cron] Running scheduled feed update...");
         try {
             await updateAllFeeds(db as any);
         } catch (e) {
-            console.error("[Cron] Scheduled update failed:", e);
+            pinoLogger.error({
+                msg: "[Cron] Scheduled update failed",
+                error: e,
+            });
         }
     });
-    console.log("[Startup] Cron job scheduled (Daily at 00:00)");
+    pinoLogger.info("[Startup] Cron job scheduled (Daily at 00:00)");
 }
 
 setupCron();
@@ -40,7 +44,7 @@ if (isMain || process.env.NODE_ENV === "production") {
             port: PORT,
         },
         (info) => {
-            console.log(
+            pinoLogger.info(
                 `[Startup] Server is listening on http://${info.address}:${info.port}`,
             );
         },

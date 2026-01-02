@@ -5,6 +5,7 @@ import { html, raw } from "hono/html";
 import { verify } from "hono/jwt";
 import { Layout } from "../components/Layout.js";
 import { PUBLIC_URL, SECRET_KEY } from "../config.js";
+import { logger as pinoLogger } from "../lib/logger.js";
 import { AtProtoService } from "../services/atproto.js";
 import { restoreAgent } from "../services/oauth.js";
 import type { AppVariables, Bindings } from "../types/bindings.js";
@@ -15,7 +16,10 @@ const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
 app.use("*", async (c, next) => {
     const token = getCookie(c, "session");
     if (!token) {
-        console.log("[WidgetBuilder] No session cookie found, redirecting... ");
+        pinoLogger.debug({
+            msg: "[WidgetBuilder] No session cookie found, redirecting",
+            url: c.req.url,
+        });
         return c.redirect(`/login?next=${encodeURIComponent(c.req.url)}`);
     }
     try {
@@ -23,7 +27,10 @@ app.use("*", async (c, next) => {
         c.set("jwtPayload", payload);
         await next();
     } catch (e) {
-        console.error("[WidgetBuilder] JWT Verification failed:", e);
+        pinoLogger.error({
+            msg: "[WidgetBuilder] JWT Verification failed",
+            error: e,
+        });
         return c.redirect("/login");
     }
 });
@@ -56,9 +63,10 @@ app.get("/", async (c) => {
 
     if (!ringTitle) {
         // Try fetching from ATProto and cache it
-        console.log(
-            `[WidgetBuilder] Ring title not in DB for ${ringUri}, fetching from ATProto...`,
-        );
+        pinoLogger.info({
+            msg: "[WidgetBuilder] Ring title not in DB, fetching from ATProto",
+            ringUri,
+        });
         try {
             const agent = await restoreAgent(c.env.DB, PUBLIC_URL, did);
             if (agent) {
@@ -77,7 +85,10 @@ app.get("/", async (c) => {
                     .run();
             }
         } catch (e) {
-            console.error("Failed to fetch ring title from ATProto:", e);
+            pinoLogger.error({
+                msg: "Failed to fetch ring title from ATProto",
+                error: e,
+            });
         }
     }
 
@@ -334,9 +345,11 @@ app.post("/upload-banner", async (c) => {
     const banner = body.banner as Blob;
     const ringUri = body.ring_uri as string;
 
-    console.log(
-        `[UploadBanner] Received upload request for DID: ${did}, Ring: ${ringUri}`,
-    );
+    pinoLogger.info({
+        msg: "[UploadBanner] Received upload request",
+        did,
+        ringUri,
+    });
 
     if (!banner || !ringUri) {
         return c.json(
@@ -348,7 +361,10 @@ app.post("/upload-banner", async (c) => {
     try {
         const agent = await restoreAgent(c.env.DB, PUBLIC_URL, did);
         if (!agent) {
-            console.error("[UploadBanner] Failed to restore agent");
+            pinoLogger.error({
+                msg: "[UploadBanner] Failed to restore agent",
+                did,
+            });
             return c.json(
                 { success: false, error: "Failed to restore agent" },
                 401,
@@ -356,9 +372,10 @@ app.post("/upload-banner", async (c) => {
         }
 
         // Create/Update Banner Record on PDS (includes blob upload)
-        console.log(
-            `[UploadBanner] Uploading banner to PDS for ring: ${ringUri}`,
-        );
+        pinoLogger.info({
+            msg: "[UploadBanner] Uploading banner to PDS",
+            ringUri,
+        });
         const arrayBuffer = await banner.arrayBuffer();
         const blob = await AtProtoService.setRingBanner(
             agent,
@@ -367,9 +384,11 @@ app.post("/upload-banner", async (c) => {
             banner.type || "image/jpeg",
         );
         const cidString = blob.ref.toString();
-        console.log(
-            `[UploadBanner] Blob uploaded and record updated. CID: ${cidString}`,
-        );
+        pinoLogger.info({
+            msg: "[UploadBanner] Blob uploaded and record updated",
+            cid: cidString,
+            ringUri,
+        });
 
         // 3. Update local DB with the banner URL (from PDS)
         // Note: The public URL for the blob: https://<pds-host>/xrpc/com.atproto.sync.getBlob?did=<did>&cid=<cid>
@@ -378,16 +397,22 @@ app.post("/upload-banner", async (c) => {
             (agent as any).session?.pdsUrl ||
             "https://bsky.social";
         const bannerUrl = `${pdsUrl}/xrpc/com.atproto.sync.getBlob?did=${did}&cid=${cidString}`;
-        console.log(`[UploadBanner] Constructed Banner URL: ${bannerUrl}`);
+        pinoLogger.info({
+            msg: "[UploadBanner] Constructed Banner URL",
+            bannerUrl,
+        });
 
         await c.env.DB.prepare("UPDATE rings SET banner_url = ? WHERE uri = ?")
             .bind(bannerUrl, ringUri)
             .run();
-        console.log("[UploadBanner] Local database updated.");
+        pinoLogger.info({
+            msg: "[UploadBanner] Local database updated",
+            ringUri,
+        });
 
         return c.json({ success: true, url: bannerUrl });
     } catch (e: any) {
-        console.error("[UploadBanner] Upload failed:", e);
+        pinoLogger.error({ msg: "[UploadBanner] Upload failed", error: e });
         return c.json({ success: false, error: e.message }, 500);
     }
 });

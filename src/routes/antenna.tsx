@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { html } from "hono/html";
 import { Layout } from "../components/Layout.js";
+import { logger as pinoLogger } from "../lib/logger.js";
 import type { AppVariables, Bindings } from "../types/bindings.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
@@ -124,7 +125,7 @@ app.get("/", async (c) => {
             }),
         );
     } catch (e) {
-        console.error(e);
+        pinoLogger.error({ msg: "Antenna load failed", error: e });
         const t = c.get("t");
         return c.text(
             t("error.failed_load_antenna") || "Failed to load antenna",

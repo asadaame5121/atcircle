@@ -1,4 +1,5 @@
 import Parser from "rss-parser";
+import { logger as pinoLogger } from "../lib/logger.js";
 import type { Bindings } from "../types/bindings.js";
 
 /**
@@ -54,7 +55,7 @@ export async function fetchAndParseFeed(url: string): Promise<ParsedFeed> {
             })),
         };
     } catch (error) {
-        console.error(`Error parsing feed at ${url}:`, error);
+        pinoLogger.error({ msg: "Error parsing feed", url, error });
         throw error;
     }
 }
@@ -68,7 +69,7 @@ const MIN_UPDATE_INTERVAL = 5 * 60 * 1000; // 5 minutes
 export async function updateAllFeeds(db: Bindings["DB"], force = false) {
     const now = Date.now();
     if (!force && now - lastUpdateAt < MIN_UPDATE_INTERVAL) {
-        console.log("[Antenna] Skipping update: Too frequent.");
+        pinoLogger.info({ msg: "[Antenna] Skipping update: Too frequent" });
         return {
             skipped: true,
             nextPossibleAt: new Date(
@@ -78,7 +79,7 @@ export async function updateAllFeeds(db: Bindings["DB"], force = false) {
     }
     lastUpdateAt = now;
 
-    console.log("[Antenna] Starting global feed update...");
+    pinoLogger.info({ msg: "[Antenna] Starting global feed update" });
     try {
         const sites = await db
             .prepare(
@@ -89,9 +90,11 @@ export async function updateAllFeeds(db: Bindings["DB"], force = false) {
 
         let totalAdded = 0;
         for (const site of sites.results as any[]) {
-            console.log(
-                `[Antenna] Processing: ${site.title} (${site.rss_url})`,
-            );
+            pinoLogger.info({
+                msg: "[Antenna] Processing feed",
+                title: site.title,
+                url: site.rss_url,
+            });
             try {
                 const feed = await fetchAndParseFeed(site.rss_url);
                 const recentItems = feed.items.slice(0, 10); // Check last 10 items
@@ -120,19 +123,27 @@ export async function updateAllFeeds(db: Bindings["DB"], force = false) {
                             .run();
 
                         totalAdded++;
-                        console.log(`[Antenna] Added: ${item.title}`);
+                        pinoLogger.info({
+                            msg: "[Antenna] Added item",
+                            title: item.title,
+                        });
                     }
                 }
             } catch (e) {
-                console.error(`[Antenna] Error for site ${site.id}:`, e);
+                pinoLogger.error({
+                    msg: "[Antenna] Error for site",
+                    siteId: site.id,
+                    error: e,
+                });
             }
         }
-        console.log(
-            `[Antenna] Update complete. Added ${totalAdded} total items.`,
-        );
+        pinoLogger.info({
+            msg: "[Antenna] Update complete",
+            added: totalAdded,
+        });
         return { success: true, added: totalAdded };
     } catch (e) {
-        console.error("[Antenna] Failed to update feeds:", e);
+        pinoLogger.error({ msg: "[Antenna] Failed to update feeds", error: e });
         throw e;
     }
 }

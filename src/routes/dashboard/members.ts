@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { PUBLIC_URL } from "../../config.js";
+import { logger as pinoLogger } from "../../lib/logger.js";
 import { AtProtoService } from "../../services/atproto.js";
 import { restoreAgent } from "../../services/oauth.js";
 import type { AppVariables, Bindings } from "../../types/bindings.js";
@@ -63,7 +64,10 @@ app.get("/list", async (c) => {
                 }
             }
         } catch (e) {
-            console.error("Failed to fetch member profiles:", e);
+            pinoLogger.error({
+                msg: "Failed to fetch member profiles",
+                error: e,
+            });
         }
     }
 
@@ -107,7 +111,7 @@ app.post("/kick", async (c) => {
 
         return c.json({ success: true });
     } catch (e: any) {
-        console.error("Kick failed:", e);
+        pinoLogger.error({ msg: "Kick failed", error: e });
         return c.json({ success: false, error: e.message }, 500);
     }
 });
@@ -140,13 +144,16 @@ app.post("/block", async (c) => {
         )
             .bind(ringUri, did, did)
             .first()) as any;
-
         if (!ring) {
             return c.json({ success: false, error: "Unauthorized" }, 403);
         }
 
         // 2. ATProto: Create Block record
-        console.log(`[Block] Blocking ${memberDid} from ring ${ringUri}`);
+        pinoLogger.info({
+            msg: "[Block] Blocking member from ring",
+            memberDid,
+            ringUri,
+        });
         await AtProtoService.blockMember(agent, ringUri, memberDid, reason);
 
         // 3. Local DB: Cleanup and Record Block
@@ -161,7 +168,7 @@ app.post("/block", async (c) => {
 
         return c.json({ success: true });
     } catch (e: any) {
-        console.error("Block failed:", e);
+        pinoLogger.error({ msg: "Block failed", error: e });
         return c.json({ success: false, error: e.message }, 500);
     }
 });
@@ -202,7 +209,7 @@ app.post("/update", async (c) => {
 
         return c.json({ success: true });
     } catch (e: any) {
-        console.error("Update failed:", e);
+        pinoLogger.error({ msg: "Update failed", error: e });
         return c.json({ success: false, error: e.message }, 500);
     }
 });

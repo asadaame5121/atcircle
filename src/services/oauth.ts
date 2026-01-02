@@ -14,13 +14,14 @@ import {
     OAUTH_PRIVATE_KEY,
     PLC_DIRECTORY_URL,
 } from "../config.js";
+import { logger as pinoLogger } from "../lib/logger.js";
 import type { SqliteDatabaseInterface } from "../types/db.js";
 
 export class SqliteStateStore implements NodeSavedStateStore {
     constructor(private db: SqliteDatabaseInterface) {}
 
     async set(key: string, val: NodeSavedState): Promise<void> {
-        console.log(`[SqliteStateStore] SET key=${key}`);
+        pinoLogger.debug({ msg: "[SqliteStateStore] SET", key });
         const state = JSON.stringify(val);
         await this.db
             .prepare(
@@ -28,25 +29,28 @@ export class SqliteStateStore implements NodeSavedStateStore {
             )
             .bind(key, state)
             .run();
-        console.log(`[SqliteStateStore] SET complete for key=${key}`);
+        pinoLogger.debug({ msg: "[SqliteStateStore] SET complete", key });
     }
 
     async get(key: string): Promise<NodeSavedState | undefined> {
-        console.log(`[SqliteStateStore] GET key=${key}`);
+        pinoLogger.debug({ msg: "[SqliteStateStore] GET", key });
         const result = await this.db
             .prepare("SELECT state FROM oauth_states WHERE key = ?")
             .bind(key)
             .first<{ state: string }>();
         if (!result) {
-            console.log(`[SqliteStateStore] GET key=${key} -> NOT FOUND`);
+            pinoLogger.debug({
+                msg: "[SqliteStateStore] GET -> NOT FOUND",
+                key,
+            });
             return undefined;
         }
-        console.log(`[SqliteStateStore] GET key=${key} -> FOUND`);
+        pinoLogger.debug({ msg: "[SqliteStateStore] GET -> FOUND", key });
         return JSON.parse(result.state) as NodeSavedState;
     }
 
     async del(key: string): Promise<void> {
-        console.log(`[SqliteStateStore] DEL key=${key}`);
+        pinoLogger.debug({ msg: "[SqliteStateStore] DEL", key });
         await this.db
             .prepare("DELETE FROM oauth_states WHERE key = ?")
             .bind(key)
@@ -99,7 +103,7 @@ export const createClient = async (
     let privateJwk: jose.JWK;
     if (OAUTH_PRIVATE_KEY) {
         try {
-            console.log("[OAuth] Attempting to parse OAUTH_PRIVATE_KEY");
+            pinoLogger.info("[OAuth] Attempting to parse OAUTH_PRIVATE_KEY");
             const rawKey = OAUTH_PRIVATE_KEY.trim();
 
             if (rawKey.startsWith("{")) {
@@ -109,21 +113,21 @@ export const createClient = async (
                 const decoded = Buffer.from(rawKey, "base64").toString("utf-8");
                 privateJwk = JSON.parse(decoded);
             }
-            console.log("[OAuth] Successfully parsed persistent private key");
-        } catch {
-            console.error(
-                `[OAuth] Failed to parse OAUTH_PRIVATE_KEY. First 20 chars: "${OAUTH_PRIVATE_KEY.substring(
-                    0,
-                    20,
-                )}..."`,
+            pinoLogger.info(
+                "[OAuth] Successfully parsed persistent private key",
             );
+        } catch {
+            pinoLogger.error({
+                msg: "[OAuth] Failed to parse OAUTH_PRIVATE_KEY",
+                preview: OAUTH_PRIVATE_KEY.substring(0, 20),
+            });
             const keyWrapper = await jose.generateKeyPair("ES256", {
                 extractable: true,
             });
             privateJwk = await jose.exportJWK(keyWrapper.privateKey);
         }
     } else {
-        console.warn(
+        pinoLogger.warn(
             "[OAuth] No OAUTH_PRIVATE_KEY provided. Sessions will be lost after server restart.",
         );
         const keyWrapper = await jose.generateKeyPair("ES256", {
@@ -136,9 +140,10 @@ export const createClient = async (
         .replace("localhost", "127.0.0.1")
         .replace(/\/$/, "");
 
-    console.log(
-        `[OAuth] Creating client with ID: ${appUrl}/client-metadata.json`,
-    );
+    pinoLogger.info({
+        msg: "[OAuth] Creating client",
+        clientId: `${appUrl}/client-metadata.json`,
+    });
 
     return new NodeOAuthClient({
         clientMetadata: {
@@ -160,20 +165,23 @@ export const createClient = async (
         fetch: (async (input: any, init: any) => {
             const url = typeof input === "string" ? input : (input as any).url;
             const start = Date.now();
-            console.log(`[OAuthFetch] START: ${url}`);
+            pinoLogger.debug({ msg: "[OAuthFetch] START", url });
             try {
                 const res = await fetch(input as any, init as any);
-                console.log(
-                    `[OAuthFetch] COMPLETED: ${url} (${res.status} ${res.statusText}) in ${
-                        Date.now() - start
-                    }ms`,
-                );
+                pinoLogger.debug({
+                    msg: "[OAuthFetch] COMPLETED",
+                    url,
+                    status: res.status,
+                    duration: `${Date.now() - start}ms`,
+                });
                 return res;
             } catch (e) {
-                console.error(
-                    `[OAuthFetch] FAILED: ${url} in ${Date.now() - start}ms`,
-                    e,
-                );
+                pinoLogger.error({
+                    msg: "[OAuthFetch] FAILED",
+                    url,
+                    duration: `${Date.now() - start}ms`,
+                    error: e,
+                });
                 throw e;
             }
         }) as any,
@@ -184,9 +192,10 @@ export const createClient = async (
                 }
                 const handle = handleOrDid;
                 if (handle.endsWith(".test")) {
-                    console.log(
-                        `[CustomResolver] Resolving test handle: ${handle}`,
-                    );
+                    pinoLogger.info({
+                        msg: "[CustomResolver] Resolving test handle",
+                        handle,
+                    });
                     const res = await fetch(
                         `${bskyServiceUrl}/xrpc/com.atproto.identity.resolveHandle?handle=${handle}`,
                     );
@@ -196,23 +205,31 @@ export const createClient = async (
                 }
 
                 try {
-                    console.log(`[CustomResolver] Resolving handle: ${handle}`);
+                    pinoLogger.info({
+                        msg: "[CustomResolver] Resolving handle",
+                        handle,
+                    });
                     const res = await fetch(
                         `https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle?handle=${handle}`,
                     );
                     if (!res.ok) {
-                        console.error(
-                            `[CustomResolver] Handle fetch failed: ${res.status}`,
-                        );
+                        pinoLogger.error({
+                            msg: "[CustomResolver] Handle fetch failed",
+                            status: res.status,
+                        });
                         throw new Error("Handle fetch failed");
                     }
                     const data = (await res.json()) as { did: string };
-                    console.log(
-                        `[CustomResolver] Resolved to DID: ${data.did}`,
-                    );
+                    pinoLogger.info({
+                        msg: "[CustomResolver] Resolved to DID",
+                        did: data.did,
+                    });
                     return data.did;
                 } catch (e) {
-                    console.error("[CustomResolver] Error:", e);
+                    pinoLogger.error({
+                        msg: "[CustomResolver] Error",
+                        error: e,
+                    });
                     throw e;
                 }
             },
@@ -220,21 +237,22 @@ export const createClient = async (
         didResolver: {
             async resolve(did: string): Promise<any> {
                 if (typeof did !== "string") {
-                    console.error(
-                        "[CustomResolver] DID is not a string:",
+                    pinoLogger.error({
+                        msg: "[CustomResolver] DID is not a string",
                         did,
-                        typeof did,
-                    );
+                        type: typeof did,
+                    });
                     return null;
                 }
-                console.log(`[CustomResolver] Resolving DID: ${did}`);
+                pinoLogger.info({ msg: "[CustomResolver] Resolving DID", did });
                 if (did.startsWith("did:plc:")) {
                     try {
                         const res = await fetch(`${plcDirectoryUrl}/${did}`);
                         if (!res.ok) {
-                            console.error(
-                                `[CustomResolver] PLC fetch failed: ${res.status}`,
-                            );
+                            pinoLogger.error({
+                                msg: "[CustomResolver] PLC fetch failed",
+                                status: res.status,
+                            });
                             return null;
                         }
                         const doc = (await res.json()) as any;
@@ -243,25 +261,30 @@ export const createClient = async (
                             for (const svc of doc.service) {
                                 if (svc.type === "AtprotoPersonalDataServer") {
                                     if (IS_DEV) {
-                                        console.log(
-                                            `[CustomResolver] Rewriting PDS endpoint ${svc.serviceEndpoint} to ${bskyServiceUrl}`,
-                                        );
+                                        pinoLogger.info({
+                                            msg: "[CustomResolver] Rewriting PDS endpoint",
+                                            from: svc.serviceEndpoint,
+                                            to: bskyServiceUrl,
+                                        });
                                         svc.serviceEndpoint = bskyServiceUrl;
                                     }
                                 }
                             }
                         }
 
-                        console.log("[CustomResolver] Resolved DID Doc");
+                        pinoLogger.info({
+                            msg: "[CustomResolver] Resolved DID Doc",
+                            did,
+                        });
                         return {
                             id: did,
                             ...doc,
                         };
                     } catch (e) {
-                        console.error(
-                            "[CustomResolver] Error resolving DID:",
-                            e,
-                        );
+                        pinoLogger.error({
+                            msg: "[CustomResolver] Error resolving DID",
+                            error: e,
+                        });
                         return null;
                     }
                 }
@@ -277,11 +300,9 @@ export async function restoreAgent(
     did: string,
 ): Promise<Agent | undefined> {
     try {
-        console.log(
-            `[RestoreAgent] Attempting to restore agent for DID: ${did}`,
-        );
+        pinoLogger.info({ msg: "[RestoreAgent] Attempting restore", did });
         if (did === "did:plc:dev-mock-user") {
-            console.log(
+            pinoLogger.info(
                 "[RestoreAgent] Debug mock user detected. Skipping restoration.",
             );
             return undefined;
@@ -289,13 +310,16 @@ export async function restoreAgent(
         const client = await createClient(db, publicUrl);
         const session = await client.restore(did);
         if (!session) {
-            console.warn(`[RestoreAgent] No session found for DID: ${did}`);
+            pinoLogger.warn({ msg: "[RestoreAgent] No session found", did });
             return undefined;
         }
-        console.log("[RestoreAgent] Session restored successfully.");
+        pinoLogger.info({
+            msg: "[RestoreAgent] Session restored successfully",
+            did,
+        });
         return new Agent(session);
     } catch (e) {
-        console.error("[RestoreAgent] CRITICAL ERROR:", e);
+        pinoLogger.error({ msg: "[RestoreAgent] CRITICAL ERROR", error: e });
         return undefined;
     }
 }

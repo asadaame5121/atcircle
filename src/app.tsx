@@ -1,7 +1,7 @@
 import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
-import { logger } from "hono/logger";
 import db from "./db.js";
+import { logger as pinoLogger } from "./lib/logger.js";
 import { i18nMiddleware } from "./middleware/i18n.js";
 import antenna from "./routes/antenna.js";
 import auth from "./routes/auth.js";
@@ -20,7 +20,20 @@ const app = new Hono<{ Bindings: Bindings; Variables: any }>();
 // Serve static assets
 app.use("/assets/*", serveStatic({ root: "./" }));
 
-app.use("*", logger());
+// Pino Logging Middleware
+app.use("*", async (c, next) => {
+    const { method, path } = c.req;
+    const start = Date.now();
+    await next();
+    const ms = Date.now() - start;
+    pinoLogger.info({
+        method,
+        path,
+        status: c.res.status,
+        duration: `${ms}ms`,
+    });
+});
+
 app.use("*", i18nMiddleware());
 app.use("*", async (c, next) => {
     c.env = { DB: db } as any;
@@ -31,13 +44,21 @@ app.use("*", async (c, next) => {
 app.all("/widget-builder/:path+", (c) => {
     const path = c.req.param("path");
     const newPath = `/dashboard/ring/widget/${path}`;
-    console.log(`[Redirect] ${c.req.path} -> ${newPath}`);
+    pinoLogger.info({
+        msg: "Redirecting legacy widget builder path",
+        from: c.req.path,
+        to: newPath,
+    });
     return c.redirect(newPath, 307);
 });
 
 // Custom 404 handler for debugging
 app.notFound((c) => {
-    console.log(`[404] Not Found: ${c.req.method} ${c.req.path}`);
+    pinoLogger.warn({
+        msg: "404 Not Found",
+        method: c.req.method,
+        path: c.req.path,
+    });
     return c.text(`404 Not Found (Debug: ${c.req.path})`, 404);
 });
 

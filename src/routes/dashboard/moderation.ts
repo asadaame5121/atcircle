@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { PUBLIC_URL } from "../../config.js";
+import { logger as pinoLogger } from "../../lib/logger.js";
 import { AtProtoService } from "../../services/atproto.js";
 import { restoreAgent } from "../../services/oauth.js";
 import type { AppVariables, Bindings } from "../../types/bindings.js";
@@ -190,7 +191,7 @@ app.post("/unblock", async (c) => {
 
         return c.redirect("/dashboard?msg=unblocked");
     } catch (e) {
-        console.error("Error unblocking user:", e);
+        pinoLogger.error({ msg: "Error unblocking user", error: e });
         return c.text("Failed to unblock", 500);
     }
 });

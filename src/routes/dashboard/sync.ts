@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { PUBLIC_URL } from "../../config.js";
+import { logger as pinoLogger } from "../../lib/logger.js";
 import { AtProtoService } from "../../services/atproto.js";
 import { restoreAgent } from "../../services/oauth.js";
 import type { AppVariables, Bindings } from "../../types/bindings.js";
@@ -15,7 +16,7 @@ app.post("/", async (c) => {
         const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
         if (!agent) return c.redirect("/login");
 
-        console.log(`[Sync] Starting sync for DID: ${did}`);
+        pinoLogger.info({ msg: "[Sync] Starting sync", did });
 
         // 1. Sync Rings
         const rings = await AtProtoService.listRings(agent, did);
@@ -73,10 +74,13 @@ app.post("/", async (c) => {
                     .run();
             }
         } catch (blockSyncError) {
-            console.error("Failed to sync blocks:", blockSyncError);
+            pinoLogger.error({
+                msg: "Failed to sync blocks",
+                error: blockSyncError,
+            });
         }
     } catch (e) {
-        console.error("Sync failed:", e);
+        pinoLogger.error({ msg: "Sync failed", error: e });
         return c.text(`Sync failed: ${(e as any).message}`, 500);
     }
 

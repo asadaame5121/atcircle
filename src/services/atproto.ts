@@ -5,6 +5,7 @@ import type * as Block from "../lexicons/types/net/asadaame5121/at-circle/block.
 import type * as Member from "../lexicons/types/net/asadaame5121/at-circle/member.js";
 import type * as Request from "../lexicons/types/net/asadaame5121/at-circle/request.js";
 import type * as Ring from "../lexicons/types/net/asadaame5121/at-circle/ring.js";
+import { logger as pinoLogger } from "../lib/logger.js";
 
 const NSID = {
     RING: ids.NetAsadaame5121AtCircleRing,
@@ -279,7 +280,7 @@ export const AtProtoService = {
         imageBytes: Uint8Array,
         mimeType: string,
     ) {
-        console.log(`[AtProtoService] setRingBanner: ringUri=${ringUri}`);
+        pinoLogger.info({ msg: "setRingBanner", ringUri });
 
         // 1. Upload blob
         const blobRes = await agent.api.com.atproto.repo.uploadBlob(
@@ -291,10 +292,11 @@ export const AtProtoService = {
         const bannerBlob = blobRes.data.blob;
 
         // 2. Create/Update Banner Record
-        console.log(
-            `[AtProtoService] setRingBanner: uploaded blob CID=${bannerBlob.ref.toString()}`,
-        );
-        console.log(`[AtProtoService] setRingBanner: ringUri=${ringUri}`);
+        pinoLogger.info({
+            msg: "setRingBanner: uploaded blob",
+            cid: bannerBlob.ref.toString(),
+            ringUri,
+        });
         const record: BannerRecord = {
             $type: NSID.BANNER,
             ring: {
@@ -307,9 +309,11 @@ export const AtProtoService = {
         // We use the ring's rkey as the banner's rkey for simplicity (1 banner per ring)
         const { rkey } = new AtUri(ringUri);
         const repo = (agent as any).session?.did ?? (agent as any).did ?? "";
-        console.log(
-            `[AtProtoService] setRingBanner: putRecord repo=${repo}, rkey=${rkey}`,
-        );
+        pinoLogger.info({
+            msg: "setRingBanner: putRecord",
+            repo,
+            rkey,
+        });
 
         await agent.api.com.atproto.repo.putRecord({
             repo,
@@ -386,7 +390,11 @@ export const AtProtoService = {
             const data = (await res.json()) as { did: string };
             return data.did;
         } catch (e) {
-            console.error("Failed to resolve handle:", handle, e);
+            pinoLogger.error({
+                msg: "Failed to resolve handle",
+                handle,
+                error: e,
+            });
             return null;
         }
     },

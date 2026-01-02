@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import { logger as pinoLogger } from "../lib/logger.js";
 
 export interface DiscoveredFeed {
     url: string;
@@ -52,9 +53,6 @@ export function discoverMetadata(baseUrl: string, html: string): SiteMetadata {
     };
 }
 
-/**
- * Helper to fetch and discover metadata from a URL.
- */
 export async function fetchAndDiscoverMetadata(
     url: string,
 ): Promise<SiteMetadata | null> {
@@ -68,7 +66,7 @@ export async function fetchAndDiscoverMetadata(
         const html = await res.text();
         return discoverMetadata(url, html);
     } catch (e) {
-        console.error("Discovery failed for", url, e);
+        pinoLogger.error({ msg: "Discovery failed", url, error: e });
         return null;
     }
 }

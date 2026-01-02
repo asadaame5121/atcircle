@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { deleteCookie } from "hono/cookie";
+import { logger as pinoLogger } from "../../lib/logger.js";
 import type { AppVariables, Bindings } from "../../types/bindings.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
@@ -49,7 +50,7 @@ app.post("/leave", async (c) => {
 
         return c.redirect("/?msg=account_deleted");
     } catch (e) {
-        console.error("Error leaving service:", e);
+        pinoLogger.error({ msg: "Error leaving service", error: e });
         return c.text("Failed to delete account", 500);
     }
 });

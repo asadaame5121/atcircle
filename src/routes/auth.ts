@@ -4,6 +4,7 @@ import { html } from "hono/html";
 import { sign } from "hono/jwt";
 import { Layout } from "../components/Layout.js";
 import { PUBLIC_URL, SECRET_KEY } from "../config.js";
+import { logger as pinoLogger } from "../lib/logger.js";
 import { createClient } from "../services/oauth.js";
 import type { AppVariables, Bindings } from "../types/bindings.js";
 
@@ -88,15 +89,14 @@ app.post("/auth/login", async (c) => {
     }
 
     try {
-        console.log("Attempting login for:", handle);
-        console.log("Worker Version: v9-fix (Handle Fetch)"); // Debug log
+        pinoLogger.info({ msg: "Attempting login", handle });
         const client = await getOAuthClient(c.env.DB as any);
         const url = await client.authorize(handle, {
             scope: "atproto transition:generic",
         });
         return c.redirect(url.toString());
     } catch (e: any) {
-        console.error(e);
+        pinoLogger.error({ msg: "Login error", handle, error: e });
         const t = c.get("t");
         const lang = c.get("lang");
         return c.html(
@@ -119,12 +119,18 @@ app.post("/auth/login", async (c) => {
 app.get("/auth/callback", async (c) => {
     const client = await getOAuthClient(c.env.DB as any);
     const params = new URLSearchParams(c.req.query());
-    console.log(`[AuthCallback] Received callback: ${params.toString()}`);
+    pinoLogger.debug({
+        msg: "[AuthCallback] Received callback",
+        params: params.toString(),
+    });
 
     try {
-        console.log("[AuthCallback] Calling client.callback()...");
+        pinoLogger.debug("[AuthCallback] Calling client.callback()...");
         const { session } = await client.callback(params);
-        console.log(`[AuthCallback] Session established for ${session.did}`);
+        pinoLogger.info({
+            msg: "[AuthCallback] Session established",
+            did: session.did,
+        });
 
         // Session contains did, handle, tokens.
         // We can now create our own app session OR use the ATProto tokens directly.
@@ -142,7 +148,11 @@ app.get("/auth/callback", async (c) => {
                 handle = profile.handle;
             }
         } catch (e) {
-            console.error("Failed to fetch profile for handle:", e);
+            pinoLogger.error({
+                msg: "Failed to fetch profile for handle",
+                did: session.did,
+                error: e,
+            });
         }
 
         // Create or Update User in DB
@@ -189,7 +199,7 @@ app.get("/auth/callback", async (c) => {
 
         return c.redirect(next);
     } catch (e) {
-        console.error(e);
+        pinoLogger.error({ msg: "Auth callback error", error: e });
         const t = c.get("t");
         return c.text(t("error.auth_failed") || "Authentication failed", 401);
     }
