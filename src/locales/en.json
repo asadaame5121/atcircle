@@ -143,7 +143,12 @@
         "alert_select_file": "Please select a file.",
         "alert_upload_success": "Banner uploaded successfully!",
         "alert_upload_failed": "Upload failed",
-        "copy_tooltip": "Copied to clipboard!"
+        "copy_tooltip": "Copied to clipboard!",
+        "field_banner_url": "Banner Image URL (External)",
+        "field_banner_url_help": "Directly specify an external image URL (https://...). This will take precedence over uploaded images.",
+        "field_list_url": "Custom Link (Optional)",
+        "field_list_url_help": "Specify if you want to change the 'List' button destination from the default ring page.",
+        "btn_save_settings": "Save Settings"
     },
     "widget_script": {
         "prev": "Prev",

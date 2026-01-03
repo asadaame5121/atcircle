@@ -230,7 +230,12 @@
         "alert_select_file": "ファイルを選択してください。",
         "alert_upload_success": "バナーをアップロードしました！",
         "alert_upload_failed": "アップロードに失敗しました",
-        "copy_tooltip": "クリップボードにコピー"
+        "copy_tooltip": "クリップボードにコピー",
+        "field_banner_url": "バナー画像URL (外部)",
+        "field_banner_url_help": "外部の画像URL（https://...）を直接指定できます。指定するとアップロードされた画像より優先されます。",
+        "field_list_url": "カスタムリンク先 (任意)",
+        "field_list_url_help": "「一覧」ボタンの飛び先を、デフォルトのリング詳細ページ以外に変更したい場合に指定します。",
+        "btn_save_settings": "設定を保存"
     },
     "widget_script": {
         "prev": "前へ",

@@ -332,6 +332,9 @@
   .table {
     display: table;
   }
+  .aspect-\[3\/1\] {
+    aspect-ratio: 3/1;
+  }
   .h-1 {
     height: calc(var(--spacing) * 1);
   }
@@ -364,6 +367,9 @@
   }
   .max-h-\[60vh\] {
     max-height: 60vh;
+  }
+  .max-h-\[150px\] {
+    max-height: 150px;
   }
   .min-h-0 {
     min-height: calc(var(--spacing) * 0);

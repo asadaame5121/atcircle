@@ -113,6 +113,15 @@ app.get("/view", async (c) => {
 
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
                         <div class="flex-1">
+                            ${
+                                ring.banner_url
+                                    ? html`
+                                <div class="mb-4 rounded-xl overflow-hidden shadow-sm aspect-[3/1] max-h-[150px] w-full bg-base-200 border border-base-300">
+                                    <img src="${ring.banner_url}" alt="${ring.title}" class="w-full h-full object-contain" />
+                                </div>
+                            `
+                                    : ""
+                            }
                             <h1 class="card-title text-3xl mb-2">${ring.title}</h1>
                             <p class="opacity-75">${ring.description || t("common.no_description")}</p>
                         </div>

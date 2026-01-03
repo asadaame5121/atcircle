@@ -4,6 +4,7 @@ import db from "./db.js";
 import { logger as pinoLogger } from "./lib/logger.js";
 import { i18nMiddleware } from "./middleware/i18n.js";
 import antenna from "./routes/antenna.js";
+import api from "./routes/api.js";
 import auth from "./routes/auth.js";
 import dashboard from "./routes/dashboard.js";
 import home from "./routes/home.js";
@@ -73,6 +74,7 @@ app.post("/dashboard/sync/feeds", async (c) => {
 });
 
 // Mount routes
+app.route("/api", api);
 app.route("/", home);
 app.route("/antenna", antenna);
 app.route("/rings", rings);

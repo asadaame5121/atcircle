@@ -138,6 +138,7 @@ class WebringNav extends HTMLElement {
     const transparent = this.hasAttribute('transparent');
     const banner = this.getAttribute('banner') || '';
     const customCss = this.getAttribute('css') || '';
+    const customListUrl = this.getAttribute('list-url') || '';
     
     // Custom Labels
     const labelTitle = this.getAttribute('label-title') || 'AT CIRCLE';
@@ -318,7 +319,7 @@ class WebringNav extends HTMLElement {
                 
                 <div class="webring-actions">
                     <a href="\${baseUrl}/nav/random\${ringRandomParam}" class="webring-link action-link">\${labelRandom}</a>
-                    <a href="\${ring ? \`\${baseUrl}/rings/view?ring=\${encodeURIComponent(ring)}\` : \`\${baseUrl}/rings\`}" class="webring-link action-link">\${labelList}</a>
+                    <a href="\${customListUrl || (ring ? \`\${baseUrl}/rings/view?ring=\${encodeURIComponent(ring)}\` : \`\${baseUrl}/rings\`)}" class="webring-link action-link">\${labelList}</a>
                 </div>
             </div>
         \`;
@@ -333,12 +334,13 @@ class WebringNav extends HTMLElement {
                  </div>
                  <div class="webring-actions">
                     <a href="\${baseUrl}/nav/random\${ringRandomParam}" class="webring-link action-link">\${labelRandom}</a>
-                    <a href="\${ring ? \`\${baseUrl}/rings/view?ring=\${encodeURIComponent(ring)}\` : \`\${baseUrl}/rings\`}" class="webring-link action-link">\${labelList}</a>
+                    <a href="\${customListUrl || (ring ? \`\${baseUrl}/rings/view?ring=\${encodeURIComponent(ring)}\` : \`\${baseUrl}/rings\`)}" class="webring-link action-link">\${labelList}</a>
                  </div>
             </div>
         \`;
     } else if (layout === 'banner') {
-        const listUrl = ring ? \`\${baseUrl}/rings/view?ring=\${encodeURIComponent(ring)}\` : \`\${baseUrl}/rings\`;
+        const defaultListUrl = ring ? \`\${baseUrl}/rings/view?ring=\${encodeURIComponent(ring)}\` : \`\${baseUrl}/rings\`;
+        const listUrl = customListUrl || defaultListUrl;
         content = \`
             <div class="webring-widget layout-banner">
                 <a href="\${listUrl}" class="webring-link">
@@ -356,7 +358,7 @@ class WebringNav extends HTMLElement {
                     <span class="webring-title">\${labelTitle}</span>
                     <div class="webring-actions">
                         <a href="\${baseUrl}/nav/random\${ringRandomParam}" class="webring-link action-link">\${labelRandom}</a>
-                        <a href="\${ring ? \`\${baseUrl}/rings/view?ring=\${encodeURIComponent(ring)}\` : \`\${baseUrl}/rings\`}" class="webring-link action-link">\${labelList}</a>
+                        <a href="\${customListUrl || (ring ? \`\${baseUrl}/rings/view?ring=\${encodeURIComponent(ring)}\` : \`\${baseUrl}/rings\`)}" class="webring-link action-link">\${labelList}</a>
                     </div>
                 </div>
                 <a href="\${baseUrl}/nav/next?from=\${encodeURIComponent(site)}\${ringParam}" class="webring-link nav-btn">→</a>

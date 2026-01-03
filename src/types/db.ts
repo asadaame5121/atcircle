@@ -38,6 +38,7 @@ export interface Ring {
     title: string;
     slug?: string | null;
     description: string | null;
+    banner_url?: string | null;
     created_at?: number;
     // Calculated fields often used in SELECT
     member_count?: number;

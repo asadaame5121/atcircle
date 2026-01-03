@@ -144,7 +144,13 @@ app.get("/", async (c) => {
                     </div>
 
                     <div class="divider">${t("widget_builder.banner_section")}</div>
-                    <div class="flex flex-col gap-4 mb-8">
+                    <div class="flex flex-col gap-4 mb-8 text-sm">
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-bold">${t("widget_builder.field_banner_url")}</span></label>
+                            <input type="text" id="w-banner-url" class="input input-bordered w-full" placeholder="https://example.com/banner.png" value="${bannerUrl}" oninput="updateBannerFromUrl()" />
+                            <label class="label"><span class="label-text-alt opacity-60">${t("widget_builder.field_banner_url_help")}</span></label>
+                        </div>
+
                         <div class="flex items-center gap-4">
                             <img id="banner-preview-img" src="${bannerUrl}" class="w-24 h-24 object-contain bg-base-300 rounded overflow-hidden ${bannerUrl ? "" : "hidden"}" />
                             <div class="flex-1">
@@ -173,6 +179,15 @@ app.get("/", async (c) => {
                             <label class="label"><span class="label-text font-bold">${t("widget_builder.label_css")}</span></label>
                             <input type="text" id="w-css" class="input input-bordered w-full" placeholder="https://example.com/widget.css" oninput="updatePreview()" />
                         </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-bold">${t("widget_builder.field_list_url")}</span></label>
+                            <input type="text" id="w-list-url" class="input input-bordered w-full" placeholder="${baseUrl}/rings/view?ring=..." oninput="updatePreview()" />
+                            <label class="label"><span class="label-text-alt opacity-60">${t("widget_builder.field_list_url_help")}</span></label>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end mb-8">
+                        <button onclick="saveSettings()" id="btn-save" class="btn btn-secondary">${t("widget_builder.btn_save_settings")}</button>
                     </div>
 
                     <div class="divider">${t("widget_builder.preview")}</div>
@@ -197,6 +212,18 @@ app.get("/", async (c) => {
                 const baseUrl = "${baseUrl}";
                 let currentBannerUrl = "${bannerUrl}";
 
+                function updateBannerFromUrl() {
+                    const url = document.getElementById('w-banner-url').value;
+                    currentBannerUrl = url;
+                    if (url) {
+                        document.getElementById('banner-preview-img').src = url;
+                        document.getElementById('banner-preview-img').classList.remove('hidden');
+                    } else {
+                        document.getElementById('banner-preview-img').classList.add('hidden');
+                    }
+                    updatePreview();
+                }
+
                 function updatePreview() {
                     const theme = document.getElementById('w-theme').value;
                     const layout = document.getElementById('w-layout').value;
@@ -205,6 +232,7 @@ app.get("/", async (c) => {
                     const labelRandom = document.getElementById('w-label-random').value;
                     const labelList = document.getElementById('w-label-list').value;
                     const customCss = document.getElementById('w-css').value;
+                    const customListUrl = document.getElementById('w-list-url').value;
 
                     // Update UI Preview
                     const previewArea = document.getElementById('preview-area');
@@ -212,6 +240,9 @@ app.get("/", async (c) => {
                     
                     if (layout === 'html') {
                         // Plain HTML Preview
+                        const defaultListUrl = ringUri ? baseUrl + '/rings/view?ring=' + encodeURIComponent(ringUri) : baseUrl + '/rings';
+                        const listUrlToUse = customListUrl || defaultListUrl;
+                        
                         const div = document.createElement('div');
                         div.style.cssText = 'border: 1px solid #ccc; padding: 15px; border-radius: 8px; text-align: center; background: white; color: black;';
                         const title = document.createElement('strong');
@@ -239,11 +270,18 @@ app.get("/", async (c) => {
                         n.textContent = 'Next';
                         n.style.color = '#0070f3';
                         
+                        const l = document.createElement('a');
+                        l.href = listUrlToUse;
+                        l.textContent = labelList;
+                        l.style.color = '#0070f3';
+                        
                         links.appendChild(p);
                         links.appendChild(document.createTextNode('|'));
                         links.appendChild(r);
                         links.appendChild(document.createTextNode('|'));
                         links.appendChild(n);
+                        links.appendChild(document.createTextNode('|'));
+                        links.appendChild(l);
                         div.appendChild(links);
                         previewArea.appendChild(div);
                         
@@ -252,12 +290,14 @@ app.get("/", async (c) => {
                                        '  <strong>' + labelTitle + '</strong><br/>\\n' + 
                                        '  <a href="' + baseUrl + '/p?from=' + encodeURIComponent(siteUrl) + '&ring=' + encodeURIComponent(ringUri) + '">Prev</a> | \\n' +
                                        '  <a href="' + baseUrl + '/r?ring=' + encodeURIComponent(ringUri) + '">' + (labelRandom === 'Random' ? 'Random' : labelRandom) + '</a> | \\n' +
-                                       '  <a href="' + baseUrl + '/n?from=' + encodeURIComponent(siteUrl) + '&ring=' + encodeURIComponent(ringUri) + '">Next</a>\\n' +
+                                       '  <a href="' + baseUrl + '/n?from=' + encodeURIComponent(siteUrl) + '&ring=' + encodeURIComponent(ringUri) + '">Next</a> | \\n' +
+                                       '  <a href="' + listUrlToUse + '">' + labelList + '</a>\\n' +
                                        '</div>';
                         document.getElementById('w-code').textContent = htmlCode;
                     } else if (layout === 'banner') {
                         // Banner Only Preview
-                        const listUrl = ringUri ? baseUrl + '/rings/view?ring=' + encodeURIComponent(ringUri) : baseUrl + '/rings';
+                        const defaultListUrl = ringUri ? baseUrl + '/rings/view?ring=' + encodeURIComponent(ringUri) : baseUrl + '/rings';
+                        const listUrlToUse = customListUrl || defaultListUrl;
                         const div = document.createElement('div');
                         div.className = 'webring-widget layout-banner';
                         
@@ -290,6 +330,7 @@ app.get("/", async (c) => {
                         if (transparent) tag += ' transparent';
                         if (currentBannerUrl) tag += ' banner="' + currentBannerUrl + '"';
                         if (labelTitle !== 'Webring' && labelTitle !== "${ringTitle}") tag += ' label-title="' + labelTitle + '"';
+                        if (customListUrl) tag += ' list-url="' + customListUrl + '"';
                         tag += '></webring-nav>';
 
                         const scriptTag = '<script src="' + baseUrl + '/nav/widget.js"><' + '/script>';
@@ -306,6 +347,7 @@ app.get("/", async (c) => {
                         if (labelRandom !== 'Random') nav.setAttribute('label-random', labelRandom);
                         if (labelList !== 'List') nav.setAttribute('label-list', labelList);
                         if (customCss) nav.setAttribute('css', customCss);
+                        if (customListUrl) nav.setAttribute('list-url', customListUrl);
                         
                         previewArea.appendChild(nav);
 
@@ -319,6 +361,7 @@ app.get("/", async (c) => {
                         if (labelRandom !== 'Random') tag += ' label-random="' + labelRandom + '"';
                         if (labelList !== 'List') tag += ' label-list="' + labelList + '"';
                         if (customCss) tag += ' css="' + customCss + '"';
+                        if (customListUrl) tag += ' list-url="' + customListUrl + '"';
                         tag += '></webring-nav>';
 
                         const scriptTag = '<script src="' + baseUrl + '/nav/widget.js"><' + '/script>';
@@ -358,6 +401,37 @@ app.get("/", async (c) => {
                     } catch (e) {
                         console.error(e);
                         alert('${t("widget_builder.alert_upload_failed")}');
+                    } finally {
+                        btn.disabled = false;
+                        btn.textContent = originalText;
+                    }
+                }
+
+                async function saveSettings() {
+                    const bannerUrlInput = document.getElementById('w-banner-url').value;
+                    const btn = document.getElementById('btn-save');
+                    const originalText = btn.textContent;
+                    btn.disabled = true;
+                    btn.textContent = 'Saving...';
+
+                    try {
+                        const res = await fetch('/dashboard/ring/widget/save-settings', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                ring_uri: ringUri,
+                                banner_url: bannerUrlInput
+                            })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            alert('${t("dashboard.msg_updated")}');
+                        } else {
+                            alert('Save failed: ' + data.error);
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        alert('Save failed');
                     } finally {
                         btn.disabled = false;
                         btn.textContent = originalText;
@@ -453,6 +527,36 @@ app.post("/upload-banner", async (c) => {
         return c.json({ success: true, url: bannerUrl });
     } catch (e: any) {
         pinoLogger.error({ msg: "[UploadBanner] Upload failed", error: e });
+        return c.json({ success: false, error: e.message }, 500);
+    }
+});
+
+app.post("/save-settings", async (c) => {
+    const payload = c.get("jwtPayload");
+    const did = payload.sub;
+    const { ring_uri, banner_url } = await c.req.json();
+
+    if (!ring_uri)
+        return c.json({ success: false, error: "Missing ring_uri" }, 400);
+
+    try {
+        // Verify ownership
+        const ring = await c.env.DB.prepare(
+            "SELECT owner_did FROM rings WHERE uri = ?",
+        )
+            .bind(ring_uri)
+            .first<{ owner_did: string }>();
+
+        if (!ring || ring.owner_did !== did) {
+            return c.json({ success: false, error: "Unauthorized" }, 403);
+        }
+
+        await c.env.DB.prepare("UPDATE rings SET banner_url = ? WHERE uri = ?")
+            .bind(banner_url || null, ring_uri)
+            .run();
+
+        return c.json({ success: true });
+    } catch (e: any) {
         return c.json({ success: false, error: e.message }, 500);
     }
 });
