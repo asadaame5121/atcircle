@@ -80,6 +80,12 @@ export const Layout = (props: {
               <li><a href="/">${props.t ? props.t("common.home") : "Home"}</a></li>
               <li><a href="/rings">${props.t ? props.t("common.rings") : "Rings"}</a></li>
               <li><a href="/dashboard">${props.t ? props.t("common.dashboard") : "Dashboard"}</a></li>
+              <li>
+                <a href="https://asadaame5121.net/Article/help_ja.html" target="_blank" rel="noopener noreferrer" title="${props.t ? props.t("common.external_link") : "External site"}">
+                  ${props.t ? props.t("common.help") : "Help"}
+                  <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-50"></i>
+                </a>
+              </li>
             </ul>
           </div>
           <a href="/" class="flex items-center gap-2 btn btn-ghost px-2">
@@ -93,7 +99,14 @@ export const Layout = (props: {
             <li><a href="/dashboard">${props.t ? props.t("common.dashboard") : "Dashboard"}</a></li>
           </ul>
         </div>
-        <div class="navbar-end">
+        <div class="navbar-end gap-1">
+          <a href="https://asadaame5121.net/Article/help_ja.html" target="_blank" rel="noopener noreferrer" 
+             class="btn btn-ghost btn-sm font-normal opacity-80 hover:opacity-100 hidden sm:flex"
+             title="${props.t ? props.t("common.external_link") : "External site"}">
+            <i class="fa-solid fa-circle-question mr-1"></i>
+            ${props.t ? props.t("common.help") : "Help"}
+            <i class="fa-solid fa-arrow-up-right-from-square text-[10px] ml-1 opacity-50"></i>
+          </a>
           <a href="https://github.com/asadaame5121/atcircle" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-circle btn-sm">
             <i class="fa-brands fa-github text-lg"></i>
           </a>

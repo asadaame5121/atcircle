@@ -337,6 +337,15 @@ class WebringNav extends HTMLElement {
                  </div>
             </div>
         \`;
+    } else if (layout === 'banner') {
+        const listUrl = ring ? \`\${baseUrl}/rings/view?ring=\${encodeURIComponent(ring)}\` : \`\${baseUrl}/rings\`;
+        content = \`
+            <div class="webring-widget layout-banner">
+                <a href="\${listUrl}" class="webring-link">
+                    \${bannerHtml || \`<span class="webring-title">\${labelTitle}</span>\`}
+                </a>
+            </div>
+        \`;
     } else {
         // Default Layout
         content = \`

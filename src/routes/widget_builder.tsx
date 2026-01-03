@@ -131,6 +131,7 @@ app.get("/", async (c) => {
                                 <option value="default">${t("widget_builder.layout_default")}</option>
                                 <option value="compact">${t("widget_builder.layout_compact")}</option>
                                 <option value="simple">${t("widget_builder.layout_simple")}</option>
+                                <option value="banner">${t("widget_builder.layout_banner")}</option>
                             </select>
                         </div>
 
@@ -254,6 +255,45 @@ app.get("/", async (c) => {
                                        '  <a href="' + baseUrl + '/n?from=' + encodeURIComponent(siteUrl) + '&ring=' + encodeURIComponent(ringUri) + '">Next</a>\\n' +
                                        '</div>';
                         document.getElementById('w-code').textContent = htmlCode;
+                    } else if (layout === 'banner') {
+                        // Banner Only Preview
+                        const listUrl = ringUri ? baseUrl + '/rings/view?ring=' + encodeURIComponent(ringUri) : baseUrl + '/rings';
+                        const div = document.createElement('div');
+                        div.className = 'webring-widget layout-banner';
+                        
+                        const link = document.createElement('a');
+                        link.href = listUrl;
+                        link.style.display = 'block';
+                        link.style.textDecoration = 'none';
+                        link.style.color = 'inherit';
+
+                        if (currentBannerUrl) {
+                            const img = document.createElement('img');
+                            img.src = currentBannerUrl;
+                            img.style.width = '100%';
+                            img.style.maxWidth = '300px';
+                            img.style.display = 'block';
+                            link.appendChild(img);
+                        } else {
+                            const title = document.createElement('span');
+                            title.textContent = labelTitle;
+                            title.style.fontWeight = 'bold';
+                            link.appendChild(title);
+                        }
+                        
+                        div.appendChild(link);
+                        previewArea.appendChild(div);
+
+                        // Update Code
+                        let tag = '<webring-nav site="' + siteUrl + '" ring="' + ringUri + '" layout="banner"';
+                        if (theme !== 'system') tag += ' theme="' + theme + '"';
+                        if (transparent) tag += ' transparent';
+                        if (currentBannerUrl) tag += ' banner="' + currentBannerUrl + '"';
+                        if (labelTitle !== 'Webring' && labelTitle !== "${ringTitle}") tag += ' label-title="' + labelTitle + '"';
+                        tag += '></webring-nav>';
+
+                        const scriptTag = '<script src="' + baseUrl + '/nav/widget.js"><' + '/script>';
+                        document.getElementById('w-code').textContent = scriptTag + '\\n' + tag;
                     } else {
                         const nav = document.createElement('webring-nav');
                         nav.setAttribute('site', siteUrl);
