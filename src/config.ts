@@ -13,3 +13,4 @@ export const CLIENT_NAME = process.env.CLIENT_NAME || "AT CIRCLE";
 export const NODE_ENV = process.env.NODE_ENV || "development";
 export const IS_DEV = NODE_ENV === "development";
 export const OAUTH_PRIVATE_KEY = process.env.OAUTH_PRIVATE_KEY;
+export const ADMIN_DID = process.env.ADMIN_DID;

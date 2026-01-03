@@ -248,7 +248,7 @@ app.get("/", async (c) => {
                         previewArea.appendChild(div);
                         
                         // Update Code (Short URLs)
-                        const htmlCode = '<div style="border: 1px solid #ccc; padding: 10px; border-radius: 8px; display: inline-block;">\\n' +
+                        const htmlCode = '<div id="atcircle" style="border: 1px solid #ccc; padding: 10px; border-radius: 8px; display: inline-block;">\\n' +
                                        '  <strong>' + labelTitle + '</strong><br/>\\n' + 
                                        '  <a href="' + baseUrl + '/p?from=' + encodeURIComponent(siteUrl) + '&ring=' + encodeURIComponent(ringUri) + '">Prev</a> | \\n' +
                                        '  <a href="' + baseUrl + '/r?ring=' + encodeURIComponent(ringUri) + '">' + (labelRandom === 'Random' ? 'Random' : labelRandom) + '</a> | \\n' +

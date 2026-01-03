@@ -273,6 +273,9 @@ export const Modals = (props: {
                     blockSuccess: t("members.block_success"),
                     confirmKick: t("members.confirm_kick"),
                     confirmBlock: t("members.confirm_block"),
+                    widgetInstalled: t("members.widget_installed"),
+                    widgetNotInstalled: t("members.widget_not_installed"),
+                    verifyNow: t("members.verify_now"),
                     inviteSent: "Invite link copied to clipboard!",
                     inviteMessageTemplate:
                         '{{handles}}\\n\\nWebring "{{title}}" に参加しませんか？\\n#atcircle\\n\\n{{url}}',
@@ -358,7 +361,7 @@ export const Modals = (props: {
                                 const handle = m.handle ? '@' + m.handle : 'DID: ' + m.user_did;
                                 const displayName = m.displayName || m.title || 'Unknown';
 
-                                div.innerHTML = '<div class="flex items-center gap-3 min-w-0 flex-1">' +
+                                 div.innerHTML = '<div class="flex items-center gap-3 min-w-0 flex-1">' +
                                     '<div class="avatar">' +
                                     '<div class="w-10 h-10 rounded-full">' +
                                     '<img src="' + avatarUrl + '" alt="Avatar" />' +
@@ -367,7 +370,17 @@ export const Modals = (props: {
                                     '<div class="flex flex-col min-w-0">' +
                                     '<span class="font-bold truncate">' + displayName + '</span>' +
                                     '<span class="text-xs opacity-50 truncate">' + handle + '</span>' +
-                                    '<a href="' + m.url + '" target="_blank" class="text-[10px] link link-primary truncate">' + m.url + '</a>' +
+                                    '<div class="flex items-center gap-2 mt-0.5">' +
+                                        '<a href="' + m.url + '" target="_blank" class="text-[10px] link link-primary truncate max-w-[150px]">' + m.url + '</a>' +
+                                        '<div class="flex items-center gap-1 ml-1">' +
+                                            (m.widget_installed ? 
+                                                '<span class="badge badge-success badge-xs gap-1 py-1.5" title="' + i18n.widgetInstalled + '"><i class="fa-solid fa-check text-[8px]"></i></span>' : 
+                                                '<span class="badge badge-error badge-xs gap-1 py-1.5" title="' + i18n.widgetNotInstalled + '"><i class="fa-solid fa-xmark text-[8px]"></i></span>') +
+                                            '<button class="btn btn-ghost btn-xs btn-circle h-5 w-5 min-h-0" onclick="window.verifyMemberWidget(\\\'' + m.user_did + '\\\')" title="' + i18n.verifyNow + '">' +
+                                                '<i class="fa-solid fa-rotate text-[10px]"></i>' +
+                                            '</button>' +
+                                        '</div>' +
+                                    '</div>' +
                                     '</div>' +
                                     '</div>' +
                                     '<div class="flex items-center gap-2">' +
@@ -388,6 +401,26 @@ export const Modals = (props: {
                         loading.classList.add('hidden');
                         loading.classList.remove('flex');
                         container.innerHTML = '<div class="alert alert-error">Failed to fetch members</div>';
+                    }
+                };
+
+                window.verifyMemberWidget = async function(memberDid) {
+                    try {
+                        const res = await fetch('/dashboard/ring/members/verify', {
+                            method: 'POST',
+                            body: new URLSearchParams({
+                                ring_uri: window.atcircle.currentRingUri,
+                                member_did: memberDid
+                            })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            await window.refreshMemberList();
+                        } else {
+                            alert('Verification failed: ' + data.error);
+                        }
+                    } catch (e) {
+                        alert('Failed to connect to verification server');
                     }
                 };
 

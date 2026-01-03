@@ -22,8 +22,10 @@
         "share": "Share",
         "share_on_bluesky": "Share on Bluesky",
         "share_on_twitter": "Share on X (Twitter)",
-        "github": "GitHub"
+        "github": "GitHub",
+        "back_to_dashboard": "Back to Dashboard"
     },
+
     "home": {
         "welcome": "Welcome to AT CIRCLE",
         "description": "Join a webring to discover amazing sites and connect with the community.",
@@ -167,9 +169,25 @@
         "kick": "Kick",
         "confirm_kick": "Are you sure you want to kick {{name}}?",
         "kick_success": "Member removed successfully.",
-        "no_members": "No members found."
+        "no_members": "No members found.",
+        "widget_status": "Widget Status",
+        "widget_installed": "Installed",
+        "widget_not_installed": "Not Installed",
+        "verify_now": "Verify Now",
+        "last_verified": "Last Verified: {{time}}"
     },
     "rings": {
         "member_count": "{{count}} members"
+    },
+    "admin": {
+        "stats_title": "System Statistics",
+        "total_users": "Total Users",
+        "total_sites": "Total Sites",
+        "total_rings": "Total Rings",
+        "total_memberships": "Total Members (Approved)",
+        "recent_users": "Recent Registered Users",
+        "handle": "Handle",
+        "did": "DID",
+        "created_at": "Registered At"
     }
 }

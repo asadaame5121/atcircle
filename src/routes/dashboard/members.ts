@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { PUBLIC_URL } from "../../config.js";
 import { logger as pinoLogger } from "../../lib/logger.js";
 import { AtProtoService } from "../../services/atproto.js";
+import { verifyWidget } from "../../services/discovery.js";
 import { restoreAgent } from "../../services/oauth.js";
 import type { AppVariables, Bindings } from "../../types/bindings.js";
 
@@ -28,7 +29,8 @@ app.get("/list", async (c) => {
 
     // 2. Fetch members from local DB
     const members = (await c.env.DB.prepare(`
-        SELECT m.id, m.member_uri, s.url, s.title, s.user_did, m.status, m.created_at
+        SELECT m.id, m.member_uri, s.url, s.title, s.user_did, m.status, 
+               m.widget_installed, m.last_verified_at, m.created_at
         FROM memberships m
         JOIN sites s ON m.site_id = s.id
         WHERE m.ring_uri = ?
@@ -210,6 +212,74 @@ app.post("/update", async (c) => {
         return c.json({ success: true });
     } catch (e: any) {
         pinoLogger.error({ msg: "Update failed", error: e });
+        return c.json({ success: false, error: e.message }, 500);
+    }
+});
+
+// POST /dashboard/ring/members/verify
+app.post("/verify", async (c) => {
+    const payload = c.get("jwtPayload");
+    const did = payload.sub;
+    const body = await c.req.parseBody();
+    const ringUri = body.ring_uri as string;
+    const memberDid = body.member_did as string;
+
+    if (!ringUri || !memberDid) {
+        return c.json({ success: false, error: "Missing parameters" }, 400);
+    }
+
+    try {
+        // 1. Ownership check
+        const ring = (await c.env.DB.prepare(
+            "SELECT * FROM rings WHERE uri = ? AND (owner_did = ? OR admin_did = ?)",
+        )
+            .bind(ringUri, did, did)
+            .first()) as any;
+
+        if (!ring) {
+            return c.json({ success: false, error: "Unauthorized" }, 403);
+        }
+
+        // 2. Get member site URL
+        const memberSite = (await c.env.DB.prepare(`
+            SELECT s.url FROM sites s
+            JOIN memberships m ON s.id = m.site_id
+            WHERE m.ring_uri = ? AND s.user_did = ?
+        `)
+            .bind(ringUri, memberDid)
+            .first()) as { url: string } | null;
+
+        if (!memberSite) {
+            return c.json(
+                { success: false, error: "Member site not found" },
+                404,
+            );
+        }
+
+        // 3. Verify widget
+        const isInstalled = await verifyWidget(memberSite.url, ringUri);
+
+        // 4. Update DB
+        await c.env.DB.prepare(`
+            UPDATE memberships
+            SET widget_installed = ?, last_verified_at = ?
+            WHERE ring_uri = ? AND site_id IN (SELECT id FROM sites WHERE user_did = ?)
+        `)
+            .bind(
+                isInstalled ? 1 : 0,
+                Math.floor(Date.now() / 1000),
+                ringUri,
+                memberDid,
+            )
+            .run();
+
+        return c.json({
+            success: true,
+            widget_installed: isInstalled,
+            last_verified_at: Math.floor(Date.now() / 1000),
+        });
+    } catch (e: any) {
+        pinoLogger.error({ msg: "Verification failed", error: e });
         return c.json({ success: false, error: e.message }, 500);
     }
 });

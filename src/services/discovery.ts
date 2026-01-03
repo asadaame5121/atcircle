@@ -70,3 +70,55 @@ export async function fetchAndDiscoverMetadata(
         return null;
     }
 }
+
+/**
+ * Verifies if the webring widget is present on the given page.
+ * @param url - The URL to check.
+ * @param ringUri - (Optional) The ring URI to look for in links.
+ * @returns true if widget is detected, false otherwise.
+ */
+export async function verifyWidget(
+    url: string,
+    ringUri?: string,
+): Promise<boolean> {
+    try {
+        const res = await fetch(url, {
+            headers: {
+                "User-Agent": "Webring-Verify/1.0",
+            },
+            signal: AbortSignal.timeout(10000), // 10s timeout
+        });
+        if (!res.ok) return false;
+        const html = await res.text();
+        const $ = cheerio.load(html);
+
+        // 1. Check for Web Component
+        if ($("webring-nav").length > 0) return true;
+
+        // 2. Check for No-JS widget by ID
+        if ($("#atcircle").length > 0) return true;
+
+        // 3. Check for links containing the ring URI
+        if (ringUri) {
+            const encodedRing = encodeURIComponent(ringUri);
+            const patterns = ["/p?", "/n?", "/r?", `ring=${encodedRing}`];
+
+            let found = false;
+            $("a").each((_, el) => {
+                const href = $(el).attr("href");
+                if (href) {
+                    if (patterns.some((p) => href.includes(p))) {
+                        found = true;
+                        return false; // break
+                    }
+                }
+            });
+            if (found) return true;
+        }
+
+        return false;
+    } catch (e) {
+        pinoLogger.error({ msg: "Widget verification failed", url, error: e });
+        return false;
+    }
+}

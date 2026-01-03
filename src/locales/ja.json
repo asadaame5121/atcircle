@@ -33,8 +33,10 @@
         "share": "シェア",
         "share_on_bluesky": "Blueskyでシェア",
         "share_on_twitter": "X (Twitter)でシェア",
-        "github": "GitHub"
+        "github": "GitHub",
+        "back_to_dashboard": "ダッシュボードに戻る"
     },
+
     "home": {
         "welcome": "AT CIRCLEへようこそ",
         "description": "ウェブリングに参加して、素晴らしいサイトを見つけ、コミュニティと繋がりましょう。",
@@ -260,6 +262,23 @@
         "status_approved": "承認済み",
         "status_pending": "保留中",
         "status_suspended": "停止中",
-        "no_members": "メンバーがいません。"
+        "no_members": "メンバーがいません。",
+        "widget_status": "Widget属性",
+        "widget_installed": "設置済み",
+        "widget_not_installed": "未設置",
+        "verify_now": "今すぐ確認",
+        "last_verified": "最終確認: {{time}}"
+    },
+
+    "admin": {
+        "stats_title": "システム統計",
+        "total_users": "総ユーザー数",
+        "total_sites": "総サイト数",
+        "total_rings": "総リング数",
+        "total_memberships": "総メンバー（承認済）",
+        "recent_users": "最近の登録ユーザー",
+        "handle": "ハンドル",
+        "did": "DID",
+        "created_at": "登録日時"
     }
 }

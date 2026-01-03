@@ -72,6 +72,8 @@ CREATE TABLE memberships (
   site_id INTEGER NOT NULL,
   member_uri TEXT NOT NULL UNIQUE,
   status TEXT DEFAULT 'approved',
+  widget_installed INTEGER DEFAULT 0,
+  last_verified_at INTEGER,
   created_at INTEGER DEFAULT (strftime('%s', 'now')),
   FOREIGN KEY (ring_uri) REFERENCES rings(uri),
   FOREIGN KEY (site_id) REFERENCES sites(id),

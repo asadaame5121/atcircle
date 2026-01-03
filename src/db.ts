@@ -157,6 +157,8 @@ await db.exec(`
     site_id INTEGER NOT NULL,
     member_uri TEXT NOT NULL UNIQUE,
     status TEXT DEFAULT 'approved',
+    widget_installed INTEGER DEFAULT 0,
+    last_verified_at INTEGER,
     created_at INTEGER DEFAULT (strftime('%s', 'now')),
     FOREIGN KEY (ring_uri) REFERENCES rings(uri),
     FOREIGN KEY (site_id) REFERENCES sites(id)
@@ -194,6 +196,14 @@ await db
     .exec(
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_rings_slug ON rings(slug) WHERE slug IS NOT NULL;",
     )
+    .catch(() => {});
+await db
+    .exec(
+        "ALTER TABLE memberships ADD COLUMN widget_installed INTEGER DEFAULT 0;",
+    )
+    .catch(() => {});
+await db
+    .exec("ALTER TABLE memberships ADD COLUMN last_verified_at INTEGER;")
     .catch(() => {});
 
 export default db;

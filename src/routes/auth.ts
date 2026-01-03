@@ -3,7 +3,8 @@ import { getCookie, setCookie } from "hono/cookie";
 import { html } from "hono/html";
 import { sign } from "hono/jwt";
 import { Layout } from "../components/Layout.js";
-import { PUBLIC_URL, SECRET_KEY } from "../config.js";
+import { ADMIN_DID, PUBLIC_URL, SECRET_KEY } from "../config.js";
+
 import { logger as pinoLogger } from "../lib/logger.js";
 import { createClient } from "../services/oauth.js";
 import type { AppVariables, Bindings } from "../types/bindings.js";
@@ -180,7 +181,7 @@ app.get("/auth/callback", async (c) => {
         const payload = {
             sub: session.did,
             handle: handle,
-            role: "user",
+            role: session.did === ADMIN_DID ? "admin" : "user",
             exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7, // 7 days
         };
 

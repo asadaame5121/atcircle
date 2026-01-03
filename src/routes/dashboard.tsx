@@ -19,7 +19,9 @@ import {
 import { fetchAndDiscoverMetadata } from "../services/discovery.js";
 import { restoreAgent } from "../services/oauth.js";
 import type { AppVariables, Bindings } from "../types/bindings.js";
+import adminApp from "./dashboard/admin.js";
 import memberApp from "./dashboard/members.js";
+
 import moderationApp from "./dashboard/moderation.js";
 // Sub-apps
 import ringApp from "./dashboard/rings.js";
@@ -55,12 +57,14 @@ app.route("/ring", ringApp);
 app.route("/ring", moderationApp); // Both use /ring prefix
 app.route("/site", siteApp);
 app.route("/sync", syncApp);
+app.route("/admin", adminApp);
 app.route("/", userApp);
 
 app.get("/", async (c) => {
     const payload = c.get("jwtPayload");
     const did = payload.sub;
     const isDebug = !!payload.isDebug;
+    const isAdmin = payload.role === "admin";
 
     const t = c.get("t");
     const lang = c.get("lang");
@@ -301,7 +305,20 @@ app.get("/", async (c) => {
                         </div>
                         <p class="text-sm font-bold opacity-80 mt-1">${t("dashboard.catchphrase")}</p>
                         <p class="text-[10px] opacity-30 font-mono mt-1">${did}</p>
+                        ${
+                            isAdmin
+                                ? html`
+                            <div class="mt-2 text-xs">
+                                <a href="/dashboard/admin/stats" class="text-primary font-bold hover:underline">
+                                    <i class="fa-solid fa-chart-line mr-1"></i>
+                                    Admin Stats
+                                </a>
+                            </div>
+                        `
+                                : ""
+                        }
                     </div>
+
                     <div class="flex gap-2 w-full md:w-auto">
                         <button class="btn btn-primary btn-sm rounded-full px-6 flex-1 md:flex-none" onclick="create_ring_modal.showModal()">+ ${t("dashboard.create_ring")}</button>
                         <button class="btn btn-outline btn-sm rounded-full flex-1 md:flex-none" onclick="join_ring_modal.showModal()">${t("dashboard.join_ring")}</button>
