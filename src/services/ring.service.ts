@@ -34,10 +34,7 @@ export class RingService {
             );
             const cidString = blob.ref.toString();
 
-            const pdsUrl =
-                (agent as any).service?.origin ||
-                (agent as any).session?.pdsUrl ||
-                "https://bsky.social";
+            const pdsUrl = (agent as any).service.origin;
             const bannerUrl = `${pdsUrl}/xrpc/com.atproto.sync.getBlob?did=${did}&cid=${cidString}`;
 
             await this.ringRepo.updateBannerUrl(ringUri, bannerUrl);

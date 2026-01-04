@@ -1,0 +1,164 @@
+﻿src\app.tsx:19:53:const app = new Hono<{ Bindings: Bindings; Variables: any }>();
+src\app.tsx:40:24:    c.env = { DB: db } as any;
+src\db.ts:8:20:        public meta: any = {},
+src\db.ts:18:21:        private stmt: any,
+src\db.ts:19:23:        private params: any[] = [],
+src\db.ts:22:19:    bind(...params: any[]) {
+src\db.ts:28:54:        const result = this.stmt.get(...this.params) as any;
+src\index.ts:26:37:            await updateAllFeeds(db as any);
+src\types\bindings.ts:9:16:    jwtPayload?: any;
+src\components\dashboard\WidgetBuilder.tsx:9:29:    t: (key: string, params?: any) => string;
+src\components\dashboard\RingsSection.tsx:4:17:    unifiedRings: any[];
+src\components\dashboard\RingsSection.tsx:6:30:    t: (key: string, options?: any) => string;
+src\components\dashboard\RegistrationForm.tsx:5:18:    detectedSites: any[];
+src\components\dashboard\RegistrationForm.tsx:6:16:    defaultSite: any;
+src\components\dashboard\RegistrationForm.tsx:7:30:    t: (key: string, options?: any) => string;
+src\routes\widget_builder.tsx:42:54:    const widgetService = new WidgetService(c.env.DB as any);
+src\routes\widget_builder.tsx:81:50:    const ringService = new RingService(c.env.DB as any);
+src\routes\widget_builder.tsx:100:50:    const ringService = new RingService(c.env.DB as any);
+src\components\RingListView.tsx:4:10:    rings: any[];
+src\components\RingListView.tsx:5:30:    t: (key: string, options?: any) => string;
+src\routes\u.tsx:15:50:    const siteRepo = new SiteRepository(c.env.DB as any);
+src\routes\u.tsx:16:66:    const profileService = new ProfileService(siteRepo, c.env.DB as any);
+src\components\RingDetailView.tsx:4:9:    ring: any;
+src\components\RingDetailView.tsx:5:12:    members: any[];
+src\components\RingDetailView.tsx:7:30:    t: (key: string, options?: any) => string;
+src\components\ProfileView.tsx:6:10:    sites: any[];
+src\components\ProfileView.tsx:7:16:    memberships: any[];
+src\components\ProfileView.tsx:8:30:    t: (key: string, options?: any) => string;
+src\components\dashboard\ModerationSection.tsx:4:17:    joinRequests: any[];
+src\components\dashboard\ModerationSection.tsx:5:23:    pendingMemberships: any[];
+src\components\dashboard\ModerationSection.tsx:6:11:    blocks: any[];
+src\components\dashboard\ModerationSection.tsx:7:30:    t: (key: string, options?: any) => string;
+src\components\dashboard\ModerationSection.tsx:24:20:                (jr: any) => html`
+src\components\dashboard\ModerationSection.tsx:51:19:                (m: any) => html`
+src\components\dashboard\ModerationSection.tsx:92:39:                                    (b: any) => html`
+src\components\dashboard\Modals.tsx:9:9:    site: any;
+src\components\dashboard\Modals.tsx:10:30:    t: (key: string, options?: any) => string;
+src\components\Layout.tsx:6:13:    children: any;
+src\routes\auth.ts:15:16:let oauthClient: any = null;
+src\routes\auth.ts:16:33:const getOAuthClient = async (db: any) => {
+src\routes\auth.ts:94:54:        const client = await getOAuthClient(c.env.DB as any);
+src\routes\auth.ts:99:15:    } catch (e: any) {
+src\routes\auth.ts:121:50:    const client = await getOAuthClient(c.env.DB as any);
+src\routes\auth.ts:222:50:    const client = await getOAuthClient(c.env.DB as any);
+src\routes\api.ts:14:15:        .first<any>();
+src\routes\api.ts:28:13:        .all<any>();
+src\routes\antenna.tsx:20:60:        const antennaRepo = new AntennaRepository(c.env.DB as any);
+src\routes\antenna.tsx:21:54:        const ringRepo = new RingRepository(c.env.DB as any);
+src\components\dashboard\modals\UserModals.tsx:4:30:    t: (key: string, options?: any) => string;
+src\components\dashboard\modals\UsageModals.tsx:4:30:    t: (key: string, options?: any) => string;
+src\components\dashboard\modals\Scripts.tsx:4:30:    t: (key: string, options?: any) => string;
+src\components\dashboard\modals\RingModals.tsx:4:9:    site: any;
+src\components\dashboard\modals\RingModals.tsx:5:30:    t: (key: string, options?: any) => string;
+src\routes\rings.tsx:18:50:    const ringRepo = new RingRepository(c.env.DB as any);
+src\routes\rings.tsx:39:50:    const ringRepo = new RingRepository(c.env.DB as any);
+src\routes\rings.tsx:40:54:    const memberRepo = new MemberRepository(c.env.DB as any);
+src\routes\rings.tsx:69:50:    const ringRepo = new RingRepository(c.env.DB as any);
+src\routes\rings.tsx:70:54:    const memberRepo = new MemberRepository(c.env.DB as any);
+src\services\widget.service.ts:34:29:                    this.db as any,
+src\components\dashboard\modals\MemberModals.tsx:4:30:    t: (key: string, options?: any) => string;
+src\repositories\ring.repository.ts:48:21:        const values: any[] = [];
+src\routes\navigation.ts:12:55:    const navService = new NavigationService(c.env.DB as any);
+src\routes\navigation.ts:28:55:    const navService = new NavigationService(c.env.DB as any);
+src\routes\navigation.ts:44:55:    const navService = new NavigationService(c.env.DB as any);
+src\components\dashboard\LegacySiteSection.tsx:4:9:    site: any;
+src\components\dashboard\LegacySiteSection.tsx:5:30:    t: (key: string, options?: any) => string;
+src\services\ring.service.ts:22:50:        const agent = await restoreAgent(this.db as any, PUBLIC_URL, did);
+src\services\ring.service.ts:38:24:                (agent as any).service?.origin ||
+src\services\ring.service.ts:39:24:                (agent as any).session?.pdsUrl ||
+src\services\ring.service.ts:46:19:        } catch (e: any) {
+src\services\ring.service.ts:65:19:        } catch (e: any) {
+src\components\dashboard\DashboardView.tsx:8:9:    site: any;
+src\components\dashboard\DashboardView.tsx:9:17:    unifiedRings: any[];
+src\components\dashboard\DashboardView.tsx:10:17:    joinRequests: any[];
+src\components\dashboard\DashboardView.tsx:11:23:    pendingMemberships: any[];
+src\components\dashboard\DashboardView.tsx:12:11:    blocks: any[];
+src\components\dashboard\DashboardView.tsx:15:29:    t: (key: string, params?: any) => string;
+src\routes\navigation.test.ts:6:27:const createMockDB = (data: any = {}) => {
+src\routes\navigation.test.ts:10:59:                bind: vi.fn().mockImplementation((..._args: any[]) => {
+src\routes\navigation.test.ts:34:21:    let _mockPrepare: any;
+src\routes\navigation.test.ts:48:16:            }) as any;
+src\routes\navigation.test.ts:56:52:            env.DB = createMockDB({ first: null }) as any;
+src\routes\navigation.test.ts:88:51:            env.DB = createMockDB({ all: sites }) as any;
+src\routes\navigation.test.ts:135:55:            env.DB = createMockDB({ all: ringSites }) as any;
+src\routes\navigation.test.ts:155:51:            env.DB = createMockDB({ all: sites }) as any;
+src\components\AntennaView.tsx:8:30:    t: (key: string, options?: any) => string;
+src\services\profile.service.ts:8:10:    sites: any[];
+src\services\profile.service.ts:9:16:    memberships: any[];
+src\services\profile.service.ts:39:17:            .all<any>();
+src\routes\dashboard.tsx:63:60:    const dashboardService = new DashboardService(c.env.DB as any);
+src\services\oauth.ts:161:30:        keyset: [privateJwk] as any,
+src\services\oauth.ts:165:29:        fetch: (async (input: any, init: any) => {
+src\services\oauth.ts:165:40:        fetch: (async (input: any, init: any) => {
+src\services\oauth.ts:166:68:            const url = typeof input === "string" ? input : (input as any).url;
+src\services\oauth.ts:170:47:                const res = await fetch(input as any, init as any);
+src\services\oauth.ts:170:60:                const res = await fetch(input as any, init as any);
+src\services\oauth.ts:187:12:        }) as any,
+src\services\oauth.ts:236:11:        } as any,
+src\services\oauth.ts:238:48:            async resolve(did: string): Promise<any> {
+src\services\oauth.ts:258:56:                        const doc = (await res.json()) as any;
+src\services\navigation.service.ts:8:21:        const params: any[] = [];
+src\services\feed.ts:92:42:        for (const site of sites.results as any[]) {
+src\services\feed.test.ts:54:19:        } catch (e: any) {
+src\routes\dashboard\admin.tsx:90:60:                                    ${(recentUsers.results as any[]).map(
+src\routes\dashboard\members.ts:29:19:        .first()) as any;
+src\routes\dashboard\members.ts:44:17:        .all()) as any;
+src\routes\dashboard\members.ts:51:55:            const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
+src\routes\dashboard\members.ts:53:47:                const dids = memberList.map((m: any) => m.user_did);
+src\routes\dashboard\members.ts:97:23:            .first()) as any;
+src\routes\dashboard\members.ts:112:15:    } catch (e: any) {
+src\routes\dashboard\members.ts:130:51:        const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
+src\routes\dashboard\members.ts:143:23:            .first()) as any;
+src\routes\dashboard\members.ts:167:15:    } catch (e: any) {
+src\routes\dashboard\members.ts:189:23:            .first()) as any;
+src\routes\dashboard\members.ts:205:15:    } catch (e: any) {
+src\routes\dashboard\members.ts:223:23:            .first()) as any;
+src\routes\dashboard\members.ts:267:15:    } catch (e: any) {
+src\services\dashboard.service.ts:20:17:    unifiedRings: any[];
+src\services\dashboard.service.ts:21:17:    joinRequests: any[];
+src\services\dashboard.service.ts:22:23:    pendingMemberships: any[];
+src\services\dashboard.service.ts:23:11:    blocks: any[];
+src\services\dashboard.service.ts:39:50:        const agent = await restoreAgent(this.db as any, PUBLIC_URL, did);
+src\services\dashboard.service.ts:129:19:                (r: any) => r.title === pm.ring_title,
+src\routes\dashboard\rings.ts:25:51:        const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
+src\routes\dashboard\rings.ts:46:23:            .first()) as any;
+src\routes\dashboard\rings.ts:92:51:        const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
+src\routes\dashboard\rings.ts:140:27:                .first()) as any;
+src\routes\dashboard\rings.ts:200:51:        const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
+src\routes\dashboard\rings.ts:233:51:        const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
+src\routes\dashboard\rings.ts:268:51:        const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
+src\routes\dashboard\rings.ts:328:51:        const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
+src\routes\dashboard\rings.ts:342:41:            { success: false, error: (e as any).message || "Internal Error" },
+src\routes\dashboard\sync.ts:16:51:        const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
+src\routes\dashboard\sync.ts:84:42:        return c.text(`Sync failed: ${(e as any).message}`, 500);
+src\routes\dashboard\moderation.ts:65:19:        .first()) as any;
+src\routes\dashboard\moderation.ts:120:19:        .first()) as any;
+src\routes\dashboard\moderation.ts:182:51:        const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
+src\routes\dashboard\site.ts:40:19:        .first()) as any;
+src\services\atproto.ts:38:28:            admin: ((agent as any).session?.did ??
+src\services\atproto.ts:39:24:                (agent as any).did ??
+src\services\atproto.ts:47:26:            repo: (agent as any).session?.did ?? (agent as any).did ?? "",
+src\services\atproto.ts:47:57:            repo: (agent as any).session?.did ?? (agent as any).did ?? "",
+src\services\atproto.ts:106:26:            repo: (agent as any).session?.did ?? (agent as any).did ?? "",
+src\services\atproto.ts:106:57:            repo: (agent as any).session?.did ?? (agent as any).did ?? "",
+src\services\atproto.ts:117:26:            repo: (agent as any).session?.did ?? (agent as any).did ?? "",
+src\services\atproto.ts:117:57:            repo: (agent as any).session?.did ?? (agent as any).did ?? "",
+src\services\atproto.ts:145:26:            repo: (agent as any).session?.did ?? (agent as any).did ?? "",
+src\services\atproto.ts:145:57:            repo: (agent as any).session?.did ?? (agent as any).did ?? "",
+src\services\atproto.ts:177:26:            repo: (agent as any).session?.did ?? (agent as any).did ?? "",
+src\services\atproto.ts:177:57:            repo: (agent as any).session?.did ?? (agent as any).did ?? "",
+src\services\atproto.ts:189:26:            repo: (agent as any).session?.did ?? (agent as any).did ?? "",
+src\services\atproto.ts:189:57:            repo: (agent as any).session?.did ?? (agent as any).did ?? "",
+src\services\atproto.ts:199:26:            repo: (agent as any).session?.did ?? (agent as any).did ?? "",
+src\services\atproto.ts:199:57:            repo: (agent as any).session?.did ?? (agent as any).did ?? "",
+src\services\atproto.ts:220:26:            repo: (agent as any).session?.did ?? (agent as any).did ?? "",
+src\services\atproto.ts:220:57:            repo: (agent as any).session?.did ?? (agent as any).did ?? "",
+src\services\atproto.ts:266:26:            repo: (agent as any).session?.did ?? (agent as any).did ?? "",
+src\services\atproto.ts:266:57:            repo: (agent as any).session?.did ?? (agent as any).did ?? "",
+src\services\atproto.ts:311:29:        const repo = (agent as any).session?.did ?? (agent as any).did ?? "";
+src\services\atproto.ts:311:60:        const repo = (agent as any).session?.did ?? (agent as any).did ?? "";
+src\services\atproto.ts:359:22:        let followers: any[] = [];
+src\services\atproto.test.ts:24:15:            } as any;
+src\services\atproto.test.ts:75:15:            } as any;
+src\scripts\mock_data.ts:44:19:            .first<any>();

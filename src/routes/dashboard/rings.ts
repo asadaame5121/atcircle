@@ -28,7 +28,7 @@ app.post("/create", zValidator("form", createRingSchema), async (c) => {
         const ringUri = await AtProtoService.createRing(
             agent,
             title,
-            description,
+            description || "",
         );
 
         // 1. Save to local DB
@@ -238,10 +238,10 @@ app.post("/update", zValidator("form", ringUpdateSchema), async (c) => {
             agent,
             uri,
             title,
-            description,
+            description || "",
             status,
             acceptance,
-            adminDid,
+            adminDid as `did:${string}:${string}`,
         );
 
         // 2. Update AppView (Indexer)

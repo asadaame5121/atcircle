@@ -808,6 +808,9 @@
   .whitespace-pre-wrap {
     white-space: pre-wrap;
   }
+  .lowercase {
+    text-transform: lowercase;
+  }
   .uppercase {
     text-transform: uppercase;
   }
