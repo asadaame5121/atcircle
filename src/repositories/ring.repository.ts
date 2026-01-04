@@ -74,6 +74,58 @@ export class RingRepository {
         return ring?.owner_did || null;
     }
 
+    async getAllWithMemberCount(): Promise<Ring[]> {
+        const res = await this.db
+            .prepare(
+                "SELECT r.*, (SELECT COUNT(*) FROM memberships m WHERE m.ring_uri = r.uri AND m.status = 'approved') as member_count FROM rings r",
+            )
+            .all<Ring>();
+        return res.results;
+    }
+
+    async findJoinRequestsByAdmin(did: string): Promise<any[]> {
+        const res = await this.db
+            .prepare(`
+            SELECT jr.*, r.title as ring_title 
+            FROM join_requests jr 
+            JOIN rings r ON jr.ring_uri = r.uri 
+            WHERE (r.owner_did = ? OR r.admin_did = ?) AND jr.status = 'pending'
+            GROUP BY jr.ring_uri, jr.user_did
+        `)
+            .bind(did, did)
+            .all();
+        return res.results;
+    }
+
+    async findBlocksByAdmin(did: string): Promise<any[]> {
+        const res = await this.db
+            .prepare(`
+            SELECT b.*, r.title as ring_title, u.handle as user_handle
+            FROM block_records b
+            JOIN rings r ON b.ring_uri = r.uri
+            LEFT JOIN users u ON b.subject_did = u.did
+            WHERE r.owner_did = ? OR r.admin_did = ?
+        `)
+            .bind(did, did)
+            .all();
+        return res.results;
+    }
+
+    async findPendingMembershipsByAdmin(did: string): Promise<any[]> {
+        const res = await this.db
+            .prepare(`
+            SELECT m.member_uri, s.title as site_title, s.url as site_url, r.title as ring_title 
+            FROM memberships m 
+            JOIN sites s ON m.site_id = s.id 
+            JOIN rings r ON m.ring_uri = r.uri 
+            WHERE (r.owner_did = ? OR r.admin_did = ?) AND m.status = 'pending'
+            GROUP BY m.ring_uri, s.id
+        `)
+            .bind(did, did)
+            .all();
+        return res.results;
+    }
+
     async saveRing(
         uri: string,
         ownerDid: string,

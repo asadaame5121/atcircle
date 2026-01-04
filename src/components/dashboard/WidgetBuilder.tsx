@@ -17,7 +17,6 @@ export const WidgetBuilder = ({
     ringTitle,
     bannerUrl,
     t,
-    lang,
 }: WidgetBuilderProps) => {
     return html`
         <div class="card bg-base-100 shadow-xl max-w-2xl mx-auto">

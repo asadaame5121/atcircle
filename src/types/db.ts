@@ -42,6 +42,7 @@ export interface Ring {
     created_at?: number;
     // Calculated fields often used in SELECT
     member_count?: number;
+    admin_did?: string | null;
     status?: string;
     acceptance_policy?: string;
 }
