@@ -3,11 +3,19 @@ import type { Site, SqliteDatabaseInterface } from "../types/db.js";
 export class SiteRepository {
     constructor(private db: SqliteDatabaseInterface) {}
 
-    async findByUserDid(did: string): Promise<Site | null> {
+    async findFirstByUserDid(did: string): Promise<Site | null> {
         return await this.db
-            .prepare("SELECT * FROM sites WHERE user_did = ?")
+            .prepare("SELECT * FROM sites WHERE user_did = ? AND is_active = 1")
             .bind(did)
             .first<Site>();
+    }
+
+    async findAllByUserDid(did: string): Promise<Site[]> {
+        const res = await this.db
+            .prepare("SELECT * FROM sites WHERE user_did = ? AND is_active = 1")
+            .bind(did)
+            .all<Site>();
+        return res.results;
     }
 
     async create(data: {

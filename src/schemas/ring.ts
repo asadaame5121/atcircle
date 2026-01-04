@@ -31,5 +31,5 @@ export const ringActionSchema = z.object({
 });
 
 export const ringQuerySchema = z.object({
-    ring_uri: z.string().min(1).optional(),
+    ring: z.string().min(1).optional(),
 });

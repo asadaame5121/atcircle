@@ -1,33 +1,48 @@
 {
-  "lexicon": 1,
-  "id": "net.asadaame5121.at-circle.ring",
-  "defs": {
-    "main": {
-      "type": "record",
-      "description": "An at-circle group definition",
-      "key": "tid",
-      "record": {
-        "type": "object",
-        "required": ["title", "createdAt", "status", "admin"],
-        "properties": {
-          "title": { "type": "string", "maxLength": 1000, "maxGraphemes": 100, "description": "Name of the circle" },
-          "description": { "type": "string", "maxLength": 10000, "maxGraphemes": 1000, "description": "Description of the circle" },
-          "admin": { "type": "string", "format": "did", "maxLength": 1000, "description": "DID of the ring administrator" },
-          "status": {
-            "type": "string",
-            "knownValues": ["open", "closed"],
-            "maxLength": 100,
-            "description": "Recruitment status"
-          },
-          "acceptancePolicy": {
-            "type": "string",
-            "knownValues": ["automatic", "manual"],
-            "maxLength": 100,
-            "description": "How new members are accepted"
-          },
-          "createdAt": { "type": "string", "format": "datetime" }
+    "lexicon": 1,
+    "id": "net.asadaame5121.at-circle.ring",
+    "defs": {
+        "main": {
+            "type": "record",
+            "description": "An at-circle group definition",
+            "key": "tid",
+            "record": {
+                "type": "object",
+                "required": ["title", "createdAt", "status", "admin"],
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "maxLength": 1000,
+                        "maxGraphemes": 100,
+                        "description": "Name of the circle"
+                    },
+                    "description": {
+                        "type": "string",
+                        "maxLength": 10000,
+                        "maxGraphemes": 1000,
+                        "description": "Description of the circle"
+                    },
+                    "admin": {
+                        "type": "string",
+                        "format": "did",
+                        "maxLength": 1000,
+                        "description": "DID of the ring administrator"
+                    },
+                    "status": {
+                        "type": "string",
+                        "knownValues": ["open", "closed"],
+                        "maxLength": 100,
+                        "description": "Recruitment status"
+                    },
+                    "acceptancePolicy": {
+                        "type": "string",
+                        "knownValues": ["automatic", "manual"],
+                        "maxLength": 100,
+                        "description": "How new members are accepted"
+                    },
+                    "createdAt": { "type": "string", "format": "datetime" }
+                }
+            }
         }
-      }
     }
-  }
 }

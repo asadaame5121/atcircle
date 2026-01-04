@@ -74,12 +74,15 @@ export class RingRepository {
         return ring?.owner_did || null;
     }
 
-    async getAllWithMemberCount(): Promise<Ring[]> {
-        const res = await this.db
-            .prepare(
-                "SELECT r.*, (SELECT COUNT(*) FROM memberships m WHERE m.ring_uri = r.uri AND m.status = 'approved') as member_count FROM rings r",
-            )
-            .all<Ring>();
+    async getAllWithMemberCount(options?: {
+        onlyOpen?: boolean;
+    }): Promise<Ring[]> {
+        let query =
+            "SELECT r.*, (SELECT COUNT(*) FROM memberships m WHERE m.ring_uri = r.uri AND m.status = 'approved') as member_count FROM rings r";
+        if (options?.onlyOpen) {
+            query += " WHERE r.status = 'open'";
+        }
+        const res = await this.db.prepare(query).all<Ring>();
         return res.results;
     }
 

@@ -38,7 +38,7 @@ export class DashboardService {
     ): Promise<RegistrationData | DashboardViewData> {
         const agent = await restoreAgent(this.db as any, PUBLIC_URL, did);
 
-        const site = await this.siteRepo.findByUserDid(did);
+        const site = await this.siteRepo.findFirstByUserDid(did);
 
         if (!site) {
             return {

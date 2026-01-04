@@ -17,7 +17,7 @@ export class WidgetService {
     }
 
     async getWidgetBuilderData(did: string, ringUri: string) {
-        const site = await this.siteRepo.findByUserDid(did);
+        const site = await this.siteRepo.findFirstByUserDid(did);
         if (!site) return { error: "site_not_found" };
 
         const ring = await this.ringRepo.findByUri(ringUri);

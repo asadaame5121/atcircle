@@ -1,7 +1,9 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("Webring Smoke Tests", () => {
-    test("should load the home page and show login prompt", async ({ page }) => {
+    test("should load the home page and show login prompt", async ({
+        page,
+    }) => {
         await page.goto("/");
         await expect(page).toHaveTitle(/Webring Home/);
         const bodyText = await page.innerText("body");
@@ -9,11 +11,13 @@ test.describe("Webring Smoke Tests", () => {
         expect(bodyText).toContain("Login with Bluesky");
     });
 
-    test("should load the widget builder page (redirects if not logged in)", async ({ page }) => {
+    test("should load the widget builder page (redirects if not logged in)", async ({
+        page,
+    }) => {
         await page.goto("/dashboard/ring/widget");
         // If not logged in, it should not 404. It might redirect to /login
         const status = await page.evaluate(() =>
-            fetch(window.location.href).then((r) => r.status)
+            fetch(window.location.href).then((r) => r.status),
         );
         expect(status).not.toBe(404);
     });
@@ -24,9 +28,11 @@ test.describe("Webring Smoke Tests", () => {
         // If we are redirected to login, this will fail, which is expected for unauthenticated smoke test
         // but the previous test 'should load the widget builder page' already checks for 404.
         // Let's check for the "Theme" or "Layout" labels specifically.
-        const themesExist = await page.getByText("Theme", { exact: false })
+        const themesExist = await page
+            .getByText("Theme", { exact: false })
             .isVisible();
-        const layoutsExist = await page.getByText("Layout", { exact: false })
+        const layoutsExist = await page
+            .getByText("Layout", { exact: false })
             .isVisible();
 
         // In unauthenticated state, this might show the login page content instead.
