@@ -20,6 +20,7 @@ description: 規約に基づいたコミットメッセージを作成し、Obsi
      ### yyyyMMddhhmmss - {Tag}: {message}
 
      - プロジェクト: atcircle
+     - 更新の概要をWalkthroughから取得し、ここに書き込む。
      - 変更ファイル:
        - [変更されたファイルの一覧]
      ```

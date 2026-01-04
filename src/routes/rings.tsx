@@ -116,7 +116,7 @@ app.get("/view", async (c) => {
                             ${
                                 ring.banner_url
                                     ? html`
-                                <div class="mb-4 rounded-xl overflow-hidden shadow-sm aspect-[3/1] max-h-[150px] w-full bg-base-200 border border-base-300">
+                                <div class="mb-4 rounded-xl overflow-hidden shadow-sm aspect-3/1 max-h-[150px] w-full bg-base-200 border border-base-300">
                                     <img src="${ring.banner_url}" alt="${ring.title}" class="w-full h-full object-contain" />
                                 </div>
                             `
