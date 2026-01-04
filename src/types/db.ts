@@ -69,9 +69,9 @@ export interface SqliteStatementInterface {
     all<T = unknown>(): Promise<{
         results: T[];
         success: boolean;
-        meta?: unknown;
+        meta?: any;
     }>;
-    run(): Promise<{ success: boolean; meta?: unknown }>;
+    run(): Promise<{ success: boolean; meta?: any }>;
 }
 
 /**
@@ -79,6 +79,8 @@ export interface SqliteStatementInterface {
  */
 export interface SqliteDatabaseInterface {
     prepare(query: string): SqliteStatementInterface;
-    batch?<_T = unknown>(statements: unknown[]): Promise<unknown[]>;
+    batch<_T = unknown>(
+        statements: SqliteStatementInterface[],
+    ): Promise<unknown[]>;
     exec?(query: string): Promise<unknown>;
 }

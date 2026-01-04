@@ -37,7 +37,7 @@ app.use("*", async (c, next) => {
 
 app.use("*", i18nMiddleware());
 app.use("*", async (c, next) => {
-    c.env = { DB: db } as any;
+    c.env = { DB: db };
     await next();
 });
 

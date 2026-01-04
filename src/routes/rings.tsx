@@ -15,7 +15,7 @@ const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
 app.get("/", async (c) => {
     const t = c.get("t");
     const lang = c.get("lang");
-    const ringRepo = new RingRepository(c.env.DB as any);
+    const ringRepo = new RingRepository(c.env.DB);
     const rings = await ringRepo.getAllWithMemberCount({ onlyOpen: true });
 
     return c.html(
@@ -36,8 +36,8 @@ app.get("/view", zValidator("query", ringQuerySchema), async (c) => {
 
     if (!ringUri) return c.redirect("/rings");
 
-    const ringRepo = new RingRepository(c.env.DB as any);
-    const memberRepo = new MemberRepository(c.env.DB as any);
+    const ringRepo = new RingRepository(c.env.DB);
+    const memberRepo = new MemberRepository(c.env.DB);
 
     // Fetch ring info
     const ring = await ringRepo.findByUri(ringUri);
@@ -66,8 +66,8 @@ app.get("/opml", zValidator("query", ringQuerySchema), async (c) => {
     const { ring: ringUri } = c.req.valid("query");
     if (!ringUri) return c.text("Missing ring URI", 400);
 
-    const ringRepo = new RingRepository(c.env.DB as any);
-    const memberRepo = new MemberRepository(c.env.DB as any);
+    const ringRepo = new RingRepository(c.env.DB);
+    const memberRepo = new MemberRepository(c.env.DB);
 
     const ring = await ringRepo.findByUri(ringUri);
     const members = await memberRepo.findMembersForOpml(ringUri);

@@ -179,7 +179,7 @@ app.post("/unblock", async (c) => {
     if (!blockUri) return c.text("Block URI required", 400);
 
     try {
-        const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
+        const agent = await restoreAgent(c.env.DB, PUBLIC_URL, did);
         if (!agent) return c.redirect("/login");
 
         await AtProtoService.unblock(agent, blockUri);

@@ -13,7 +13,7 @@ app.post("/", async (c) => {
     const did = payload.sub;
 
     try {
-        const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
+        const agent = await restoreAgent(c.env.DB, PUBLIC_URL, did);
         if (!agent) return c.redirect("/login");
 
         pinoLogger.info({ msg: "[Sync] Starting sync", did });

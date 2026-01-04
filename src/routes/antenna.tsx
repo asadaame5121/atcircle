@@ -17,8 +17,8 @@ app.get("/", zValidator("query", ringQuerySchema), async (c) => {
     const lang = c.get("lang");
 
     try {
-        const antennaRepo = new AntennaRepository(c.env.DB as any);
-        const ringRepo = new RingRepository(c.env.DB as any);
+        const antennaRepo = new AntennaRepository(c.env.DB);
+        const ringRepo = new RingRepository(c.env.DB);
         const antennaService = new AntennaService(antennaRepo, ringRepo);
 
         const { items, ringInfo } =

@@ -91,7 +91,7 @@ app.post("/auth/login", async (c) => {
 
     try {
         pinoLogger.info({ msg: "Attempting login", handle });
-        const client = await getOAuthClient(c.env.DB as any);
+        const client = await getOAuthClient(c.env.DB);
         const url = await client.authorize(handle, {
             scope: "atproto transition:generic",
         });
@@ -118,7 +118,7 @@ app.post("/auth/login", async (c) => {
 });
 
 app.get("/auth/callback", async (c) => {
-    const client = await getOAuthClient(c.env.DB as any);
+    const client = await getOAuthClient(c.env.DB);
     const params = new URLSearchParams(c.req.query());
     pinoLogger.debug({
         msg: "[AuthCallback] Received callback",
@@ -219,7 +219,7 @@ app.post("/logout", (c) => {
 });
 
 app.get("/client-metadata.json", async (c) => {
-    const client = await getOAuthClient(c.env.DB as any);
+    const client = await getOAuthClient(c.env.DB);
     return c.json(client.clientMetadata);
 });
 

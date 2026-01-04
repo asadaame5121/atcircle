@@ -13,7 +13,7 @@ export class SqliteResult<T = unknown> {
 export const D1Result = SqliteResult;
 
 // SQLite Statement
-export class SqliteStatement {
+export class SqliteStatement implements SqliteStatementInterface {
     constructor(
         private stmt: any,
         private params: any[] = [],
@@ -33,7 +33,11 @@ export class SqliteStatement {
 
     async run() {
         const info = this.stmt.run(...this.params);
-        return { success: true, results: [], meta: info };
+        return {
+            success: true,
+            results: [],
+            meta: { ...info, last_row_id: info.lastInsertRowid },
+        };
     }
 
     async all<T = any>() {
@@ -46,7 +50,12 @@ export class SqliteStatement {
 export const D1PreparedStatement = SqliteStatement;
 
 // SQLite Database
-export class SqliteDatabase {
+import type {
+    SqliteDatabaseInterface,
+    SqliteStatementInterface,
+} from "./types/db.js";
+
+export class SqliteDatabase implements SqliteDatabaseInterface {
     private db: DatabaseSync;
 
     constructor(filename: string) {
@@ -63,7 +72,7 @@ export class SqliteDatabase {
         return new SqliteResult(true, []);
     }
 
-    async batch<_T = any>(statements: SqliteStatement[]) {
+    async batch<_T = any>(statements: SqliteStatementInterface[]) {
         const results = [];
         for (const stmt of statements) {
             results.push(await stmt.all());

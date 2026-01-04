@@ -23,7 +23,7 @@ function setupCron() {
     cron.schedule("0 0 * * *", async () => {
         pinoLogger.info("[Cron] Running scheduled feed update...");
         try {
-            await updateAllFeeds(db as any);
+            await updateAllFeeds(db);
         } catch (e) {
             pinoLogger.error({
                 msg: "[Cron] Scheduled update failed",

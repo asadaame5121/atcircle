@@ -39,7 +39,7 @@ app.get("/", async (c) => {
 
     if (!ringUri) return c.redirect("/dashboard");
 
-    const widgetService = new WidgetService(c.env.DB as any);
+    const widgetService = new WidgetService(c.env.DB);
     const data = await widgetService.getWidgetBuilderData(did, ringUri);
 
     if ("error" in data) {
@@ -78,7 +78,7 @@ app.post("/upload-banner", async (c) => {
         );
     }
 
-    const ringService = new RingService(c.env.DB as any);
+    const ringService = new RingService(c.env.DB);
     const result = await ringService.uploadBanner(did, ringUri, banner);
 
     if (result.success) {
@@ -97,7 +97,7 @@ app.post("/save-settings", async (c) => {
         return c.json({ success: false, error: "Missing ring_uri" }, 400);
     }
 
-    const ringService = new RingService(c.env.DB as any);
+    const ringService = new RingService(c.env.DB);
     const result = await ringService.saveWidgetSettings(
         did,
         ring_uri,

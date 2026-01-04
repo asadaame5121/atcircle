@@ -12,8 +12,8 @@ app.get("/:handle", async (c) => {
     const t = c.get("t");
     const lang = c.get("lang");
 
-    const siteRepo = new SiteRepository(c.env.DB as any);
-    const profileService = new ProfileService(siteRepo, c.env.DB as any);
+    const siteRepo = new SiteRepository(c.env.DB);
+    const profileService = new ProfileService(siteRepo, c.env.DB);
 
     const profileData = await profileService.getProfileData(handle);
 

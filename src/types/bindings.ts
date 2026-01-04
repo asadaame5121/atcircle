@@ -1,4 +1,4 @@
-import type { SqliteDatabase } from "../db.js";
+import type { SqliteDatabaseInterface } from "./db.js";
 
 export type i18nVariables = {
     lang: "en" | "ja";
@@ -11,5 +11,5 @@ export type AppVariables = i18nVariables & {
 
 // Use our wrapper for node:sqlite
 export type Bindings = {
-    DB: SqliteDatabase;
+    DB: SqliteDatabaseInterface;
 };

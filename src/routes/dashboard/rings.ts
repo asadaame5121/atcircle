@@ -22,7 +22,7 @@ app.post("/create", zValidator("form", createRingSchema), async (c) => {
     const { title, description } = c.req.valid("form");
 
     try {
-        const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
+        const agent = await restoreAgent(c.env.DB, PUBLIC_URL, did);
         if (!agent) return c.redirect("/login");
 
         const ringUri = await AtProtoService.createRing(
@@ -89,7 +89,7 @@ app.post("/join", zValidator("form", joinRingSchema), async (c) => {
     const { ring_uri: ringUri, url, title, rss } = c.req.valid("form");
 
     try {
-        const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
+        const agent = await restoreAgent(c.env.DB, PUBLIC_URL, did);
         if (!agent) return c.redirect("/login");
 
         // 0. Check for existing membership or request
@@ -197,7 +197,7 @@ app.post("/leave", zValidator("form", ringActionSchema), async (c) => {
     const { uri: memberUri } = c.req.valid("form");
 
     try {
-        const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
+        const agent = await restoreAgent(c.env.DB, PUBLIC_URL, did);
         if (!agent) return c.redirect("/login");
 
         await AtProtoService.leaveRing(agent, memberUri);
@@ -230,7 +230,7 @@ app.post("/update", zValidator("form", ringUpdateSchema), async (c) => {
     const slug = rawSlug?.trim().toLowerCase() || null;
 
     try {
-        const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
+        const agent = await restoreAgent(c.env.DB, PUBLIC_URL, did);
         if (!agent) return c.redirect("/login");
 
         // 1. Update Repository (ATProto)
@@ -265,7 +265,7 @@ app.post("/delete", zValidator("form", ringActionSchema), async (c) => {
     const { uri } = c.req.valid("form");
 
     try {
-        const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
+        const agent = await restoreAgent(c.env.DB, PUBLIC_URL, did);
         if (!agent) return c.redirect("/login");
 
         // 1. Verify ownership (simple check: hostname of URI should match DID)
@@ -325,7 +325,7 @@ app.get("/invite/friends", async (c) => {
     const payload = c.get("jwtPayload");
     const did = payload.sub;
     try {
-        const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
+        const agent = await restoreAgent(c.env.DB, PUBLIC_URL, did);
         if (!agent) {
             return c.json({ success: false, error: "Unauthorized" }, 401);
         }

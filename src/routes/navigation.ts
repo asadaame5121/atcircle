@@ -9,7 +9,7 @@ const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
 // Random Jump
 app.get("/random", async (c) => {
     const ringUri = c.req.query("ring");
-    const navService = new NavigationService(c.env.DB as any);
+    const navService = new NavigationService(c.env.DB);
     const targetUrl = await navService.getRandomSite(ringUri);
 
     if (targetUrl) {
@@ -25,7 +25,7 @@ app.get("/next", async (c) => {
 
     if (!ringUri) return c.redirect("/");
 
-    const navService = new NavigationService(c.env.DB as any);
+    const navService = new NavigationService(c.env.DB);
     const targetUrl = await navService.getNextSite(ringUri, fromUrl || "");
 
     if (targetUrl) {
@@ -41,7 +41,7 @@ app.get("/prev", async (c) => {
 
     if (!ringUri) return c.redirect("/");
 
-    const navService = new NavigationService(c.env.DB as any);
+    const navService = new NavigationService(c.env.DB);
     const targetUrl = await navService.getPrevSite(ringUri, fromUrl || "");
 
     if (targetUrl) {

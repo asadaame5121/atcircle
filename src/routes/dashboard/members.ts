@@ -48,7 +48,7 @@ app.get("/list", zValidator("query", memberQuerySchema), async (c) => {
     // 3. Enrich with profile data
     if (memberList.length > 0) {
         try {
-            const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
+            const agent = await restoreAgent(c.env.DB, PUBLIC_URL, did);
             if (agent) {
                 const dids = memberList.map((m: any) => m.user_did);
                 const profileResult = await AtProtoService.getProfiles(
@@ -127,7 +127,7 @@ app.post("/block", zValidator("form", blockActionSchema), async (c) => {
     const reason = rawReason || "Blocked by owner";
 
     try {
-        const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
+        const agent = await restoreAgent(c.env.DB, PUBLIC_URL, did);
         if (!agent) {
             return c.json(
                 { success: false, error: "Agent restoration failed" },

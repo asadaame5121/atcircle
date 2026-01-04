@@ -1,3 +1,5 @@
+import { Agent } from "@atproto/api";
+import { BSKY_SERVICE_URL } from "../config.js";
 import type { SiteRepository } from "../repositories/site.repository.js";
 import type { SqliteDatabaseInterface } from "../types/db.js";
 import { AtProtoService } from "./atproto.js";
@@ -19,7 +21,8 @@ export class ProfileService {
         // 1. Resolve handle to DID
         let did = handle;
         if (!handle.startsWith("did:")) {
-            const resolved = await AtProtoService.resolveHandle(handle);
+            const agent = new Agent(BSKY_SERVICE_URL);
+            const resolved = await AtProtoService.resolveHandle(agent, handle);
             if (!resolved) return null;
             did = resolved;
         }
