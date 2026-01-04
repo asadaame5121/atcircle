@@ -1,6 +1,13 @@
+import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { PUBLIC_URL } from "../../config.js";
 import { logger as pinoLogger } from "../../lib/logger.js";
+import {
+    blockActionSchema,
+    memberActionSchema,
+    memberQuerySchema,
+    memberUpdateSchema,
+} from "../../schemas/index.js";
 import { AtProtoService } from "../../services/atproto.js";
 import { verifyWidget } from "../../services/discovery.js";
 import { restoreAgent } from "../../services/oauth.js";
@@ -9,14 +16,10 @@ import type { AppVariables, Bindings } from "../../types/bindings.js";
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
 
 // GET /dashboard/ring/members/list?ring_uri=...
-app.get("/list", async (c) => {
+app.get("/list", zValidator("query", memberQuerySchema), async (c) => {
     const payload = c.get("jwtPayload");
     const did = payload.sub;
-    const ringUri = c.req.query("ring_uri");
-
-    if (!ringUri) {
-        return c.json({ success: false, error: "ring_uri required" }, 400);
-    }
+    const { ring_uri: ringUri } = c.req.valid("query");
 
     // 1. Ownership check
     const ring = (await c.env.DB.prepare(
@@ -80,16 +83,10 @@ app.get("/list", async (c) => {
 });
 
 // POST /dashboard/ring/members/kick
-app.post("/kick", async (c) => {
+app.post("/kick", zValidator("form", memberActionSchema), async (c) => {
     const payload = c.get("jwtPayload");
     const did = payload.sub;
-    const body = await c.req.parseBody();
-    const ringUri = body.ring_uri as string;
-    const memberDid = body.member_did as string;
-
-    if (!ringUri || !memberDid) {
-        return c.json({ success: false, error: "Missing parameters" }, 400);
-    }
+    const { ring_uri: ringUri, member_did: memberDid } = c.req.valid("form");
 
     try {
         // 1. Ownership check
@@ -119,17 +116,15 @@ app.post("/kick", async (c) => {
 });
 
 // POST /dashboard/ring/members/block
-app.post("/block", async (c) => {
+app.post("/block", zValidator("form", blockActionSchema), async (c) => {
     const payload = c.get("jwtPayload");
     const did = payload.sub;
-    const body = await c.req.parseBody();
-    const ringUri = body.ring_uri as string;
-    const memberDid = body.member_did as string;
-    const reason = (body.reason as string) || "Blocked by owner";
-
-    if (!ringUri || !memberDid) {
-        return c.json({ success: false, error: "Missing parameters" }, 400);
-    }
+    const {
+        ring_uri: ringUri,
+        member_did: memberDid,
+        reason: rawReason,
+    } = c.req.valid("form");
+    const reason = rawReason || "Blocked by owner";
 
     try {
         const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
@@ -176,17 +171,14 @@ app.post("/block", async (c) => {
 });
 
 // POST /dashboard/ring/members/update
-app.post("/update", async (c) => {
+app.post("/update", zValidator("form", memberUpdateSchema), async (c) => {
     const payload = c.get("jwtPayload");
     const did = payload.sub;
-    const body = await c.req.parseBody();
-    const ringUri = body.ring_uri as string;
-    const memberDid = body.member_did as string;
-    const status = body.status as "approved" | "pending" | "suspended";
-
-    if (!ringUri || !memberDid || !status) {
-        return c.json({ success: false, error: "Missing parameters" }, 400);
-    }
+    const {
+        ring_uri: ringUri,
+        member_did: memberDid,
+        status,
+    } = c.req.valid("form");
 
     try {
         // 1. Ownership check
@@ -217,16 +209,10 @@ app.post("/update", async (c) => {
 });
 
 // POST /dashboard/ring/members/verify
-app.post("/verify", async (c) => {
+app.post("/verify", zValidator("form", memberActionSchema), async (c) => {
     const payload = c.get("jwtPayload");
     const did = payload.sub;
-    const body = await c.req.parseBody();
-    const ringUri = body.ring_uri as string;
-    const memberDid = body.member_did as string;
-
-    if (!ringUri || !memberDid) {
-        return c.json({ success: false, error: "Missing parameters" }, 400);
-    }
+    const { ring_uri: ringUri, member_did: memberDid } = c.req.valid("form");
 
     try {
         // 1. Ownership check

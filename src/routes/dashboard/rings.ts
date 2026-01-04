@@ -1,7 +1,14 @@
 import { AtUri } from "@atproto/api";
+import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { PUBLIC_URL } from "../../config.js";
 import { logger as pinoLogger } from "../../lib/logger.js";
+import {
+    createRingSchema,
+    joinRingSchema,
+    ringActionSchema,
+    ringUpdateSchema,
+} from "../../schemas/index.js";
 import { AtProtoService } from "../../services/atproto.js";
 import { restoreAgent } from "../../services/oauth.js";
 import type { AppVariables, Bindings } from "../../types/bindings.js";
@@ -9,14 +16,10 @@ import type { AppVariables, Bindings } from "../../types/bindings.js";
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
 
 // POST /dashboard/ring/create
-app.post("/create", async (c) => {
+app.post("/create", zValidator("form", createRingSchema), async (c) => {
     const payload = c.get("jwtPayload");
     const did = payload.sub;
-    const body = await c.req.parseBody();
-    const title = body.title as string;
-    const description = body.description as string;
-
-    if (!title) return c.text("Title required", 400);
+    const { title, description } = c.req.valid("form");
 
     try {
         const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
@@ -80,18 +83,10 @@ app.post("/create", async (c) => {
 });
 
 // POST /dashboard/ring/join
-app.post("/join", async (c) => {
+app.post("/join", zValidator("form", joinRingSchema), async (c) => {
     const payload = c.get("jwtPayload");
     const did = payload.sub;
-    const body = await c.req.parseBody();
-    const ringUri = ((body.ring_uri as string) || "").trim();
-    const url = body.url as string;
-    const title = body.title as string;
-    const rss = body.rss as string;
-
-    if (!ringUri || !url || !title) {
-        return c.text("Missing required fields", 400);
-    }
+    const { ring_uri: ringUri, url, title, rss } = c.req.valid("form");
 
     try {
         const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
@@ -196,13 +191,10 @@ app.post("/join", async (c) => {
 });
 
 // POST /dashboard/ring/leave
-app.post("/leave", async (c) => {
+app.post("/leave", zValidator("form", ringActionSchema), async (c) => {
     const payload = c.get("jwtPayload");
     const did = payload.sub;
-    const body = await c.req.parseBody();
-    const memberUri = body.uri as string;
-
-    if (!memberUri) return c.text("Member URI required", 400);
+    const { uri: memberUri } = c.req.valid("form");
 
     try {
         const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
@@ -223,22 +215,19 @@ app.post("/leave", async (c) => {
 });
 
 // POST /dashboard/ring/update
-app.post("/update", async (c) => {
+app.post("/update", zValidator("form", ringUpdateSchema), async (c) => {
     const payload = c.get("jwtPayload");
     const did = payload.sub;
-    const body = await c.req.parseBody();
-
-    const uri = body.uri as string;
-    const title = body.title as string;
-    const description = body.description as string;
-    const status = body.status as "open" | "closed";
-    const acceptance = body.acceptance_policy as "automatic" | "manual";
-    const adminDid = body.admin_did as string;
-    const slug = ((body.slug as string) || "").trim().toLowerCase() || null;
-
-    if (!uri || !title || !status || !acceptance || !adminDid) {
-        return c.text("Missing required fields", 400);
-    }
+    const {
+        uri,
+        title,
+        description,
+        status,
+        acceptance_policy: acceptance,
+        admin_did: adminDid,
+        slug: rawSlug,
+    } = c.req.valid("form");
+    const slug = rawSlug?.trim().toLowerCase() || null;
 
     try {
         const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);
@@ -270,13 +259,10 @@ app.post("/update", async (c) => {
 });
 
 // POST /dashboard/ring/delete
-app.post("/delete", async (c) => {
+app.post("/delete", zValidator("form", ringActionSchema), async (c) => {
     const payload = c.get("jwtPayload");
     const did = payload.sub;
-    const body = await c.req.parseBody();
-    const uri = body.uri as string;
-
-    if (!uri) return c.text("Ring URI required", 400);
+    const { uri } = c.req.valid("form");
 
     try {
         const agent = await restoreAgent(c.env.DB as any, PUBLIC_URL, did);

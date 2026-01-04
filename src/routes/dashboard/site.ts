@@ -1,21 +1,20 @@
+import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { html } from "hono/html";
 import { Layout } from "../../components/Layout.js";
+import {
+    siteRegistrationSchema,
+    siteUpdateSchema,
+} from "../../schemas/index.js";
 import type { AppVariables, Bindings } from "../../types/bindings.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
 
 // POST /dashboard/site
-app.post("/", async (c) => {
+app.post("/", zValidator("form", siteRegistrationSchema), async (c) => {
     const payload = c.get("jwtPayload");
     const did = payload.sub;
-    const body = await c.req.parseBody();
-    const url = body.url as string;
-    const title = body.title as string;
-    const rss_url = body.rss_url as string;
-    const description = body.description as string;
-
-    if (!url || !title) return c.text("URL and Title required", 400);
+    const { url, title, rss_url, description } = c.req.valid("form");
 
     await c.env.DB.prepare(
         "INSERT OR REPLACE INTO sites (user_did, url, title, rss_url, description, is_active) VALUES (?, ?, ?, ?, ?, 1)",
@@ -113,16 +112,10 @@ app.get("/edit", async (c) => {
 });
 
 // POST /dashboard/site/update
-app.post("/update", async (c) => {
+app.post("/update", zValidator("form", siteUpdateSchema), async (c) => {
     const payload = c.get("jwtPayload");
     const did = payload.sub;
-    const body = await c.req.parseBody();
-    const url = body.url as string;
-    const title = body.title as string;
-    const rss_url = body.rss_url as string;
-    const description = body.description as string;
-
-    if (!url || !title) return c.text("URL and Title required", 400);
+    const { url, title, rss_url, description } = c.req.valid("form");
 
     await c.env.DB.prepare(
         "UPDATE sites SET url = ?, title = ?, rss_url = ?, description = ? WHERE user_did = ?",

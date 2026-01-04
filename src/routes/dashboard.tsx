@@ -96,7 +96,6 @@ app.get("/", async (c) => {
                 blocks: dashData.blocks,
                 did: dashData.did,
                 isAdmin,
-                isDebug,
                 t,
             }),
         }),
