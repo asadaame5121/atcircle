@@ -1,5 +1,3 @@
-import type { SqliteDatabaseInterface } from "../types/db.js";
-
 export interface AntennaItem {
     item_title: string;
     item_url: string;
@@ -9,7 +7,7 @@ export interface AntennaItem {
 }
 
 export class AntennaRepository {
-    constructor(private db: SqliteDatabaseInterface) {}
+    constructor(private db: D1Database) {}
 
     async findItemsByRing(ringUri: string, limit = 50): Promise<AntennaItem[]> {
         const res = await this.db

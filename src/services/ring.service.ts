@@ -1,14 +1,14 @@
 import { PUBLIC_URL } from "../config.js";
 import { logger as pinoLogger } from "../lib/logger.js";
 import { RingRepository } from "../repositories/ring.repository.js";
-import type { SqliteDatabaseInterface } from "../types/db.js";
+// import type { SqliteDatabaseInterface } from "../types/db.js";
 import { AtProtoService } from "./atproto.js";
 import { restoreAgent } from "./oauth.js";
 
 export class RingService {
     private ringRepo: RingRepository;
 
-    constructor(private db: SqliteDatabaseInterface) {
+    constructor(private db: D1Database) {
         this.ringRepo = new RingRepository(db);
     }
 

@@ -1,7 +1,7 @@
-import type { Ring, SqliteDatabaseInterface } from "../types/db.js";
+import type { Ring } from "../types/db.js";
 
 export class RingRepository {
-    constructor(private db: SqliteDatabaseInterface) {}
+    constructor(private db: D1Database) {}
 
     async findByUri(uri: string): Promise<Ring | null> {
         return await this.db

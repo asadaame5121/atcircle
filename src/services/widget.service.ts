@@ -3,7 +3,7 @@ import { PUBLIC_URL } from "../config.js";
 import { logger as pinoLogger } from "../lib/logger.js";
 import { RingRepository } from "../repositories/ring.repository.js";
 import { SiteRepository } from "../repositories/site.repository.js";
-import type { SqliteDatabaseInterface } from "../types/db.js";
+// import type { SqliteDatabaseInterface } from "../types/db.js";
 import { AtProtoService } from "./atproto.js";
 import { restoreAgent } from "./oauth.js";
 
@@ -11,7 +11,7 @@ export class WidgetService {
     private ringRepo: RingRepository;
     private siteRepo: SiteRepository;
 
-    constructor(private db: SqliteDatabaseInterface) {
+    constructor(private db: D1Database) {
         this.ringRepo = new RingRepository(db);
         this.siteRepo = new SiteRepository(db);
     }
@@ -30,11 +30,7 @@ export class WidgetService {
                 ringUri,
             });
             try {
-                const agent = await restoreAgent(
-                    this.db as any,
-                    PUBLIC_URL,
-                    did,
-                );
+                const agent = await restoreAgent(this.db, PUBLIC_URL, did);
                 if (agent) {
                     const ringData = await AtProtoService.getRing(
                         agent,

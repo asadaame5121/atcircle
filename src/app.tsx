@@ -1,6 +1,6 @@
 import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
-import db from "./db.js";
+
 import { logger as pinoLogger } from "./lib/logger.js";
 import { i18nMiddleware } from "./middleware/i18n.js";
 import antenna from "./routes/antenna.js";
@@ -36,10 +36,9 @@ app.use("*", async (c, next) => {
 });
 
 app.use("*", i18nMiddleware());
-app.use("*", async (c, next) => {
-    c.env = { DB: db };
-    await next();
-});
+// DB injection moved to entry points (index.ts / worker.ts)
+
+// Compatibility for old widget builder path
 
 // Compatibility for old widget builder path
 app.all("/widget-builder/:path+", (c) => {

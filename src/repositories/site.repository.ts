@@ -1,7 +1,7 @@
-import type { Site, SqliteDatabaseInterface } from "../types/db.js";
+import type { Site } from "../types/db.js";
 
 export class SiteRepository {
-    constructor(private db: SqliteDatabaseInterface) {}
+    constructor(private db: D1Database) {}
 
     async findFirstByUserDid(did: string): Promise<Site | null> {
         return await this.db

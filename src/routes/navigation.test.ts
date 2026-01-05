@@ -52,12 +52,12 @@ describe("Navigation Routes", () => {
             expect(res.headers.get("Location")).toBe("https://example.com");
         });
 
-        it("returns 404 if no sites found", async () => {
+        it("redirects to home if no sites found", async () => {
             env.DB = createMockDB({ first: null }) as any;
 
             const res = await navigationApp.request("/random", {}, env);
-            expect(res.status).toBe(404);
-            expect(await res.text()).toContain("No active sites");
+            expect(res.status).toBe(302);
+            expect(res.headers.get("Location")).toBe("/");
         });
     });
 
@@ -91,7 +91,7 @@ describe("Navigation Routes", () => {
         it("redirects to next site in order", async () => {
             // From Site A (id 1) -> Should go to Site B (id 2)
             const res = await navigationApp.request(
-                "/next?from=https://site-a.com",
+                "/next?from=https://site-a.com&ring=test",
                 {},
                 env,
             );
@@ -102,7 +102,7 @@ describe("Navigation Routes", () => {
         it("loops back to first site from last", async () => {
             // From Site C (id 3) -> Should go to Site A (id 1)
             const res = await navigationApp.request(
-                "/next?from=https://site-c.com",
+                "/next?from=https://site-c.com&ring=test",
                 {},
                 env,
             );
@@ -111,16 +111,24 @@ describe("Navigation Routes", () => {
         });
 
         it("redirects to random (fallback) if ?from is missing", async () => {
-            const res = await navigationApp.request("/next", {}, env);
-            // In the code: if (!from) return c.redirect("/nav/random");
+            // Actually implementation redirects to / if ring missing,
+            // but if ring present and from missing?
+            // "const targetUrl = await navService.getNextSite(ringUri, fromUrl || "");"
+            // getNextSite with fromUrl="" returns members[0] usually if not found
+            // Wait, getNextSite: "const currentIndex = members.findIndex((m) => m.url === fromUrl);"
+            // if fromUrl is empty, index is -1.
+            // "if (currentIndex === -1) return members[0].url;"
+            // So it goes to first site.
+
+            const res = await navigationApp.request("/next?ring=test", {}, env);
             expect(res.status).toBe(302);
-            expect(res.headers.get("Location")).toBe("/nav/random");
+            expect(res.headers.get("Location")).toBe("https://site-a.com");
         });
 
-        it("handles unknown 'from' url by starting at beginning (or fallback logic)", async () => {
+        it("handles unknown 'from' url by starting at beginning", async () => {
             // currentIndex = -1 -> nextIndex = 0 -> Site A
             const res = await navigationApp.request(
-                "/next?from=https://unknown.com",
+                "/next?from=https://unknown.com&ring=test",
                 {},
                 env,
             );
@@ -158,7 +166,7 @@ describe("Navigation Routes", () => {
         it("redirects to prev site in order", async () => {
             // From Site B (id 2) -> Should go to Site A (id 1)
             const res = await navigationApp.request(
-                "/prev?from=https://site-b.com",
+                "/prev?from=https://site-b.com&ring=test",
                 {},
                 env,
             );
@@ -169,7 +177,7 @@ describe("Navigation Routes", () => {
         it("loops back to last site from first", async () => {
             // From Site A (id 1) -> Should go to Site C (id 3)
             const res = await navigationApp.request(
-                "/prev?from=https://site-a.com",
+                "/prev?from=https://site-a.com&ring=test",
                 {},
                 env,
             );

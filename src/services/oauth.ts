@@ -15,10 +15,10 @@ import {
     PLC_DIRECTORY_URL,
 } from "../config.js";
 import { logger as pinoLogger } from "../lib/logger.js";
-import type { SqliteDatabaseInterface } from "../types/db.js";
+// import type { SqliteDatabaseInterface } from "../types/db.js";
 
 export class SqliteStateStore implements NodeSavedStateStore {
-    constructor(private db: SqliteDatabaseInterface) {}
+    constructor(private db: D1Database) {}
 
     async set(key: string, val: NodeSavedState): Promise<void> {
         pinoLogger.debug({ msg: "[SqliteStateStore] SET", key });
@@ -62,7 +62,7 @@ export class SqliteStateStore implements NodeSavedStateStore {
 export const D1StateStore = SqliteStateStore;
 
 export class SqliteSessionStore implements NodeSavedSessionStore {
-    constructor(private db: SqliteDatabaseInterface) {}
+    constructor(private db: D1Database) {}
 
     async set(key: string, val: NodeSavedSession): Promise<void> {
         const session = JSON.stringify(val);
@@ -95,7 +95,7 @@ export class SqliteSessionStore implements NodeSavedSessionStore {
 export const D1SessionStore = SqliteSessionStore;
 
 export const createClient = async (
-    db: SqliteDatabaseInterface,
+    db: D1Database,
     publicUrl: string,
     bskyServiceUrl: string = BSKY_SERVICE_URL,
     plcDirectoryUrl: string = PLC_DIRECTORY_URL,
@@ -295,7 +295,7 @@ export const createClient = async (
 };
 
 export async function restoreAgent(
-    db: SqliteDatabaseInterface,
+    db: D1Database,
     publicUrl: string,
     did: string,
 ): Promise<Agent | undefined> {

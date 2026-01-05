@@ -1,7 +1,7 @@
-import type { SqliteDatabaseInterface } from "../types/db.js";
+// import type { SqliteDatabaseInterface } from "../types/db.js";
 
 export class NavigationService {
-    constructor(private db: SqliteDatabaseInterface) {}
+    constructor(private db: D1Database) {}
 
     async getRandomSite(ringUri?: string): Promise<string | null> {
         let query = "SELECT url FROM sites WHERE is_active = 1";

@@ -1,5 +1,3 @@
-import type { SqliteDatabaseInterface } from "../types/db.js";
-
 export interface Member {
     id: number;
     user_did: string;
@@ -15,7 +13,7 @@ export interface Member {
 }
 
 export class MemberRepository {
-    constructor(private db: SqliteDatabaseInterface) {}
+    constructor(private db: D1Database) {}
 
     async findApprovedMembersByRing(ringUri: string): Promise<Member[]> {
         const res = await this.db

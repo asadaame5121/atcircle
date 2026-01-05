@@ -36,7 +36,10 @@ export const Scripts = ({ t }: ScriptsProps) => {
                 console.log('ATcircle Dashboard: Initializing script...');
                 
                 // Load I18n
-                const i18n = JSON.parse(document.getElementById('i18n-data').textContent);
+                const rawI18n = document.getElementById('i18n-data').textContent;
+                const txt = document.createElement("textarea");
+                txt.innerHTML = rawI18n;
+                const i18n = JSON.parse(txt.value);
 
                 // Global State
                 window.atcircle = {

@@ -2,6 +2,7 @@
 
 app = "asadaame5121-webring"
 primary_region = "nrt"
+kill_timeout = 10
 
 [http_service]
   internal_port = 8080
@@ -11,13 +12,11 @@ primary_region = "nrt"
   min_machines_running = 0
   processes = ["app"]
 
-[[mounts]]
-  source = "webring_data"
-  destination = "/data"
+
 
 [env]
   PORT = "8080"
-  DB_PATH = "/data/prod.db"
+
   PUBLIC_URL = "https://at-circle.asadaame5121.net"
   BSKY_SERVICE_URL = "https://bsky.social"
   CLIENT_NAME = "at-circle"

@@ -23,6 +23,7 @@
         "@atproto/oauth-client-node": "^0.3.13",
         "@hono/node-server": "^1.19.7",
         "@hono/zod-validator": "^0.7.6",
+        "@libsql/client": "^0.15.15",
         "cheerio": "^1.1.2",
         "dotenv": "^17.2.3",
         "hono": "^4.11.1",
@@ -35,6 +36,7 @@
     },
     "devDependencies": {
         "@biomejs/biome": "^2.3.10",
+        "@cloudflare/workers-types": "^4.20260103.0",
         "@hono/vite-dev-server": "^0.23.0",
         "@playwright/test": "^1.57.0",
         "@tailwindcss/cli": "^4.1.18",
@@ -51,7 +53,8 @@
         "typescript": "^5.7.2",
         "vite": "^7.3.0",
         "vite-node": "^2.1.2",
-        "vitest": "^2.1.2"
+        "vitest": "^2.1.2",
+        "wrangler": "^4.54.0"
     },
     "lint-staged": {
         "src/**/*.{ts,tsx,js,jsx}": [

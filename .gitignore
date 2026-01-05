@@ -50,3 +50,8 @@ docs/release_article_draft.md
 *.db
 *.db-shm
 *.db-wal
+*.sqlite
+*.tar.gz
+*.txt
+machines*.json
+wrangler.toml

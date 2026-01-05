@@ -2,7 +2,8 @@ import { AtUri } from "@atproto/api";
 import { PUBLIC_URL } from "../config.js";
 import { RingRepository } from "../repositories/ring.repository.js";
 import { SiteRepository } from "../repositories/site.repository.js";
-import type { Site, SqliteDatabaseInterface } from "../types/db.js";
+// import type { Site, SqliteDatabaseInterface } from "../types/db.js";
+import type { Site } from "../types/db.js";
 import { AtProtoService } from "./atproto.js";
 import { fetchAndDiscoverMetadata } from "./discovery.js";
 import { restoreAgent } from "./oauth.js";
@@ -28,7 +29,7 @@ export class DashboardService {
     private ringRepo: RingRepository;
     private siteRepo: SiteRepository;
 
-    constructor(private db: SqliteDatabaseInterface) {
+    constructor(private db: D1Database) {
         this.ringRepo = new RingRepository(db);
         this.siteRepo = new SiteRepository(db);
     }
@@ -36,7 +37,7 @@ export class DashboardService {
     async getDashboardData(
         did: string,
     ): Promise<RegistrationData | DashboardViewData> {
-        const agent = await restoreAgent(this.db as any, PUBLIC_URL, did);
+        const agent = await restoreAgent(this.db, PUBLIC_URL, did);
 
         const site = await this.siteRepo.findFirstByUserDid(did);
 

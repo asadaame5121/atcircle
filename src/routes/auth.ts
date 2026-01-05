@@ -207,13 +207,23 @@ app.get("/auth/callback", async (c) => {
 });
 
 app.get("/logout", (c) => {
+    setCookie(c, "session", "", {
+        path: "/",
+        secure: false, // Dev - match login
+        httpOnly: true,
+        maxAge: 0,
+        sameSite: "Lax",
+    });
     return c.redirect("/");
 });
 
 app.post("/logout", (c) => {
     setCookie(c, "session", "", {
         path: "/",
+        secure: false, // Dev - match login
+        httpOnly: true,
         maxAge: 0,
+        sameSite: "Lax",
     });
     return c.redirect("/");
 });

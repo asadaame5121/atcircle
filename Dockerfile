@@ -23,8 +23,7 @@ COPY --from=build /app/dist ./dist
 COPY --from=build /app/assets ./assets
 COPY lexicons ./lexicons
 
-# Create data directory for SQLite
-RUN mkdir -p /data && chown node:node /data
+
 
 USER node
 EXPOSE 8080
