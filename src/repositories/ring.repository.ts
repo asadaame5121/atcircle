@@ -31,6 +31,18 @@ export class RingRepository {
             .run();
     }
 
+    async updateMembershipBannerUrl(
+        memberUri: string,
+        bannerUrl: string | null,
+    ): Promise<void> {
+        await this.db
+            .prepare(
+                "UPDATE memberships SET banner_url = ? WHERE member_uri = ?",
+            )
+            .bind(bannerUrl, memberUri)
+            .run();
+    }
+
     async updateSettings(
         uri: string,
         data: Partial<
@@ -125,6 +137,20 @@ export class RingRepository {
             GROUP BY m.ring_uri, s.id
         `)
             .bind(did, did)
+            .all();
+        return res.results;
+    }
+
+    async findApprovedMembershipsByAdmin(did: string): Promise<any[]> {
+        const res = await this.db
+            .prepare(`
+            SELECT m.member_uri, m.ring_uri, s.title as site_title, s.url as site_url, r.title as ring_title 
+            FROM memberships m 
+            JOIN sites s ON m.site_id = s.id 
+            JOIN rings r ON m.ring_uri = r.uri 
+            WHERE s.user_did = ? AND m.status = 'approved'
+        `)
+            .bind(did)
             .all();
         return res.results;
     }

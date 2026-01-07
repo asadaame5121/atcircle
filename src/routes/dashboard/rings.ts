@@ -184,9 +184,19 @@ app.post("/join", zValidator("form", joinRingSchema), async (c) => {
         }
 
         return c.redirect(`/dashboard?msg=joined&policy=${acceptancePolicy}`);
-    } catch (e) {
-        pinoLogger.error({ msg: "Error joining ring", error: e });
-        return c.text("Failed to join ring", 500);
+    } catch (e: any) {
+        pinoLogger.error({
+            msg: "Error joining ring",
+            error: e,
+            ringUri,
+            did,
+            stack: e.stack,
+        });
+
+        const errorMessage = e instanceof Error ? e.message : "Unknown error";
+        // Check for specific error types if possible (e.g. from generated lexicon types)
+
+        return c.text(`Failed to join ring: ${errorMessage}`, 500);
     }
 });
 
@@ -226,6 +236,7 @@ app.post("/update", zValidator("form", ringUpdateSchema), async (c) => {
         acceptance_policy: acceptance,
         admin_did: adminDid,
         slug: rawSlug,
+        banner_url: bannerUrl,
     } = c.req.valid("form");
     const slug = rawSlug?.trim().toLowerCase() || null;
 
@@ -246,9 +257,9 @@ app.post("/update", zValidator("form", ringUpdateSchema), async (c) => {
 
         // 2. Update AppView (Indexer)
         await c.env.DB.prepare(
-            "UPDATE rings SET acceptance_policy = ?, status = ?, admin_did = ?, slug = ? WHERE uri = ?",
+            "UPDATE rings SET acceptance_policy = ?, status = ?, admin_did = ?, slug = ?, banner_url = ? WHERE uri = ?",
         )
-            .bind(acceptance, status, adminDid, slug, uri)
+            .bind(acceptance, status, adminDid, slug, bannerUrl || null, uri)
             .run();
     } catch (e) {
         pinoLogger.error({ msg: "Error updating circle", error: e });

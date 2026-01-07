@@ -3,7 +3,7 @@ import { getCookie, setCookie } from "hono/cookie";
 import { html } from "hono/html";
 import { sign } from "hono/jwt";
 import { Layout } from "../components/Layout.js";
-import { ADMIN_DID, PUBLIC_URL, SECRET_KEY } from "../config.js";
+import { ADMIN_DID, IS_DEV, PUBLIC_URL, SECRET_KEY } from "../config.js";
 
 import { logger as pinoLogger } from "../lib/logger.js";
 import { createClient } from "../services/oauth.js";
@@ -68,6 +68,33 @@ app.get("/login", (c) => {
                         <div class="text-xs opacity-60 leading-relaxed text-center px-4">
                             ${t("auth.permission_desc")}
                         </div>
+
+                        ${
+                            IS_DEV
+                                ? html`
+                                <div class="divider mt-6 text-xs opacity-50 uppercase tracking-widest">
+                                    Debug Info
+                                </div>
+                                <div class="space-y-2 mt-4">
+                                    <form action="/auth/debug" method="POST">
+                                        <input type="hidden" name="did" value="did:plc:mock-user" />
+                                        <input type="hidden" name="handle" value="debug-user.bsky.social" />
+                                        <button type="submit" class="btn btn-outline btn-accent btn-sm w-full">
+                                            Login as Debug User
+                                        </button>
+                                    </form>
+                                    <form action="/auth/debug" method="POST">
+                                        <input type="hidden" name="did" value="${ADMIN_DID}" />
+                                        <input type="hidden" name="handle" value="admin.bsky.social" />
+                                        <input type="hidden" name="role" value="admin" />
+                                        <button type="submit" class="btn btn-outline btn-warning btn-sm w-full">
+                                            Login as Admin Debug User
+                                        </button>
+                                    </form>
+                                </div>
+                            `
+                                : ""
+                        }
                     </div>
                 </div>
                 </div>
@@ -204,6 +231,57 @@ app.get("/auth/callback", async (c) => {
         const t = c.get("t");
         return c.text(t("error.auth_failed") || "Authentication failed", 401);
     }
+});
+
+app.post("/auth/debug", async (c) => {
+    if (!IS_DEV) {
+        return c.text("Forbidden", 403);
+    }
+
+    const body = await c.req.parseBody();
+    const did = (body.did as string) || "did:plc:mock-user";
+    const handle = (body.handle as string) || "debug-user.bsky.social";
+    const role =
+        (body.role as string) || (did === ADMIN_DID ? "admin" : "user");
+
+    pinoLogger.info({ msg: "Debug login attempt", did, handle, role });
+
+    // Ensure user exists in DB
+    const existingUser = await c.env.DB.prepare(
+        "SELECT did FROM users WHERE did = ?",
+    )
+        .bind(did)
+        .first();
+
+    if (!existingUser) {
+        await c.env.DB.prepare("INSERT INTO users (did, handle) VALUES (?, ?)")
+            .bind(did, handle)
+            .run();
+    }
+
+    // Create App Session
+    const payload = {
+        sub: did,
+        handle: handle,
+        role: role,
+        isDebug: true,
+        exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7, // 7 days
+    };
+
+    const token = await sign(payload, SECRET_KEY);
+
+    setCookie(c, "session", token, {
+        path: "/",
+        secure: false,
+        httpOnly: true,
+        maxAge: 60 * 60 * 24 * 7,
+        sameSite: "Lax",
+    });
+
+    const next = getCookie(c, "auth_next") || "/dashboard";
+    setCookie(c, "auth_next", "", { path: "/", maxAge: 0 });
+
+    return c.redirect(next);
 });
 
 app.get("/logout", (c) => {

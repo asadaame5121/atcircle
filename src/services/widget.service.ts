@@ -21,8 +21,21 @@ export class WidgetService {
         if (!site) return { error: "site_not_found" };
 
         const ring = await this.ringRepo.findByUri(ringUri);
+
+        // Find membership to get individual banner
+        const membership = (await this.db
+            .prepare(
+                "SELECT banner_url, member_uri FROM memberships WHERE ring_uri = ? AND site_id = ? AND status = 'approved'",
+            )
+            .bind(ringUri, site.id)
+            .first()) as {
+            banner_url: string | null;
+            member_uri: string;
+        } | null;
+
         let ringTitle = ring?.title;
-        const bannerUrl = ring?.banner_url || "";
+        const bannerUrl = membership?.banner_url || ring?.banner_url || "";
+        const memberUri = membership?.member_uri;
 
         if (!ringTitle) {
             pinoLogger.info({
@@ -57,6 +70,7 @@ export class WidgetService {
             site,
             ringTitle: ringTitle || "Webring",
             bannerUrl,
+            memberUri,
             baseUrl: PUBLIC_URL,
         };
     }

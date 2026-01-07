@@ -219,13 +219,77 @@ export const AtProtoService = {
         cursor?: string,
         limit: number = 50,
     ) {
-        const net = new NetNS(agent);
-        const response = await net.asadaame5121.atCircle.member.list({
+        // Use generic listRecords to support standard PDS
+        const response = await agent.api.com.atproto.repo.listRecords({
             repo: repoDid,
+            collection: NSID.MEMBER,
             cursor,
             limit,
         });
-        return response.records as AtpRecordView<MemberRecord>[];
+
+        // Map to expected view format
+        return response.data.records.map((r) => ({
+            uri: r.uri,
+            cid: r.cid,
+            value: r.value as MemberRecord,
+        })) as AtpRecordView<MemberRecord>[];
+    },
+
+    async findUserLinkedRings(agent: Agent, did: string) {
+        // 1. Find rings joined by user (Member records in user's repo)
+        // We try to use the agent provided. If it fails (e.g. unauth agent on constrained PDS), we might need to resolve PDS.
+        // Assuming 'agent' here is capable of listing records for the DID (e.g. user session or properly configured public agent).
+        const joinedRings: string[] = [];
+        try {
+            const memberRecords = await this.listMemberRecords(agent, did);
+            memberRecords.forEach((r) => {
+                if (r.value.ring?.uri) joinedRings.push(r.value.ring.uri);
+            });
+        } catch (e) {
+            pinoLogger.error({
+                msg: "Failed to list member records",
+                error: e,
+                did,
+            });
+        }
+
+        // 2. Find rings owned/administered by user via Constellation
+        // Constellation indexes backlinks, so we look for records pointing to the user.
+        // Ring records have 'admin' field pointing to user.
+        const ownedRings: string[] = [];
+        try {
+            const constellationUrl = `https://constellation.microcosm.blue/links/all?target=${encodeURIComponent(
+                did,
+            )}`;
+            const res = await fetch(constellationUrl);
+            if (res.ok) {
+                const data = (await res.json()) as any[];
+                // Filter for Ring records
+                data.forEach((link: any) => {
+                    if (link.source?.includes(NSID.RING)) {
+                        ownedRings.push(link.source);
+                    }
+                });
+            } else {
+                pinoLogger.warn({
+                    msg: "Constellation API failed",
+                    status: res.status,
+                    did,
+                });
+            }
+        } catch (e) {
+            pinoLogger.error({
+                msg: "Failed to query Constellation",
+                error: e,
+                did,
+            });
+        }
+
+        return {
+            joined: [...new Set(joinedRings)],
+            owned: [...new Set(ownedRings)],
+            all: [...new Set([...joinedRings, ...ownedRings])],
+        };
     },
 
     // -------------------------------------------------------------------------

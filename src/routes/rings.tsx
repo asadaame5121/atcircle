@@ -51,6 +51,7 @@ app.get("/view", zValidator("query", ringQuerySchema), async (c) => {
             title: `${ring.title} - Site List`,
             t,
             lang,
+            ogImage: ring.banner_url || undefined,
             children: RingDetailView({
                 ring,
                 members,

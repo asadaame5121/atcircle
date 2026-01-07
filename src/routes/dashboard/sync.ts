@@ -1,3 +1,4 @@
+import { AtUri } from "@atproto/api";
 import { Hono } from "hono";
 import { PUBLIC_URL } from "../../config.js";
 import { logger as pinoLogger } from "../../lib/logger.js";
@@ -51,7 +52,72 @@ app.post("/", async (c) => {
 
         if (mySite) {
             for (const m of memberships) {
-                const ringUri = m.value.ring.uri;
+                let ringUri = m.value.ring.uri;
+
+                // RECOVERY: Check for malformed HTTP URIs found in some records
+                if (ringUri.startsWith("http")) {
+                    try {
+                        const url = new URL(ringUri);
+                        const extracted = url.searchParams.get("ring");
+                        if (extracted?.startsWith("at://")) {
+                            ringUri = extracted;
+                        }
+                    } catch {
+                        // Ignore parsing errors
+                    }
+                }
+
+                // Check if ring exists locally
+                const localRing = await c.env.DB.prepare(
+                    "SELECT 1 FROM rings WHERE uri = ?",
+                )
+                    .bind(ringUri)
+                    .first();
+
+                if (!localRing) {
+                    try {
+                        // Fetch ring metadata from PDS
+                        const ringData = await AtProtoService.getRing(
+                            agent,
+                            ringUri,
+                        );
+                        const ownerDid = new AtUri(ringUri).hostname;
+
+                        await c.env.DB.prepare(
+                            "INSERT OR REPLACE INTO rings (uri, owner_did, admin_did, title, description, acceptance_policy, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                        )
+                            .bind(
+                                ringUri,
+                                ownerDid,
+                                ringData.value.admin || ownerDid,
+                                ringData.value.title,
+                                ringData.value.description || null,
+                                ringData.value.acceptancePolicy || "automatic",
+                                ringData.value.status || "open",
+                                ringData.value.createdAt
+                                    ? Math.floor(
+                                          new Date(
+                                              ringData.value.createdAt,
+                                          ).getTime() / 1000,
+                                      )
+                                    : Math.floor(Date.now() / 1000),
+                            )
+                            .run();
+                        pinoLogger.info({
+                            msg: "[Sync] Fetched missing ring",
+                            ringUri,
+                        });
+                    } catch (e) {
+                        pinoLogger.error({
+                            msg: "[Sync] Failed to fetch missing ring",
+                            ringUri,
+                            error: e,
+                        });
+                        // Continue? If we fail to fetch ring, we can't insert membership due to FK.
+                        continue;
+                    }
+                }
+
                 await c.env.DB.prepare(
                     "INSERT OR REPLACE INTO memberships (ring_uri, site_id, member_uri) VALUES (?, ?, ?)",
                 )

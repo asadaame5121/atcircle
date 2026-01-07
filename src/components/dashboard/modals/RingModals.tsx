@@ -113,6 +113,12 @@ export const RingModals = ({ site, t }: RingModalsProps) => {
                         <p class="text-[10px] opacity-50 mt-1">${t("dashboard.field_slug_help")}</p>
                     </div>
 
+                    <div class="form-control w-full mt-4">
+                        <label class="label"><span class="label-text">${t("dashboard.banner_url")}</span></label>
+                        <input type="url" name="banner_url" id="config-banner" class="input input-bordered w-full font-mono text-sm" placeholder="https://example.com/banner.png" />
+                        <p class="text-[10px] opacity-50 mt-1">${t("dashboard.banner_url_help")}</p>
+                    </div>
+
                     <div class="modal-action flex justify-between">
                         <div class="flex gap-2">
                              <button type="button" class="btn btn-error btn-outline" onclick="if(confirm('${t("dashboard.confirm_delete_ring")}')) { 

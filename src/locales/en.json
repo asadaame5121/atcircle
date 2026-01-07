@@ -83,10 +83,19 @@
         "sync_from_pds_help": "Update your profile information from your Bluesky PDS.",
         "field_slug": "Public URL Slug",
         "field_slug_help": "A human-friendly URL (e.g. /r/my-ring). 3-32 characters, alphanumeric and hyphens.",
+        "banner_url": "Banner Image URL",
+        "banner_url_help": "Used as the default banner for the ring and OGP image.",
         "error_slug_exists": "This slug is already in use.",
         "error_slug_invalid": "Invalid slug format.",
         "updates_title": "News & Updates",
-        "updates_desc": "Check here for new features and documentation (External site)"
+        "updates_desc": "Check here for new features and documentation (External site)",
+        "register_title": "Register your site",
+        "register_desc": "Please register your website to join webrings.",
+        "detected_sites": "Detected sites",
+        "enter_manually": "Enter manually",
+        "btn_register_site": "Register site",
+        "site_url": "Site URL",
+        "site_title": "Site Title"
     },
     "ring_ops": {
         "create_title": "Create a New Webring",
@@ -125,8 +134,6 @@
         "theme_light": "Light",
         "theme_dark": "Dark",
         "field_layout": "Layout",
-        "layout_default": "Default (Banner)",
-        "layout_compact": "Compact (Grid)",
         "layout_simple": "Simple",
         "layout_banner": "Banner only (linked)",
         "layout_html": "HTML Link (No-JS / SNS)",
@@ -193,6 +200,18 @@
         "recent_users": "Recent Registered Users",
         "handle": "Handle",
         "did": "DID",
-        "created_at": "Registered At"
+        "created_at": "Registered At",
+        "utilities": "Utilities",
+        "sync_all": "Sync All Data",
+        "sync_all_desc": "Sync all records from all users' PDS.",
+        "crawl_rss": "Run RSS Crawl",
+        "crawl_rss_desc": "Manually crawl RSS feeds for the antenna.",
+        "remove_user": "Clean Delete User",
+        "remove_user_placeholder": "Enter DID to remove",
+        "remove_user_btn": "Remove",
+        "confirm_remove_user": "This will permanently delete ALL data associated with this user (sites, rings, requests, etc.). Proceed?",
+        "sync_success": "Sync complete.",
+        "crawl_success": "RSS crawl complete.",
+        "remove_success": "User removed."
     }
 }

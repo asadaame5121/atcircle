@@ -7,11 +7,12 @@ export const Layout = (props: {
     lang?: string;
     t?: (key: string) => string;
     isDebug?: boolean;
+    ogImage?: string;
 }) => {
     const description = props.t ? props.t("seo.description") : "";
     const keywords = props.t ? props.t("seo.keywords") : "";
-    const ogImage = `${PUBLIC_URL}/assets/ogp.png`;
-    const favicon = `${PUBLIC_URL}/assets/favicon.png`;
+    const ogImage = props.ogImage || "/assets/ogp.png";
+    const favicon = "/assets/favicon.png";
 
     return html`
   <!DOCTYPE html>
@@ -70,46 +71,24 @@ export const Layout = (props: {
       `
               : ""
       }
-      <header class="navbar bg-base-100 rounded-box shadow-lg mb-8">
-        <div class="navbar-start">
-          <div class="dropdown">
-            <div tabindex="0" role="button" class="btn btn-ghost lg:hidden pr-1">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16" /></svg>
-            </div>
-            <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-20 p-2 shadow bg-base-100 rounded-box w-52">
-              <li><a href="/">${props.t ? props.t("common.home") : "Home"}</a></li>
-              <li><a href="/rings">${props.t ? props.t("common.rings") : "Rings"}</a></li>
-              <li><a href="/dashboard">${props.t ? props.t("common.dashboard") : "Dashboard"}</a></li>
-              <li>
-                <a href="https://asadaame5121.net/Article/help_ja.html" target="_blank" rel="noopener noreferrer" title="${props.t ? props.t("common.external_link") : "External site"}">
-                  ${props.t ? props.t("common.help") : "Help"}
-                  <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-50"></i>
-                </a>
-              </li>
-            </ul>
+        <div class="navbar-start flex-wrap gap-2 w-full">
+          <a href="/" class="flex items-center gap-1 btn btn-ghost px-1 min-w-0">
+            <img src="${favicon}" alt="AT CIRCLE Logo" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg shadow-sm shrink-0" />
+            <span class="text-lg sm:text-xl text-primary font-black italic tracking-tighter truncate">${props.t ? props.t("common.brand") : "AT CIRCLE"}</span>
+          </a>
+          
+          <div class="flex flex-wrap gap-1 ml-auto sm:ml-0">
+            <a href="/rings" class="btn btn-ghost btn-sm font-medium">${props.t ? props.t("common.rings") : "Rings"}</a>
+            <a href="/dashboard" class="btn btn-ghost btn-sm font-medium">${props.t ? props.t("common.dashboard") : "Dashboard"}</a>
+            <a href="https://asadaame5121.net/Article/help_ja.html" target="_blank" rel="noopener noreferrer" 
+               class="btn btn-ghost btn-sm font-normal opacity-80 hover:opacity-100 hidden sm:flex">
+              <i class="fa-solid fa-circle-question mr-1"></i>
+              ${props.t ? props.t("common.help") : "Help"}
+            </a>
+            <a href="https://github.com/asadaame5121/atcircle" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-circle btn-sm">
+              <i class="fa-brands fa-github text-lg"></i>
+            </a>
           </div>
-          <a href="/" class="flex items-center gap-2 btn btn-ghost px-2">
-            <img src="${favicon}" alt="AT CIRCLE Logo" class="w-8 h-8 rounded-lg shadow-sm" />
-            <span class="text-xl text-primary font-black italic tracking-tighter">${props.t ? props.t("common.brand") : "AT CIRCLE"}</span>
-          </a>
-        </div>
-        <div class="navbar-center hidden lg:flex">
-          <ul class="menu menu-horizontal px-1 gap-1">
-            <li><a href="/rings">${props.t ? props.t("common.rings") : "Rings"}</a></li>
-            <li><a href="/dashboard">${props.t ? props.t("common.dashboard") : "Dashboard"}</a></li>
-          </ul>
-        </div>
-        <div class="navbar-end gap-1">
-          <a href="https://asadaame5121.net/Article/help_ja.html" target="_blank" rel="noopener noreferrer" 
-             class="btn btn-ghost btn-sm font-normal opacity-80 hover:opacity-100 hidden sm:flex"
-             title="${props.t ? props.t("common.external_link") : "External site"}">
-            <i class="fa-solid fa-circle-question mr-1"></i>
-            ${props.t ? props.t("common.help") : "Help"}
-            <i class="fa-solid fa-arrow-up-right-from-square text-[10px] ml-1 opacity-50"></i>
-          </a>
-          <a href="https://github.com/asadaame5121/atcircle" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-circle btn-sm">
-            <i class="fa-brands fa-github text-lg"></i>
-          </a>
         </div>
       </header>
       ${props.children}

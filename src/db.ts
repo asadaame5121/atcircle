@@ -247,6 +247,7 @@ if (db && db instanceof SqliteDatabase) {
         status TEXT DEFAULT 'approved',
         widget_installed INTEGER DEFAULT 0,
         last_verified_at INTEGER,
+        banner_url TEXT,
         created_at INTEGER DEFAULT (strftime('%s', 'now')),
         FOREIGN KEY (ring_uri) REFERENCES rings(uri),
         FOREIGN KEY (site_id) REFERENCES sites(id)
@@ -288,6 +289,7 @@ if (db && db instanceof SqliteDatabase) {
     await silentExec(
         "ALTER TABLE memberships ADD COLUMN last_verified_at INTEGER;",
     );
+    await silentExec("ALTER TABLE memberships ADD COLUMN banner_url TEXT;");
 }
 
 export default db;

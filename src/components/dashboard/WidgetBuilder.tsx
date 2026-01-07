@@ -45,8 +45,6 @@ export const WidgetBuilder = ({
                         <label class="label"><span class="label-text font-bold">${t("widget_builder.field_layout")}</span></label>
                         <select id="w-layout" class="select select-bordered w-full" onchange="updatePreview()">
                             <option value="html" selected>${t("widget_builder.layout_html")}</option>
-                            <option value="default">${t("widget_builder.layout_default")}</option>
-                            <option value="compact">${t("widget_builder.layout_compact")}</option>
                             <option value="simple">${t("widget_builder.layout_simple")}</option>
                             <option value="banner">${t("widget_builder.layout_banner")}</option>
                         </select>

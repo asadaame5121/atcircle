@@ -56,6 +56,7 @@ export class DashboardService {
             pendingMemberships,
             blocks,
             localRings,
+            localMemberships,
         ] = await Promise.all([
             agent ? AtProtoService.listRings(agent, did) : Promise.resolve([]),
             agent
@@ -65,6 +66,7 @@ export class DashboardService {
             this.ringRepo.findPendingMembershipsByAdmin(did),
             this.ringRepo.findBlocksByAdmin(did),
             this.ringRepo.getAllWithMemberCount(),
+            this.ringRepo.findApprovedMembershipsByAdmin(did),
         ]);
 
         // Unified Rings Logic
@@ -80,29 +82,182 @@ export class DashboardService {
                 slug: r.value.slug || "",
                 adminDid: r.value.admin || did,
                 acceptancePolicy: r.value.acceptancePolicy || "automatic",
+                bannerUrl: r.value.banner_url || "", // This is the banner on the ring record (if any)
                 pendingCount: 0,
             });
         }
 
-        for (const m of myMemberships) {
-            const ringUri = m.value.ring.uri;
-            const existing = ringMap.get(ringUri);
-            if (existing) {
-                existing.isMember = true;
-                existing.memberUri = m.uri;
-                existing.siteUrl = m.value.url;
-            } else {
-                try {
-                    const ringAtUri = new AtUri(ringUri);
-                    if (ringAtUri.hostname === did) continue;
-                } catch {}
+        // Helper to fetch missing ring data
+        const missingRings: string[] = [];
+        const syncPromises: Promise<any>[] = [];
 
+        for (const m of myMemberships) {
+            let ringUri = m.value.ring.uri;
+
+            // RECOVERY: Check for malformed HTTP URIs found in some records
+            // e.g. "https://at-circle.asadaame5121.net/rings/view?ring=at%3A%2F%2F..."
+            if (ringUri.startsWith("http")) {
+                try {
+                    const url = new URL(ringUri);
+                    const extracted = url.searchParams.get("ring");
+                    if (extracted?.startsWith("at://")) {
+                        ringUri = extracted;
+                    }
+                } catch {
+                    // Ignore parsing errors
+                }
+            }
+
+            // Sync missing membership locally
+            const localMatch = localMemberships.find(
+                (lm) => lm.member_uri === m.uri || lm.ring_uri === ringUri,
+            );
+            if (!localMatch && ringUri.startsWith("at://")) {
+                syncPromises.push(
+                    (async () => {
+                        try {
+                            const siteIdResult = (await this.db
+                                .prepare(
+                                    "SELECT id FROM sites WHERE user_did = ?",
+                                )
+                                .bind(did)
+                                .first()) as { id: number } | null;
+
+                            if (siteIdResult) {
+                                await this.db
+                                    .prepare(
+                                        "INSERT OR IGNORE INTO memberships (ring_uri, site_id, member_uri, status, created_at) VALUES (?, ?, ?, 'approved', ?)",
+                                    )
+                                    .bind(
+                                        ringUri,
+                                        siteIdResult.id,
+                                        m.uri,
+                                        m.value.createdAt
+                                            ? Math.floor(
+                                                  new Date(
+                                                      m.value.createdAt,
+                                                  ).getTime() / 1000,
+                                              )
+                                            : Math.floor(Date.now() / 1000),
+                                    )
+                                    .run();
+                            }
+                        } catch (e) {
+                            console.error(
+                                "[Dashboard] Background sync failed",
+                                e,
+                            );
+                        }
+                    })(),
+                );
+            }
+
+            if (!ringMap.has(ringUri)) {
+                missingRings.push(ringUri);
+                // Initialize with loading state
                 ringMap.set(ringUri, {
                     uri: ringUri,
                     title: "Loading...",
                     isMember: true,
                     memberUri: m.uri,
                     siteUrl: m.value.url,
+                });
+            } else {
+                const existing = ringMap.get(ringUri);
+                existing.isMember = true;
+                existing.memberUri = m.uri;
+                existing.siteUrl = m.value.url;
+            }
+        }
+
+        // Parallel fetch for missing rings and sync operations
+        if (agent) {
+            await Promise.allSettled([
+                ...syncPromises,
+                ...missingRings.map(async (uri) => {
+                    try {
+                        // Basic validation for AT URI
+                        if (!uri.startsWith("at://") || !uri.includes("/")) {
+                            console.warn(
+                                `[Dashboard] Invalid ring URI found in membership: ${uri}`,
+                            );
+                            const ring = ringMap.get(uri);
+                            if (ring) {
+                                ring.title = "Invalid Ring Data";
+                            }
+                            return;
+                        }
+
+                        const ringData = await AtProtoService.getRing(
+                            agent,
+                            uri,
+                        );
+                        const ring = ringMap.get(uri);
+                        if (ring) {
+                            ring.title = ringData.value.title;
+                            ring.description = ringData.value.description || "";
+                            ring.status = ringData.value.status || "open";
+                            ring.acceptancePolicy =
+                                ringData.value.acceptancePolicy || "automatic";
+                            const ownerDid = new AtUri(uri).hostname;
+                            ring.adminDid = ringData.value.admin || ownerDid;
+                            if (ring.adminDid === did) ring.isAdmin = true;
+                            ring.bannerUrl =
+                                (ringData.value as any).banner_url || "";
+                        }
+
+                        // Also update rings table locally if missing
+                        await this.db
+                            .prepare(
+                                "INSERT OR IGNORE INTO rings (uri, owner_did, admin_did, title, description, acceptance_policy, status) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                            )
+                            .bind(
+                                uri,
+                                new AtUri(uri).hostname,
+                                ringData.value.admin || new AtUri(uri).hostname,
+                                ringData.value.title,
+                                ringData.value.description || null,
+                                ringData.value.acceptancePolicy || "automatic",
+                                ringData.value.status || "open",
+                            )
+                            .run();
+                    } catch (e) {
+                        console.error(`Failed to fetch missing ring ${uri}`, e);
+                    }
+                }),
+            ]);
+        }
+
+        // Merge local memberships (fix for "Loading..." and missing rings due to PDS delay)
+        for (const m of localMemberships) {
+            const ringUri = m.ring_uri;
+            const existing = ringMap.get(ringUri);
+
+            if (existing) {
+                existing.isMember = true;
+                if (!existing.siteUrl) existing.siteUrl = m.site_url;
+                if (!existing.memberUri) existing.memberUri = m.member_uri;
+            } else {
+                if (
+                    ringUri ===
+                    `at://${did}/app.bsky.feed.generator/${
+                        new AtUri(ringUri).rkey
+                    }`
+                ) {
+                    continue;
+                }
+
+                ringMap.set(ringUri, {
+                    uri: ringUri,
+                    title: m.ring_title || "Loading...",
+                    isMember: true,
+                    memberUri: m.member_uri,
+                    siteUrl: m.site_url,
+                    description: "", // Will be updated by localRings loop
+                    status: "open",
+                    acceptancePolicy: "automatic",
+                    pendingCount: 0,
+                    isAdmin: false, // Will be updated if owner matches
                 });
             }
         }
@@ -116,6 +271,7 @@ export class DashboardService {
                 ring.acceptancePolicy = local.acceptance_policy;
                 ring.memberCount = local.member_count;
                 ring.slug = local.slug;
+                ring.bannerUrl = local.banner_url || ring.bannerUrl || "";
                 if (local.admin_did === did) ring.isAdmin = true;
             }
         }

@@ -24,6 +24,7 @@ export const ringUpdateSchema = z.object({
         .regex(/^[a-z0-9-]{3,32}$/)
         .optional()
         .or(z.literal("")),
+    banner_url: z.string().url().optional().or(z.literal("")),
 });
 
 export const ringActionSchema = z.object({

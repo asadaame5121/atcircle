@@ -70,6 +70,7 @@ app.post("/upload-banner", async (c) => {
     const body = await c.req.parseBody();
     const banner = body.banner as Blob;
     const ringUri = body.ring_uri as string;
+    const memberUri = body.member_uri as string | undefined;
 
     if (!banner || !ringUri) {
         return c.json(
@@ -79,7 +80,12 @@ app.post("/upload-banner", async (c) => {
     }
 
     const ringService = new RingService(c.env.DB);
-    const result = await ringService.uploadBanner(did, ringUri, banner);
+    const result = await ringService.uploadBanner(
+        did,
+        ringUri,
+        banner,
+        memberUri,
+    );
 
     if (result.success) {
         return c.json(result);
@@ -91,7 +97,7 @@ app.post("/upload-banner", async (c) => {
 app.post("/save-settings", async (c) => {
     const payload = c.get("jwtPayload");
     const did = payload.sub;
-    const { ring_uri, banner_url } = await c.req.json();
+    const { ring_uri, banner_url, member_uri } = await c.req.json();
 
     if (!ring_uri) {
         return c.json({ success: false, error: "Missing ring_uri" }, 400);
@@ -102,6 +108,7 @@ app.post("/save-settings", async (c) => {
         did,
         ring_uri,
         banner_url,
+        member_uri,
     );
 
     if (result.success) {

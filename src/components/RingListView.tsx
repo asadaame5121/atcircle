@@ -27,7 +27,7 @@ export const RingListView = ({ rings, t }: RingListViewProps) => {
                                     <h2 class="card-title text-xl font-bold">${ring.title}</h2>
                                     <div class="badge badge-secondary">${t("rings.member_count", { count: ring.member_count })}</div>
                                 </div>
-                                <p class="text-sm opacity-60 mb-2">${t("rings.by", { did: ring.owner_did })}</p>
+                                <p class="text-sm opacity-60 mb-2 truncate break-all">${t("rings.by", { did: ring.owner_did })}</p>
                                 <p class="text-base mb-4 line-clamp-2">${ring.description || t("common.no_description")}</p>
                                 <div class="card-actions justify-end mt-2">
                                     <a href="/rings/view?ring=${encodeURIComponent(ring.uri)}" class="btn btn-sm btn-outline btn-primary">${t("rings.view_sites")}</a>

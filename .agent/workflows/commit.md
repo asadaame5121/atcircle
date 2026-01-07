@@ -27,3 +27,4 @@ description: 規約に基づいたコミットメッセージを作成し、Obsi
    - **ファイルが存在しない場合**: ユーザーに「デイリーノート
      `log/yyyy-MM-dd.md` が見つかりません。先に作成してください。」と通知する
 5. `git commit -m "{Tag}: {message}"` を実行する
+6. `git push` を実行する

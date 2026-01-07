@@ -52,10 +52,10 @@ export const Scripts = ({ t }: ScriptsProps) => {
                 // Configuration Modal
                 window.openConfigModalFromBtn = function(btn) {
                     const ds = btn.dataset;
-                    window.openConfigModal(ds.uri, ds.title, ds.description, ds.status, ds.acceptance, ds.admin, ds.slug);
+                    window.openConfigModal(ds.uri, ds.title, ds.description, ds.status, ds.acceptance, ds.admin, ds.slug, ds.banner);
                 };
 
-                window.openConfigModal = function(uri, title, description, status, acceptance, admin, slug) {
+                window.openConfigModal = function(uri, title, description, status, acceptance, admin, slug, banner) {
                     document.getElementById('config-uri').value = uri || '';
                     document.getElementById('config-title').value = title || '';
                     document.getElementById('config-description').value = description || '';
@@ -63,6 +63,7 @@ export const Scripts = ({ t }: ScriptsProps) => {
                     document.getElementById('config-acceptance').value = acceptance || 'automatic';
                     document.getElementById('config-admin').value = admin || '';
                     document.getElementById('config-slug').value = slug || '';
+                    document.getElementById('config-banner').value = banner || '';
                     if (window.circle_config_modal) circle_config_modal.showModal();
                 };
 
