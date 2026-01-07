@@ -12,7 +12,7 @@ describe("Dashboard Route", () => {
     beforeEach(() => {
         vi.spyOn(AtProtoService, "listRings").mockResolvedValue([]);
         vi.spyOn(AtProtoService, "listMemberRecords").mockResolvedValue([]);
-        vi.spyOn(oauth, "restoreAgent").mockResolvedValue(undefined);
+        vi.spyOn(oauth, "restoreAgent").mockResolvedValue({} as any);
         vi.stubGlobal(
             "fetch",
             vi.fn().mockResolvedValue({
@@ -82,5 +82,67 @@ describe("Dashboard Route", () => {
         expect(res.status).toBe(200);
         const text = await res.text();
         expect(text).toContain("Dashboard");
+    });
+
+    it("renders owner-specific buttons but NOT invite-friends", async () => {
+        const token = await createMockAuthToken(
+            "did:plc:owner",
+            "owner.bsky.social",
+        );
+
+        // Mock ring where user is admin
+        vi.spyOn(AtProtoService, "listRings").mockResolvedValue([
+            {
+                uri: "at://did:plc:owner/net.asadaame5121.atCircle.ring/r1",
+                cid: "cid1",
+                value: {
+                    $type: "net.asadaame5121.atCircle.ring",
+                    title: "Owner Ring",
+                    description: "Test Ring",
+                    status: "open",
+                    acceptancePolicy: "automatic",
+                    admin: "did:plc:owner" as any,
+                    createdAt: new Date().toISOString(),
+                },
+            },
+        ]);
+
+        const env = {
+            DB: createMockDB({
+                first: { id: 1, url: "https://site.com", title: "Site 1" },
+                all: [],
+            }),
+        };
+
+        const app = wrapApp(dashboardApp);
+        const res = await app.request(
+            "/",
+            {
+                headers: {
+                    Cookie: `session=${token}`,
+                },
+            },
+            env,
+        );
+
+        expect(res.status).toBe(200);
+        const text = await res.text();
+
+        // Check for ring title
+        expect(text).toContain("Owner Ring");
+
+        // Should have owner-only buttons.
+        const hasManageButton =
+            text.includes("Manage") || text.includes("管理");
+        const hasConfigButton =
+            text.includes("Config") || text.includes("設定");
+
+        expect(hasManageButton).toBe(true);
+        expect(hasConfigButton).toBe(true);
+
+        // Should NOT have invite friends functionality
+        expect(text).not.toContain("Invite Friends");
+        expect(text).not.toContain("友人を招待");
+        expect(text).not.toContain("openInviteModal");
     });
 });

@@ -331,29 +331,4 @@ app.post("/delete", zValidator("form", ringActionSchema), async (c) => {
     return c.redirect("/dashboard?msg=deleted");
 });
 
-// GET /dashboard/ring/invite/friends
-app.get("/invite/friends", async (c) => {
-    const payload = c.get("jwtPayload");
-    const did = payload.sub;
-    try {
-        const agent = await restoreAgent(c.env.DB, PUBLIC_URL, did);
-        if (!agent) {
-            return c.json({ success: false, error: "Unauthorized" }, 401);
-        }
-
-        const result = await AtProtoService.getFollowers(agent, did);
-
-        return c.json({
-            success: true,
-            follows: result.followers,
-        });
-    } catch (e) {
-        pinoLogger.error({ msg: "Error fetching follows", error: e });
-        return c.json(
-            { success: false, error: (e as any).message || "Internal Error" },
-            500,
-        );
-    }
-});
-
 export default app;

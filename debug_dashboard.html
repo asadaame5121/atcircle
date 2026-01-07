@@ -1,0 +1,741 @@
+
+  <!DOCTYPE html>
+  <html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <meta name="description" content="AT CIRCLE is a webring system for personal sites leveraging ATProto. Connect with like-minded creators and build your community with Bluesky.">
+    <meta name="keywords" content="ATProto, Bluesky, webring, personal site, community">
+    
+    <!-- OGP -->
+    <meta property="og:title" content="Dashboard">
+    <meta property="og:description" content="AT CIRCLE is a webring system for personal sites leveraging ATProto. Connect with like-minded creators and build your community with Bluesky.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="http://localhost:8080">
+    <meta property="og:image" content="/assets/ogp.png">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Dashboard">
+    <meta name="twitter:description" content="AT CIRCLE is a webring system for personal sites leveraging ATProto. Connect with like-minded creators and build your community with Bluesky.">
+    <meta name="twitter:image" content="/assets/ogp.png">
+
+    <link rel="icon" type="image/png" href="/assets/favicon.png">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+    <link href="/assets/index.css" rel="stylesheet" />
+    <style>
+      /* Custom overrides for responsive layout */
+      body { 
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        overflow-x: hidden;
+      }
+      .container { 
+        width: 100% !important; 
+        max-width: 896px !important; 
+        margin-left: auto; 
+        margin-right: auto; 
+        padding-left: 0.75rem !important; 
+        padding-right: 0.75rem !important; 
+      }
+      
+      /* Ensure everything stays within viewport */
+      * { max-width: 100%; box-sizing: border-box; }
+    </style>
+  </head>
+  <body class="bg-base-200 min-h-screen">
+    <div class="container mx-auto p-4 max-w-4xl">
+      
+        <div class="navbar-start flex-wrap gap-2 w-full">
+          <a href="/" class="flex items-center gap-1 btn btn-ghost px-1 min-w-0">
+            <img src="/assets/favicon.png" alt="AT CIRCLE Logo" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg shadow-sm shrink-0" />
+            <span class="text-lg sm:text-xl text-primary font-black italic tracking-tighter truncate">AT CIRCLE</span>
+          </a>
+          
+          <div class="flex flex-wrap gap-1 ml-auto sm:ml-0">
+            <a href="/rings" class="btn btn-ghost btn-sm font-medium">Explore Webrings</a>
+            <a href="/dashboard" class="btn btn-ghost btn-sm font-medium">Dashboard</a>
+            <a href="https://asadaame5121.net/Article/help_ja.html" target="_blank" rel="noopener noreferrer" 
+               class="btn btn-ghost btn-sm font-normal opacity-80 hover:opacity-100 hidden sm:flex">
+              <i class="fa-solid fa-circle-question mr-1"></i>
+              Help
+            </a>
+            <a href="https://github.com/asadaame5121/atcircle" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-circle btn-sm">
+              <i class="fa-brands fa-github text-lg"></i>
+            </a>
+          </div>
+        </div>
+      </header>
+      
+        <div class="space-y-8">
+            <div class="flex justify-between items-start md:items-center bg-base-100 p-6 rounded-2xl shadow-sm border border-base-200 flex-wrap gap-4">
+                <div>
+                    <div class="flex items-center gap-3">
+                        <h1 class="text-3xl font-black italic tracking-tighter text-primary">DASHBOARD</h1>
+                        <button class="btn btn-circle btn-ghost btn-xs opacity-50 hover:opacity-100" onclick="usage_guide_modal.showModal()" title="Usage Guide">
+                            <i class="fa-solid fa-circle-question text-lg"></i>
+                        </button>
+                    </div>
+                    <p class="text-sm font-bold opacity-80 mt-1">Connect your blog to a circle of friends with your Bluesky account</p>
+                    <p class="text-[10px] opacity-30 font-mono mt-1">did:plc:owner</p>
+                    
+                </div>
+
+                <div class="flex gap-2 w-full md:w-auto">
+                    <button class="btn btn-primary btn-sm rounded-full px-6 flex-1 md:flex-none" onclick="create_ring_modal.showModal()">+ Create Webring</button>
+                    <button class="btn btn-outline btn-sm rounded-full flex-1 md:flex-none" onclick="join_ring_modal.showModal()">Join Webring</button>
+                </div>
+            </div>
+
+            <!-- Updates / News Section -->
+            <div class="bg-primary/5 border border-primary/10 p-4 rounded-xl flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="bg-primary/10 p-2 rounded-lg text-primary">
+                        <i class="fa-solid fa-bullhorn"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-primary">News &amp; Updates</h3>
+                        <p class="text-xs opacity-70">Check here for new features and documentation (External site)</p>
+                    </div>
+                </div>
+                <a href="https://asadaame5121.net/Article/AT%20CIRCLE.html" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm btn-circle" title="common.visit">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                </a>
+            </div>
+
+            
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2">
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                        dashboard.my_rings
+                    </h2>
+                    
+        <div class="space-y-4">
+            
+                <div class="card bg-base-200 shadow-sm border border-base-300">
+                    <div class="card-body p-5">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-x-3 gap-y-1 mb-2">
+                                    <h3 class="font-bold text-lg break-all lg:break-normal leading-tight">
+                                        <a href="/rings/view?ring=at%3A%2F%2Fdid%3Aplc%3Aowner%2Fnet.asadaame5121.atCircle.ring%2Fr1" class="link hover:link-primary">Owner Ring</a>
+                                    </h3>
+                                    <div class="flex flex-wrap gap-1">
+                                        <span class="badge badge-primary badge-outline badge-xs whitespace-nowrap">dashboard.owner</span>
+                                        
+                                        
+                                    </div>
+                                </div>
+                                <p class="text-sm opacity-70 mb-2">Test Ring</p>
+                                
+                                <div class="flex flex-wrap gap-2 items-center text-xs opacity-50 font-mono mb-3">
+                                    <span class="break-all">URI: at://did:plc:owner/net.asadaame5121.atCircle.ring/r1</span>
+                                </div>
+
+                                
+                                    <div class="flex flex-wrap gap-2 mb-2">
+                                        <button class="btn btn-ghost btn-xs bg-base-300/50 hover:bg-base-300" onclick="window.copyInviteLinkFromBtn(this)" data-uri="at://did:plc:owner/net.asadaame5121.atCircle.ring/r1">
+                                            <i class="fa-solid fa-copy mr-1 opacity-70"></i> dashboard.copy_invite_link
+                                        </button>
+                                        <button class="btn btn-ghost btn-xs bg-base-300/50 hover:bg-base-300" onclick="window.openMemberModalFromBtn(this)" data-uri="at://did:plc:owner/net.asadaame5121.atCircle.ring/r1" data-title="Owner Ring">
+                                            <i class="fa-solid fa-users mr-1 opacity-70"></i> Manage Members
+                                        </button>
+                                        <button class="btn btn-ghost btn-xs bg-base-300/50 hover:bg-base-300" 
+                                            onclick="window.openConfigModalFromBtn(this)" 
+                                            data-uri="at://did:plc:owner/net.asadaame5121.atCircle.ring/r1" 
+                                            data-title="Owner Ring" 
+                                            data-description="Test Ring" 
+                                            data-status="open" 
+                                            data-acceptance="automatic" 
+                                            data-admin="did:plc:owner" 
+                                            data-slug="" 
+                                            data-banner="">
+                                            <i class="fa-solid fa-gear mr-1 opacity-70"></i> Configure Ring
+                                        </button>
+                                    </div>
+                                
+                            </div>
+                        </div>
+
+                        
+                    </div>
+                </div>
+            
+        </div>
+    
+                </div>
+
+                <div class="space-y-6">
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
+                        dashboard.my_site
+                    </h2>
+                    
+        <div class="divider">Site Basic Settings</div>
+        <div class="card bg-base-100 shadow-sm border border-base-200">
+            <div class="card-body p-6">
+                <h2 class="card-title text-xl font-bold mb-4">dashboard.legacy_site</h2>
+            <div class="space-y-2">
+                <p><span class="font-semibold">Site Title:</span> Site 1</p>
+                <p><span class="font-semibold">Site URL:</span> <a href="https://site.com" target="_blank" class="link link-primary">https://site.com</a></p>
+                
+                <p><span class="font-semibold">dashboard.status:</span> 
+                    <span class="badge badge-ghost">dashboard.status_inactive</span>
+                </p>
+            </div>
+                <div class="card-actions mt-6">
+                    <a href="/dashboard/site/edit" class="btn btn-primary btn-sm rounded-full">dashboard.edit_site</a>
+                </div>
+            </div>
+        </div>
+    
+
+                    <div class="bg-base-100 p-6 rounded-2xl shadow-sm border border-base-200">
+                         <form action="/dashboard/sync" method="POST">
+                            <button type="submit" class="btn btn-ghost btn-sm w-full gap-2 opacity-70 hover:opacity-100">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                dashboard.sync_from_pds
+                            </button>
+                        </form>
+                        <form action="/logout" method="POST" class="mt-4">
+                            <button type="submit" class="btn btn-ghost btn-sm btn-error w-full gap-2 opacity-50 hover:opacity-100">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                                Logout
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="card bg-error/5 border border-error/10 p-4">
+                        <h3 class="text-xs font-bold text-error uppercase mb-2">Danger Zone</h3>
+                        <button class="btn btn-error btn-xs btn-outline w-full" onclick="leave_modal.showModal()">dashboard.delete_account_button</button>
+                    </div>
+                </div>
+            </div>
+
+            
+        
+        <!-- Create Ring Modal -->
+        <dialog id="create_ring_modal" class="modal">
+            <div class="modal-box">
+                <h3 class="font-bold text-lg">dashboard.modal_create_title</h3>
+                <form action="/dashboard/ring/create" method="POST" class="mt-4">
+                    <div class="form-control w-full mb-4">
+                        <label class="label"><span class="label-text">dashboard.modal_ring_name</span></label>
+                        <input type="text" name="title" required class="input input-bordered w-full" placeholder="dashboard.modal_ring_name_placeholder" />
+                    </div>
+                     <div class="form-control w-full mb-4">
+                        <label class="label"><span class="label-text">dashboard.modal_description</span></label>
+                        <textarea name="description" class="textarea textarea-bordered h-24" placeholder="dashboard.modal_description_placeholder"></textarea>
+                    </div>
+                    <div class="modal-action">
+                        <button type="button" class="btn" onclick="create_ring_modal.close()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">common.create</button>
+                    </div>
+                </form>
+            </div>
+             <form method="dialog" class="modal-backdrop">
+                <button>Close</button>
+            </form>
+        </dialog>
+
+         <!-- Join Ring Modal -->
+        <dialog id="join_ring_modal" class="modal">
+            <div class="modal-box">
+                <h3 class="font-bold text-lg">dashboard.modal_join_title</h3>
+                <form action="/dashboard/ring/join" method="POST" class="mt-4">
+                     <div class="form-control w-full mb-4">
+                        <label class="label"><span class="label-text">dashboard.modal_ring_uri</span></label>
+                        <input type="text" name="ring_uri" id="join-ring-uri" required class="input input-bordered w-full font-mono text-sm" placeholder="at://did:plc:.../..." />
+                    </div>
+                    <div class="divider">dashboard.modal_your_site_details</div>
+                     <div class="form-control w-full mb-4">
+                        <label class="label"><span class="label-text">Site URL</span></label>
+                        <input type="url" name="url" required class="input input-bordered w-full" value="https://site.com" />
+                    </div>
+                     <div class="form-control w-full mb-4">
+                        <label class="label"><span class="label-text">Site Title</span></label>
+                        <input type="text" name="title" required class="input input-bordered w-full" value="Site 1" />
+                    </div>
+                     <div class="form-control w-full mb-4">
+                        <label class="label"><span class="label-text">RSS (common.optional)</span></label>
+                        <input type="url" name="rss" class="input input-bordered w-full" value="" />
+                    </div>
+                    <div class="modal-action">
+                        <button type="button" class="btn" onclick="join_ring_modal.close()">Cancel</button>
+                        <button type="submit" class="btn btn-secondary">common.join</button>
+                    </div>
+                </form>
+            </div>
+             <form method="dialog" class="modal-backdrop">
+                <button>Close</button>
+            </form>
+        </dialog>
+
+        <!-- Circle Config Modal -->
+        <dialog id="circle_config_modal" class="modal">
+            <div class="modal-box">
+                <h3 class="font-bold text-lg">dashboard.modal_config_title</h3>
+                <form action="/dashboard/ring/update" method="POST" class="mt-4">
+                    <input type="hidden" name="uri" id="config-uri" />
+                    
+                    <div class="form-control w-full mb-4">
+                        <label class="label"><span class="label-text">dashboard.modal_ring_name</span></label>
+                        <input type="text" name="title" id="config-title" required class="input input-bordered w-full" />
+                    </div>
+
+                    <div class="form-control w-full mb-4">
+                        <label class="label"><span class="label-text">dashboard.modal_description</span></label>
+                        <textarea name="description" id="config-description" class="textarea textarea-bordered h-24"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">dashboard.status_public</span></label>
+                            <select name="status" id="config-status" class="select select-bordered w-full">
+                                <option value="open">dashboard.status_open</option>
+                                <option value="closed">dashboard.status_closed</option>
+                            </select>
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">dashboard.acceptance_policy</span></label>
+                            <select name="acceptance_policy" id="config-acceptance" class="select select-bordered w-full">
+                                <option value="manual">dashboard.acceptance_manual</option>
+                                <option value="automatic">dashboard.acceptance_automatic</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-control w-full mt-4">
+                        <label class="label"><span class="label-text">Administrator DID</span></label>
+                        <input type="text" name="admin_did" id="config-admin" required class="input input-bordered w-full font-mono text-xs" placeholder="did:plc:..." />
+                        <p class="text-[10px] opacity-50 mt-1">Single administrator. Defaults to owner DID.</p>
+                    </div>
+
+                    <div class="form-control w-full mt-4">
+                        <label class="label"><span class="label-text">Public URL Slug</span></label>
+                        <div class="join w-full">
+                            <span class="join-item bg-base-200 border border-base-300 px-3 flex items-center text-xs font-mono">/r/</span>
+                            <input type="text" name="slug" id="config-slug" class="input input-bordered join-item w-full font-mono text-sm" placeholder="my-awesome-ring" pattern="[a-z0-9-]{3,32}" title="A human-friendly URL (e.g. /r/my-ring). 3-32 characters, alphanumeric and hyphens." />
+                        </div>
+                        <p class="text-[10px] opacity-50 mt-1">A human-friendly URL (e.g. /r/my-ring). 3-32 characters, alphanumeric and hyphens.</p>
+                    </div>
+
+                    <div class="form-control w-full mt-4">
+                        <label class="label"><span class="label-text">Banner Image URL</span></label>
+                        <input type="url" name="banner_url" id="config-banner" class="input input-bordered w-full font-mono text-sm" placeholder="https://example.com/banner.png" />
+                        <p class="text-[10px] opacity-50 mt-1">Used as the default banner for the ring and OGP image.</p>
+                    </div>
+
+                    <div class="modal-action flex justify-between">
+                        <div class="flex gap-2">
+                             <button type="button" class="btn btn-error btn-outline" onclick="if(confirm('Are you sure you want to delete this webring? This action cannot be undone. All memberships and requests will be deleted.')) { 
+                                 const form = document.createElement('form');
+                                 form.method = 'POST';
+                                 form.action = '/dashboard/ring/delete';
+                                 const input = document.createElement('input');
+                                 input.type = 'hidden';
+                                 input.name = 'uri';
+                                 input.value = document.getElementById('config-uri').value;
+                                 form.appendChild(input);
+                                 document.body.appendChild(form);
+                                 form.submit();
+                              }">Delete Webring</button>
+                        </div>
+                        <div class="flex gap-2">
+                            <button type="button" class="btn" onclick="circle_config_modal.close()">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <form method="dialog" class="modal-backdrop">
+                <button>Close</button>
+            </form>
+        </dialog>
+    
+        
+        <!-- Usage Guide Modal -->
+        <dialog id="usage_guide_modal" class="modal">
+            <div class="modal-box max-w-lg">
+                <h3 class="font-black text-2xl italic tracking-tighter text-primary mb-6">Usage Guide</h3>
+                
+                <div class="space-y-6">
+                    <div class="flex gap-4">
+                        <div class="flex-none w-10 h-10 rounded-full bg-primary text-primary-content flex items-center justify-center font-bold">1</div>
+                        <div>
+                            <h4 class="font-bold text-lg">1. Register your site</h4>
+                            <p class="text-sm opacity-70 mt-1">Please register your website to join webrings.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-4">
+                        <div class="flex-none w-10 h-10 rounded-full bg-secondary text-secondary-content flex items-center justify-center font-bold">2</div>
+                        <div>
+                            <h4 class="font-bold text-lg">2. Find and join webrings</h4>
+                            <p class="text-sm opacity-70 mt-1">rings.explore_desc</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-4">
+                        <div class="flex-none w-10 h-10 rounded-full bg-accent text-accent-content flex items-center justify-center font-bold">3</div>
+                        <div>
+                            <h4 class="font-bold text-lg">3. Install the widget on your website</h4>
+                            <p class="text-sm opacity-70 mt-1">dashboard.embed_widget_desc</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-action">
+                    <button class="btn btn-primary" onclick="usage_guide_modal.close()">Got it!</button>
+                </div>
+            </div>
+            <form method="dialog" class="modal-backdrop">
+                <button>close</button>
+            </form>
+        </dialog>
+    
+        
+        <!-- Member Management Modal -->
+        <dialog id="member_management_modal" class="modal">
+            <div class="modal-box max-w-2xl">
+                <h3 class="font-bold text-lg mb-1">Member List</h3>
+                <p id="member-modal-subtitle" class="text-sm opacity-60 mb-4 font-mono truncate"></p>
+                
+                <div id="member-list-loading" class="justify-center py-10 hidden">
+                    <span class="loading loading-spinner loading-lg text-primary"></span>
+                </div>
+
+                <div id="member-list-container" class="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
+                    <!-- Members will be injected here -->
+                </div>
+
+                <div class="modal-action">
+                    <button class="btn" onclick="member_management_modal.close()">Close</button>
+                </div>
+            </div>
+            <form method="dialog" class="modal-backdrop">
+                <button>close</button>
+            </form>
+        </dialog>
+
+        </dialog>
+    
+        
+        <!-- Leave Modal (Delete Account) -->
+        <dialog id="leave_modal" class="modal">
+            <div class="modal-box">
+                <h3 class="font-bold text-lg text-error">dashboard.warning</h3>
+                <p class="py-4">dashboard.confirm_delete_account</p>
+                <div class="modal-action">
+                    <form method="dialog">
+                        <button class="btn btn-ghost">Cancel</button>
+                    </form>
+                    <form action="/dashboard/leave" method="POST">
+                        <button class="btn btn-error">dashboard.yes_delete_account</button>
+                    </form>
+                </div>
+            </div>
+            <form method="dialog" class="modal-backdrop">
+                <button>Close</button>
+            </form>
+        </dialog>
+    
+        
+        <!-- I18n Data Store -->
+        <script id="i18n-data" type="application/json">
+            {"noMembers":"No members found.","statusApproved":"members.status_approved","statusPending":"members.status_pending","statusSuspended":"members.status_suspended","kick":"Kick","block":"members.block","kickSuccess":"Member removed successfully.","blockSuccess":"members.block_success","confirmKick":"Are you sure you want to kick {{name}}?","confirmBlock":"members.confirm_block","widgetInstalled":"Installed","widgetNotInstalled":"Not Installed","verifyNow":"Verify Now","inviteSent":"Invite link copied to clipboard!"}
+        </script>
+
+        <script>
+            (function() {
+            try {
+                console.log('ATcircle Dashboard: Initializing script...');
+                
+                // Load I18n
+                const rawI18n = document.getElementById('i18n-data').textContent;
+                const txt = document.createElement("textarea");
+                txt.innerHTML = rawI18n;
+                const i18n = JSON.parse(txt.value);
+
+                // Global State
+                window.atcircle = {
+                    currentRingUri: '',
+                    currentRingTitle: '',
+                };
+
+                // Configuration Modal
+                window.openConfigModalFromBtn = function(btn) {
+                    const ds = btn.dataset;
+                    window.openConfigModal(ds.uri, ds.title, ds.description, ds.status, ds.acceptance, ds.admin, ds.slug, ds.banner);
+                };
+
+                window.openConfigModal = function(uri, title, description, status, acceptance, admin, slug, banner) {
+                    document.getElementById('config-uri').value = uri || '';
+                    document.getElementById('config-title').value = title || '';
+                    document.getElementById('config-description').value = description || '';
+                    document.getElementById('config-status').value = status || 'open';
+                    document.getElementById('config-acceptance').value = acceptance || 'automatic';
+                    document.getElementById('config-admin').value = admin || '';
+                    document.getElementById('config-slug').value = slug || '';
+                    document.getElementById('config-banner').value = banner || '';
+                    if (window.circle_config_modal) circle_config_modal.showModal();
+                };
+
+                // Member Management
+                window.openMemberModal = async function(uri, title) {
+                    window.atcircle.currentRingUri = uri;
+                    document.getElementById('member-modal-subtitle').textContent = uri;
+                    if (window.member_management_modal) member_management_modal.showModal();
+                    await window.refreshMemberList();
+                };
+
+                window.openMemberModalFromBtn = function(btn) {
+                    window.openMemberModal(btn.dataset.uri, btn.dataset.title);
+                };
+
+                window.refreshMemberList = async function() {
+                    const container = document.getElementById('member-list-container');
+                    const loading = document.getElementById('member-list-loading');
+                    if (!container || !loading) return;
+
+                    container.innerHTML = '';
+                    loading.classList.remove('hidden');
+                    loading.classList.add('flex');
+
+                    try {
+                        const res = await fetch('/dashboard/ring/members/list?ring_uri=' + encodeURIComponent(window.atcircle.currentRingUri));
+                        const data = await res.json();
+                        loading.classList.add('hidden');
+                        loading.classList.remove('flex');
+
+                        if (data.success) {
+                            if (!data.members || data.members.length === 0) {
+                                container.innerHTML = '<div class="text-center py-8 opacity-50 italic">' + i18n.noMembers + '</div>';
+                                return;
+                            }
+
+                            data.members.forEach(m => {
+                                const div = document.createElement('div');
+                                div.className = 'flex items-center justify-between p-3 bg-base-200 rounded-lg border border-base-300';
+                                
+                                const isApproved = m.status === 'approved' ? 'selected' : '';
+                                const isPending = m.status === 'pending' ? 'selected' : '';
+                                const isSuspended = m.status === 'suspended' ? 'selected' : '';
+                                
+                                const avatarUrl = m.avatar || 'https://cdn.bsky.app/img/avatar/plain/did:plc:z72i7hdynmk6p22nfzvega35/asadaame5121@1.png';
+                                const handle = m.handle ? '@' + m.handle : 'DID: ' + m.user_did;
+                                const displayName = m.displayName || m.title || 'Unknown';
+
+                                 div.innerHTML = '<div class="flex items-center gap-3 min-w-0 flex-1">' +
+                                    '<div class="avatar">' +
+                                    '<div class="w-10 h-10 rounded-full">' +
+                                    '<img src="' + avatarUrl + '" alt="Avatar" />' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="flex flex-col min-w-0">' +
+                                    '<span class="font-bold truncate">' + displayName + '</span>' +
+                                    '<span class="text-xs opacity-50 truncate">' + handle + '</span>' +
+                                    '<div class="flex items-center gap-2 mt-0.5">' +
+                                        '<a href="' + m.url + '" target="_blank" class="text-[10px] link link-primary truncate max-w-[150px]">' + m.url + '</a>' +
+                                        '<div class="flex items-center gap-1 ml-1">' +
+                                            (m.widget_installed ? 
+                                                '<span class="badge badge-success badge-xs gap-1 py-1.5" title="' + i18n.widgetInstalled + '"><i class="fa-solid fa-check text-[8px]"></i></span>' : 
+                                                '<span class="badge badge-error badge-xs gap-1 py-1.5" title="' + i18n.widgetNotInstalled + '"><i class="fa-solid fa-xmark text-[8px]"></i></span>') +
+                                            '<button class="btn btn-ghost btn-xs btn-circle h-5 w-5 min-h-0" onclick="window.verifyMemberWidget(\'' + m.user_did + '\')" title="' + i18n.verifyNow + '">' +
+                                                '<i class="fa-solid fa-rotate text-[10px]"></i>' +
+                                            '</button>' +
+                                        '</div>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '<div class="flex items-center gap-2">' +
+                                    '<select class="select select-bordered select-xs" onchange="window.updateMemberStatus(\'' + m.user_did + '\', this.value)">' +
+                                    '<option value="approved" ' + isApproved + '>' + i18n.statusApproved + '</option>' +
+                                    '<option value="pending" ' + isPending + '>' + i18n.statusPending + '</option>' +
+                                    '<option value="suspended" ' + isSuspended + '>' + i18n.statusSuspended + '</option>' +
+                                    '</select>' +
+                                    '<button class="btn btn-ghost btn-xs btn-outline" onclick="window.kickMember(\'' + m.user_did + '\', \'' + displayName.replace(/'/g, "\\'") + '\')">' + i18n.kick + '</button>' +
+                                    '<button class="btn btn-error btn-xs btn-outline" onclick="window.blockMember(\'' + m.user_did + '\', \'' + displayName.replace(/'/g, "\\'") + '\')">' + i18n.block + '</button>' +
+                                    '</div>';
+                                container.appendChild(div);
+                            });
+                        } else {
+                            container.innerHTML = '<div class="alert alert-error font-bold">' + (data.error || 'Unknown error') + '</div>';
+                        }
+                    } catch (e) {
+                        loading.classList.add('hidden');
+                        loading.classList.remove('flex');
+                        container.innerHTML = '<div class="alert alert-error">Failed to fetch members</div>';
+                    }
+                };
+
+                window.verifyMemberWidget = async function(memberDid) {
+                    try {
+                        const res = await fetch('/dashboard/ring/members/verify', {
+                            method: 'POST',
+                            body: new URLSearchParams({
+                                ring_uri: window.atcircle.currentRingUri,
+                                member_did: memberDid
+                            })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            await window.refreshMemberList();
+                        } else {
+                            alert('Verification failed: ' + data.error);
+                        }
+                    } catch (e) {
+                        alert('Failed to connect to verification server');
+                    }
+                };
+
+                window.updateMemberStatus = async function(memberDid, status) {
+                    try {
+                        const res = await fetch('/dashboard/ring/members/update', {
+                            method: 'POST',
+                            body: new URLSearchParams({
+                                ring_uri: window.atcircle.currentRingUri,
+                                member_did: memberDid,
+                                status: status
+                            })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            // Success
+                        } else {
+                            alert('Error: ' + data.error);
+                            await window.refreshMemberList();
+                        }
+                    } catch (e) {
+                        alert('Failed to update member status');
+                        await window.refreshMemberList();
+                    }
+                };
+
+                window.kickMember = async function(memberDid, name) {
+                    const msg = i18n.confirmKick.replace('{{name}}', name);
+                    if (!confirm(msg)) return;
+
+                    try {
+                        const res = await fetch('/dashboard/ring/members/kick', {
+                            method: 'POST',
+                            body: new URLSearchParams({
+                                ring_uri: window.atcircle.currentRingUri,
+                                member_did: memberDid
+                            })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            alert(i18n.kickSuccess);
+                            await window.refreshMemberList();
+                        } else {
+                            alert('Error: ' + data.error);
+                        }
+                    } catch (e) {
+                        alert('Failed to kick member');
+                    }
+                };
+
+                window.blockMember = async function(memberDid, name) {
+                    const msg = i18n.confirmBlock.replace('{{name}}', name);
+                    if (!confirm(msg)) return;
+
+                    try {
+                        const res = await fetch('/dashboard/ring/members/block', {
+                            method: 'POST',
+                            body: new URLSearchParams({
+                                ring_uri: window.atcircle.currentRingUri,
+                                member_did: memberDid
+                            })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            alert(i18n.blockSuccess);
+                            await window.refreshMemberList();
+                        } else {
+                            alert('Error: ' + data.error);
+                        }
+                    } catch (e) {
+                        alert('Failed to block user');
+                    }
+                };
+
+                window.copyInviteLinkFromBtn = function(btn) {
+                    const uri = btn.dataset.uri;
+                    const url = window.location.origin + '/rings/view?ring=' + encodeURIComponent(uri);
+                    navigator.clipboard.writeText(url).then(() => {
+                        alert(i18n.inviteSent);
+                    }).catch(err => {
+                        console.error('Failed to copy: ', err);
+                    });
+                };
+
+                // Join Ring
+                window.openJoinModal = function(uri) {
+                    const input = document.getElementById('join-ring-uri');
+                    if (input) input.value = uri || '';
+                    if (window.join_ring_modal) join_ring_modal.showModal();
+                };
+
+                window.sendInvites = function() {
+                    // Logic removed
+                };
+
+                // Initialization
+                window.addEventListener('load', () => {
+                    const params = new URLSearchParams(window.location.search);
+                    const ringUri = params.get('ring_uri');
+                    if (ringUri) {
+                        window.openJoinModal(ringUri);
+                    }
+                });
+
+                console.log('ATcircle Dashboard: Script initialized successfully.');
+            } catch (e) {
+                console.error('ATcircle Dashboard: Script initialization failed:', e);
+            }
+            })();
+        </script>
+    
+    
+        </div>
+    
+      <footer class="footer p-10 bg-base-100 text-base-content rounded-box shadow-lg mt-12 grid-cols-1 md:grid-cols-3">
+        <nav>
+          <h6 class="footer-title">Legal</h6> 
+          <a href="/terms" class="link link-hover">Terms of Use</a>
+          <a href="/privacy" class="link link-hover">Privacy Policy</a>
+        </nav>
+        <nav>
+          <h6 class="footer-title">Share</h6>
+          <div class="flex gap-4">
+            <a href="https://bsky.app/intent/compose?text=AT%20CIRCLE%20is%20a%20webring%20system%20for%20personal%20sites%20leveraging%20ATProto.%20Connect%20with%20like-minded%20creators%20and%20build%20your%20community%20with%20Bluesky.%20http%3A%2F%2Flocalhost%3A8080" class="btn btn-ghost btn-circle btn-sm" target="_blank" rel="noopener noreferrer" title="Share on Bluesky">
+              <i class="fa-brands fa-bluesky text-lg"></i>
+            </a>
+            <a href="https://twitter.com/intent/tweet?text=AT%20CIRCLE%20is%20a%20webring%20system%20for%20personal%20sites%20leveraging%20ATProto.%20Connect%20with%20like-minded%20creators%20and%20build%20your%20community%20with%20Bluesky.&url=http%3A%2F%2Flocalhost%3A8080" class="btn btn-ghost btn-circle btn-sm" target="_blank" rel="noopener noreferrer" title="Share on X (Twitter)">
+              <i class="fa-brands fa-x-twitter text-lg"></i>
+            </a>
+            <a href="https://github.com/asadaame5121/atcircle" class="btn btn-ghost btn-circle btn-sm" target="_blank" rel="noopener noreferrer" title="GitHub">
+              <i class="fa-brands fa-github text-lg"></i>
+            </a>
+          </div>
+        </nav>
+        <aside class="md:col-span-3 border-t border-base-300 pt-6 w-full">
+          <p class="font-bold text-primary">AT CIRCLE</p>
+          <p class="text-xs opacity-60">Webring system for personal sites leveraging ATProto</p>
+          <p class="mt-2">
+            <a href="https://bsky.app/profile/asadaame5121.bsky.social" class="link link-primary text-xs" target="_blank" rel="noopener noreferrer">
+               Contact (Bluesky)
+            </a>
+          </p>
+        </aside>
+      </footer>
+    </div>
+    <script async src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
+  </body>
+  <!-- BuyMeACoffee -->
+  <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="asadaame5121" data-color="#FFDD00" data-emoji=""  data-font="Cookie" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script>
+</html>

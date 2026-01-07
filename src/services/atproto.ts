@@ -1,4 +1,4 @@
-import { type Agent, type AppBskyActorDefs, AtUri } from "@atproto/api";
+import { type Agent, AtUri } from "@atproto/api";
 import { NetNS } from "../lexicons/index.js";
 import { ids } from "../lexicons/lexicons.js";
 import type * as Banner from "../lexicons/types/net/asadaame5121/at-circle/banner.js";
@@ -391,25 +391,6 @@ export const AtProtoService = {
             actor,
         });
         return response.data;
-    },
-
-    async getFollowers(agent: Agent, actor: string) {
-        // Use full iteration if needed, or expose cursor
-        // Original logic iterates all pages
-        let followers: AppBskyActorDefs.ProfileView[] = [];
-        let cursor: string | undefined;
-
-        do {
-            const response = await agent.getFollowers({
-                actor,
-                cursor,
-                limit: 100,
-            });
-            followers = followers.concat(response.data.followers);
-            cursor = response.data.cursor;
-        } while (cursor);
-
-        return { followers };
     },
 
     async getProfiles(agent: Agent, actors: string[]) {

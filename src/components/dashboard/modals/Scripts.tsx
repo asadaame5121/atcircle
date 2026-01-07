@@ -24,8 +24,6 @@ export const Scripts = ({ t }: ScriptsProps) => {
                     widgetNotInstalled: t("members.widget_not_installed"),
                     verifyNow: t("members.verify_now"),
                     inviteSent: "Invite link copied to clipboard!",
-                    inviteMessageTemplate:
-                        '{{handles}}\\n\\nWebring "{{title}}" に参加しませんか？\\n#atcircle\\n\\n{{url}}',
                 }),
             )}
         </script>
@@ -45,8 +43,6 @@ export const Scripts = ({ t }: ScriptsProps) => {
                 window.atcircle = {
                     currentRingUri: '',
                     currentRingTitle: '',
-                    allFollows: [],
-                    selectedDids: new Set()
                 };
 
                 // Configuration Modal
@@ -263,122 +259,8 @@ export const Scripts = ({ t }: ScriptsProps) => {
                     if (window.join_ring_modal) join_ring_modal.showModal();
                 };
 
-                // Invite Friends
-                window.openInviteModal = async function(uri, title) {
-                    window.atcircle.currentRingUri = uri;
-                    window.atcircle.currentRingTitle = title;
-                    window.atcircle.selectedDids.clear();
-                    window.updateSelection();
-                    document.getElementById('invite-modal-subtitle').textContent = uri;
-                    document.getElementById('friend-search-input').value = '';
-                    if (window.invite_friends_modal) invite_friends_modal.showModal();
-                    await window.refreshFriendList();
-                };
-
-                window.openInviteModalFromBtn = function(btn) {
-                    window.openInviteModal(btn.dataset.uri, btn.dataset.title);
-                };
-
-                window.refreshFriendList = async function() {
-                    const container = document.getElementById('friend-list-container');
-                    const loading = document.getElementById('friend-list-loading');
-                    if (!container || !loading) return;
-                    
-                    container.innerHTML = '';
-                    loading.classList.remove('hidden');
-                    loading.classList.add('flex');
-
-                    try {
-                        const res = await fetch('/dashboard/ring/invite/friends');
-                        const data = await res.json();
-                        loading.classList.add('hidden');
-                        loading.classList.remove('flex');
-
-                        if (data.success) {
-                            window.atcircle.allFollows = data.follows || [];
-                            window.renderFriends(window.atcircle.allFollows);
-                        } else {
-                            container.innerHTML = '<div class="alert alert-error font-bold col-span-full">' + (data.error || 'Fetch failed') + '</div>';
-                        }
-                    } catch (e) {
-                        loading.classList.add('hidden');
-                        loading.classList.remove('flex');
-                        container.innerHTML = '<div class="alert alert-error col-span-full">Failed to fetch friends</div>';
-                    }
-                };
-
-                window.renderFriends = function(friends) {
-                    const container = document.getElementById('friend-list-container');
-                    if (!container) return;
-                    container.innerHTML = '';
-                    
-                    if (!friends || friends.length === 0) {
-                        container.innerHTML = '<div class="text-center py-8 opacity-50 italic col-span-full">No friends found.</div>';
-                        return;
-                    }
-
-                    friends.forEach(f => {
-                        const div = document.createElement('label');
-                        div.className = 'flex items-center gap-3 p-3 bg-base-200 rounded-lg border border-base-300 cursor-pointer hover:bg-base-300 transition-colors';
-                        const isChecked = window.atcircle.selectedDids.has(f.did) ? 'checked' : '';
-                        div.innerHTML = '<input type="checkbox" class="checkbox checkbox-primary checkbox-sm" ' + isChecked + 
-                            ' onchange="window.toggleFriendSelection(\\\'' + f.did + '\\\', this.checked)">' +
-                            '<div class="flex flex-col min-w-0 flex-1">' +
-                            '<span class="font-bold truncate text-sm">' + (f.displayName || f.handle) + '</span>' +
-                            '<span class="text-[10px] opacity-50 truncate">@' + f.handle + '</span>' +
-                            '</div>';
-                        container.appendChild(div);
-                    });
-                };
-
-                window.filterFriends = function() {
-                    const term = document.getElementById('friend-search-input').value.toLowerCase();
-                    const filtered = (window.atcircle.allFollows || []).filter(f => 
-                        f.handle.toLowerCase().includes(term) || 
-                        (f.displayName && f.displayName.toLowerCase().includes(term))
-                    );
-                    window.renderFriends(filtered);
-                };
-
-                window.toggleFriendSelection = function(did, isChecked) {
-                    if (isChecked) {
-                        if (window.atcircle.selectedDids.size >= 10) {
-                            alert('Max 10 users can be selected at once.');
-                            window.renderFriends(window.atcircle.allFollows);
-                            return;
-                        }
-                        window.atcircle.selectedDids.add(did);
-                    } else {
-                        window.atcircle.selectedDids.delete(did);
-                    }
-                    window.updateSelection();
-                };
-
-                window.updateSelection = function() {
-                    const countEl = document.getElementById('selected-count');
-                    const btnEl = document.getElementById('send-invite-btn');
-                    if (countEl) countEl.textContent = window.atcircle.selectedDids.size;
-                    if (btnEl) btnEl.disabled = window.atcircle.selectedDids.size === 0;
-                };
-
                 window.sendInvites = function() {
-                    const baseUrl = window.location.origin;
-                    const ringUrl = baseUrl + '/rings/view?ring=' + encodeURIComponent(window.atcircle.currentRingUri);
-                    
-                    const selectedHandles = window.atcircle.allFollows
-                        .filter(f => window.atcircle.selectedDids.has(f.did))
-                        .map(f => '@' + f.handle)
-                        .join(' ');
-
-                    const text = i18n.inviteMessageTemplate
-                        .replace('{{handles}}', selectedHandles)
-                        .replace('{{title}}', window.atcircle.currentRingTitle)
-                        .replace('{{url}}', ringUrl);
-                    
-                    const intentUrl = 'https://bsky.app/intent/compose?text=' + encodeURIComponent(text);
-                    
-                    window.open(intentUrl, '_blank');
-                    if (window.invite_friends_modal) invite_friends_modal.close();
+                    // Logic removed
                 };
 
                 // Initialization

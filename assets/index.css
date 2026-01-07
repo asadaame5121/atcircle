@@ -218,9 +218,6 @@
   .z-1 {
     z-index: 1;
   }
-  .col-span-full {
-    grid-column: 1 / -1;
-  }
   .container {
     width: 100%;
     @media (width >= 40rem) {
@@ -247,9 +244,6 @@
   }
   .-mt-12 {
     margin-top: calc(var(--spacing) * -12);
-  }
-  .mt-0 {
-    margin-top: calc(var(--spacing) * 0);
   }
   .mt-0\.5 {
     margin-top: calc(var(--spacing) * 0.5);
@@ -358,9 +352,6 @@
   }
   .h-full {
     height: 100%;
-  }
-  .max-h-\[45vh\] {
-    max-height: 45vh;
   }
   .max-h-\[60vh\] {
     max-height: 60vh;
@@ -939,11 +930,6 @@
   .sm\:w-8 {
     @media (width >= 40rem) {
       width: calc(var(--spacing) * 8);
-    }
-  }
-  .sm\:grid-cols-2 {
-    @media (width >= 40rem) {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
   .sm\:flex-row {

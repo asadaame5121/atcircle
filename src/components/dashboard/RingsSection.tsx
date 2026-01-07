@@ -52,9 +52,6 @@ export const RingsSection = (props: {
                                         <button class="btn btn-ghost btn-xs bg-base-300/50 hover:bg-base-300" onclick="window.openMemberModalFromBtn(this)" data-uri="${r.uri}" data-title="${r.title}">
                                             <i class="fa-solid fa-users mr-1 opacity-70"></i> ${t("dashboard.manage_members")}
                                         </button>
-                                        <button class="btn btn-ghost btn-xs bg-base-300/50 hover:bg-base-300" onclick="window.openInviteModalFromBtn(this)" data-uri="${r.uri}" data-title="${r.title}">
-                                            <i class="fa-solid fa-user-plus mr-1 opacity-70"></i> ${t("dashboard.invite_friends")}
-                                        </button>
                                         <button class="btn btn-ghost btn-xs bg-base-300/50 hover:bg-base-300" 
                                             onclick="window.openConfigModalFromBtn(this)" 
                                             data-uri="${r.uri}" 
