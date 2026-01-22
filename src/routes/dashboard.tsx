@@ -1,10 +1,8 @@
 import { Hono } from "hono";
-import { getCookie } from "hono/cookie";
-import { verify } from "hono/jwt";
 import { DashboardView } from "../components/dashboard/DashboardView.js";
 import { RegistrationForm } from "../components/dashboard/RegistrationForm.js";
 import { Layout } from "../components/Layout.js";
-import { SECRET_KEY } from "../config.js";
+import { authMiddleware } from "../middleware/auth.js";
 import {
     DashboardService,
     type DashboardViewData,
@@ -25,22 +23,8 @@ import widgetBuilder from "./widget_builder.js";
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
 
 // Protected Route Middleware
-app.use("*", async (c, next) => {
-    const token = getCookie(c, "session");
-    if (!token) {
-        const url = new URL(c.req.url);
-        return c.redirect(
-            `/login?next=${encodeURIComponent(url.pathname + url.search)}`,
-        );
-    }
-    try {
-        const payload = await verify(token, SECRET_KEY);
-        c.set("jwtPayload", payload);
-        await next();
-    } catch (_e) {
-        return c.redirect("/login");
-    }
-});
+// Protected Route Middleware
+app.use("*", authMiddleware);
 
 // Mounting Sub-apps
 app.route("/ring/widget", widgetBuilder);

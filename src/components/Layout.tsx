@@ -85,7 +85,7 @@ export const Layout = (props: {
               <i class="fa-solid fa-circle-question mr-1"></i>
               ${props.t ? props.t("common.help") : "Help"}
             </a>
-            <a href="https://github.com/asadaame5121/atcircle" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-circle btn-sm">
+            <a href="https://github.com/asadaame5121/atcircle" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-circle btn-sm" aria-label="GitHub">
               <i class="fa-brands fa-github text-lg"></i>
             </a>
           </div>
@@ -101,13 +101,13 @@ export const Layout = (props: {
         <nav>
           <h6 class="footer-title">${props.t ? props.t("common.share") : "Share"}</h6>
           <div class="flex gap-4">
-            <a href="https://bsky.app/intent/compose?text=${encodeURIComponent(`${props.t ? props.t("seo.description") : ""} ${PUBLIC_URL}`)}" class="btn btn-ghost btn-circle btn-sm" target="_blank" rel="noopener noreferrer" title="${props.t ? props.t("common.share_on_bluesky") : "Bluesky"}">
+            <a href="https://bsky.app/intent/compose?text=${encodeURIComponent(`${props.t ? props.t("seo.description") : ""} ${PUBLIC_URL}`)}" class="btn btn-ghost btn-circle btn-sm" target="_blank" rel="noopener noreferrer" title="${props.t ? props.t("common.share_on_bluesky") : "Bluesky"}" aria-label="${props.t ? props.t("common.share_on_bluesky") : "Bluesky"}">
               <i class="fa-brands fa-bluesky text-lg"></i>
             </a>
-            <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(props.t ? props.t("seo.description") : "")}&url=${encodeURIComponent(PUBLIC_URL)}" class="btn btn-ghost btn-circle btn-sm" target="_blank" rel="noopener noreferrer" title="${props.t ? props.t("common.share_on_twitter") : "Twitter"}">
+            <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(props.t ? props.t("seo.description") : "")}&url=${encodeURIComponent(PUBLIC_URL)}" class="btn btn-ghost btn-circle btn-sm" target="_blank" rel="noopener noreferrer" title="${props.t ? props.t("common.share_on_twitter") : "Twitter"}" aria-label="${props.t ? props.t("common.share_on_twitter") : "Twitter"}">
               <i class="fa-brands fa-x-twitter text-lg"></i>
             </a>
-            <a href="https://github.com/asadaame5121/atcircle" class="btn btn-ghost btn-circle btn-sm" target="_blank" rel="noopener noreferrer" title="GitHub">
+            <a href="https://github.com/asadaame5121/atcircle" class="btn btn-ghost btn-circle btn-sm" target="_blank" rel="noopener noreferrer" title="GitHub" aria-label="GitHub">
               <i class="fa-brands fa-github text-lg"></i>
             </a>
           </div>

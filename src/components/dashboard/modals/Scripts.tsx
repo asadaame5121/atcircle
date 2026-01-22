@@ -98,7 +98,7 @@ export const Scripts = ({ t }: ScriptsProps) => {
 
                             data.members.forEach(m => {
                                 const div = document.createElement('div');
-                                div.className = 'flex items-center justify-between p-3 bg-base-200 rounded-lg border border-base-300';
+                                div.className = 'flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-base-200 rounded-lg border border-base-300 gap-4';
                                 
                                 const isApproved = m.status === 'approved' ? 'selected' : '';
                                 const isPending = m.status === 'pending' ? 'selected' : '';
@@ -108,18 +108,18 @@ export const Scripts = ({ t }: ScriptsProps) => {
                                 const handle = m.handle ? '@' + m.handle : 'DID: ' + m.user_did;
                                 const displayName = m.displayName || m.title || 'Unknown';
 
-                                 div.innerHTML = '<div class="flex items-center gap-3 min-w-0 flex-1">' +
+                                  div.innerHTML = '<div class="flex items-center gap-3 min-w-0 w-full flex-1">' +
                                     '<div class="avatar">' +
                                     '<div class="w-10 h-10 rounded-full">' +
                                     '<img src="' + avatarUrl + '" alt="Avatar" />' +
                                     '</div>' +
                                     '</div>' +
-                                    '<div class="flex flex-col min-w-0">' +
+                                    '<div class="flex flex-col min-w-0 flex-1">' +
                                     '<span class="font-bold truncate">' + displayName + '</span>' +
                                     '<span class="text-xs opacity-50 truncate">' + handle + '</span>' +
                                     '<div class="flex items-center gap-2 mt-0.5">' +
-                                        '<a href="' + m.url + '" target="_blank" class="text-[10px] link link-primary truncate max-w-[150px]">' + m.url + '</a>' +
-                                        '<div class="flex items-center gap-1 ml-1">' +
+                                        '<a href="' + m.url + '" target="_blank" class="text-[10px] link link-primary truncate max-w-[150px] sm:max-w-[200px]">' + m.url + '</a>' +
+                                        '<div class="flex items-center gap-1 ml-1 shrink-0">' +
                                             (m.widget_installed ? 
                                                 '<span class="badge badge-success badge-xs gap-1 py-1.5" title="' + i18n.widgetInstalled + '"><i class="fa-solid fa-check text-[8px]"></i></span>' : 
                                                 '<span class="badge badge-error badge-xs gap-1 py-1.5" title="' + i18n.widgetNotInstalled + '"><i class="fa-solid fa-xmark text-[8px]"></i></span>') +
@@ -130,14 +130,14 @@ export const Scripts = ({ t }: ScriptsProps) => {
                                     '</div>' +
                                     '</div>' +
                                     '</div>' +
-                                    '<div class="flex items-center gap-2">' +
-                                    '<select class="select select-bordered select-xs" onchange="window.updateMemberStatus(\\\'' + m.user_did + '\\\', this.value)">' +
+                                    '<div class="flex items-center gap-2 w-full sm:w-auto justify-start sm:justify-end flex-wrap">' +
+                                    '<select class="select select-bordered select-xs flex-1 sm:flex-none" onchange="window.updateMemberStatus(\\\'' + m.user_did + '\\\', this.value)">' +
                                     '<option value="approved" ' + isApproved + '>' + i18n.statusApproved + '</option>' +
                                     '<option value="pending" ' + isPending + '>' + i18n.statusPending + '</option>' +
                                     '<option value="suspended" ' + isSuspended + '>' + i18n.statusSuspended + '</option>' +
                                     '</select>' +
-                                    '<button class="btn btn-ghost btn-xs btn-outline" onclick="window.kickMember(\\\'' + m.user_did + '\\\', \\\'' + displayName.replace(/'/g, "\\\\'") + '\\\')">' + i18n.kick + '</button>' +
-                                    '<button class="btn btn-error btn-xs btn-outline" onclick="window.blockMember(\\\'' + m.user_did + '\\\', \\\'' + displayName.replace(/'/g, "\\\\'") + '\\\')">' + i18n.block + '</button>' +
+                                    '<button class="btn btn-ghost btn-xs btn-outline flex-1 sm:flex-none" onclick="window.kickMember(\\\'' + m.user_did + '\\\', \\\'' + displayName.replace(/'/g, "\\\\'") + '\\\')">' + i18n.kick + '</button>' +
+                                    '<button class="btn btn-error btn-xs btn-outline flex-1 sm:flex-none" onclick="window.blockMember(\\\'' + m.user_did + '\\\', \\\'' + displayName.replace(/'/g, "\\\\'") + '\\\')">' + i18n.block + '</button>' +
                                     '</div>';
                                 container.appendChild(div);
                             });

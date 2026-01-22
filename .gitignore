@@ -45,6 +45,8 @@ playwright/.cache/
 wrangler.jsonc
 docs/help_ja.md
 docs/release_article_draft.md
+GEMINI.md
+*-ZAP-Report-*.html
 
 # database
 *.db

@@ -1,6 +1,8 @@
 import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
-
+import { csrf } from "hono/csrf";
+import { secureHeaders } from "hono/secure-headers";
+import { IS_DEV, ZAP_SCAN_KEY } from "./config.js";
 import { logger as pinoLogger } from "./lib/logger.js";
 import { i18nMiddleware } from "./middleware/i18n.js";
 import antenna from "./routes/antenna.js";
@@ -34,6 +36,61 @@ app.use("*", async (c, next) => {
         duration: `${ms}ms`,
     });
 });
+
+// Security Headers
+app.use(
+    "*",
+    secureHeaders({
+        contentSecurityPolicy: {
+            defaultSrc: ["'self'"],
+            scriptSrc: [
+                "'self'",
+                "https://scripts.simpleanalyticscdn.com",
+                "https://cdnjs.buymeacoffee.com",
+                "'unsafe-inline'", // Needed for some widgets/inline scripts if hashes aren't used
+            ],
+            styleSrc: [
+                "'self'",
+                "'unsafe-inline'", // Needed for 'style' blocks in Layout.tsx and many UI libraries
+                "https://cdn.jsdelivr.net",
+                "https://cdnjs.cloudflare.com",
+            ],
+            fontSrc: ["'self'", "https://cdnjs.cloudflare.com"],
+            imgSrc: ["'self'", "data:", "https:"], // Allow all https images for user content/avatars
+            connectSrc: ["'self'", "https://queue.simpleanalyticscdn.com"], // Simple Analytics events
+        },
+        strictTransportSecurity: "max-age=63072000; includeSubDomains; preload",
+        xFrameOptions: "DENY",
+        xXssProtection: "1; mode=block",
+        referrerPolicy: "strict-origin-when-cross-origin",
+    }),
+);
+
+// CSRF Protection
+app.use(
+    "*",
+    csrf({
+        origin: (origin, c) => {
+            // ZAP Bypass
+            const zapKey = c.req.header("X-Zap-Scan");
+            if (zapKey && zapKey === ZAP_SCAN_KEY) {
+                return true;
+            }
+
+            // Dev Environment: Allow localhost variants
+            if (IS_DEV) {
+                return (
+                    !origin || // Handle non-browser tools like curl
+                    /localhost|127\.0\.0\.1|\[::1\]/.test(origin)
+                );
+            }
+
+            // Production: Strict check against PUBLIC_URL or same origin
+            // (Hono's default behavior is same-origin, but we verify explicitly if needed)
+            return origin === new URL(c.req.url).origin;
+        },
+    }),
+);
 
 app.use("*", i18nMiddleware());
 // DB injection moved to entry points (index.ts / worker.ts)

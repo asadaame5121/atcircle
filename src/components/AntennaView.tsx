@@ -58,7 +58,7 @@ export const AntennaView = ({
                 `
                         : html`
                     <div class="alert alert-ghost border-2 border-dashed py-12 flex flex-col gap-4 text-center">
-                        <span class="text-4xl">📭</span>
+                        <span class="text-4xl" role="img" aria-label="Empty mailbox">📭</span>
                         <div>
                             <p class="font-bold">${t("antenna.no_updates")}</p>
                             <p class="text-sm opacity-60">${t("antenna.no_updates_desc")}</p>

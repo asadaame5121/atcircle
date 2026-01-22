@@ -30,7 +30,7 @@ export const RegistrationForm = (props: {
                     discoveryStatus
                         ? html`
                     <div class="alert alert-info mb-6">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         <span>${discoveryStatus}</span>
                     </div>
                 `
@@ -73,28 +73,28 @@ export const RegistrationForm = (props: {
                     }
 
                     <div class="form-control w-full mb-4">
-                        <label class="label">
+                        <label class="label" for="url">
                             <span class="label-text font-bold">${t("dashboard.site_url")}</span>
                         </label>
                         <input type="url" name="url" id="url" required value="${defaultSite.url}" class="input input-bordered w-full" />
                     </div>
 
                     <div class="form-control w-full mb-4">
-                        <label class="label">
+                        <label class="label" for="title">
                             <span class="label-text font-bold">${t("dashboard.site_title")}</span>
                         </label>
                         <input type="text" name="title" id="title" required value="${defaultSite.title || ""}" class="input input-bordered w-full" />
                     </div>
 
                     <div class="form-control w-full mb-4">
-                        <label class="label">
+                        <label class="label" for="description">
                             <span class="label-text font-bold">${t("dashboard.modal_description")}</span>
                         </label>
-                        <textarea name="description" class="textarea textarea-bordered h-24"></textarea>
+                        <textarea name="description" id="description" class="textarea textarea-bordered h-24"></textarea>
                     </div>
 
                     <div class="form-control w-full mb-8">
-                        <label class="label">
+                        <label class="label" for="rss_url">
                             <span class="label-text font-bold">RSS Feed URL (${t("common.optional")})</span>
                         </label>
                         <input type="url" name="rss_url" id="rss_url" value="${defaultSite.rss || ""}" class="input input-bordered w-full" placeholder="https://example.com/feed.xml" />

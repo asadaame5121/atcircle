@@ -115,7 +115,7 @@ app.get("/stats", async (c) => {
                                      <p class="text-xs opacity-70 mb-4">${t("admin.confirm_remove_user")}</p>
                                      <form method="POST" action="/dashboard/admin/remove-user" onsubmit="return confirm('${t("admin.confirm_remove_user")}')">
                                          <div class="flex gap-2">
-                                             <input type="text" name="did" placeholder="${t("admin.remove_user_placeholder")}" class="input input-bordered input-sm flex-1 font-mono text-xs" required />
+                                             <input type="text" name="did" placeholder="${t("admin.remove_user_placeholder")}" aria-label="${t("admin.remove_user_placeholder")}" class="input input-bordered input-sm flex-1 font-mono text-xs" required />
                                              <button type="submit" class="btn btn-error btn-sm">
                                                  ${t("admin.remove_user_btn")}
                                              </button>

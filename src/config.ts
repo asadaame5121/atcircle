@@ -16,3 +16,4 @@ export const OAUTH_PRIVATE_KEY = process.env.OAUTH_PRIVATE_KEY;
 export const ADMIN_DID = process.env.ADMIN_DID;
 export const TURSO_DATABASE_URL = process.env.TURSO_DATABASE_URL;
 export const TURSO_AUTH_TOKEN = process.env.TURSO_AUTH_TOKEN;
+export const ZAP_SCAN_KEY = process.env.ZAP_SCAN_KEY;

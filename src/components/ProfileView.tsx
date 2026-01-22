@@ -24,7 +24,7 @@ export const ProfileView = ({
                     <div class="flex flex-col md:flex-row md:items-end gap-6">
                         <div class="avatar">
                             <div class="w-32 h-32 rounded-3xl ring ring-base-100 shadow-lg bg-base-300">
-                                <div class="w-full h-full flex items-center justify-center text-4xl">👤</div>
+                                <div class="w-full h-full flex items-center justify-center text-4xl" role="img" aria-label="Avatar icon">👤</div>
                             </div>
                         </div>
                         <div class="flex-1 min-w-0">

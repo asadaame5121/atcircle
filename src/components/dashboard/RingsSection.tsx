@@ -74,18 +74,18 @@ export const RingsSection = (props: {
                         ${
                             r.isMember
                                 ? html`
-                            <div class="mt-4 pt-4 border-t border-base-300 flex justify-between items-center bg-base-300/30 -mx-5 -mb-5 px-5 py-3 rounded-b-xl">
-                                <div class="text-xs">
-                                    <span class="opacity-50">${t("dashboard.joined_as")}:</span> <a href="${r.siteUrl}" target="_blank" class="link hover:link-primary font-medium">${r.siteUrl}</a>
+                            <div class="mt-4 pt-4 border-t border-base-300 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-base-300/30 -mx-5 -mb-5 px-5 py-3 rounded-b-xl gap-3">
+                                <div class="text-xs min-w-0 flex-1">
+                                    <span class="opacity-50">${t("dashboard.joined_as")}:</span> <a href="${r.siteUrl}" target="_blank" class="link hover:link-primary font-medium break-all">${r.siteUrl}</a>
                                 </div>
-                                <div class="flex gap-2">
-                                    <a href="/dashboard/ring/widget?ring_uri=${encodeURIComponent(r.uri)}" class="btn btn-primary btn-xs gap-1" target="_blank">
+                                <div class="flex gap-2 w-full sm:w-auto justify-end">
+                                    <a href="/dashboard/ring/widget?ring_uri=${encodeURIComponent(r.uri)}" class="btn btn-primary btn-xs gap-1 flex-1 sm:flex-none" target="_blank">
                                         <i class="fa-solid fa-code text-[10px]"></i>
                                         ${t("dashboard.get_code")}
                                     </a>
-                                    <form action="/dashboard/ring/leave" method="POST" onsubmit="return confirm('${t("dashboard.confirm_leave")}')">
+                                    <form action="/dashboard/ring/leave" method="POST" onsubmit="return confirm('${t("dashboard.confirm_leave")}')" class="flex-1 sm:flex-none">
                                         <input type="hidden" name="uri" value="${r.memberUri}" />
-                                        <button type="submit" class="btn btn-xs btn-error btn-outline">${t("dashboard.leave")}</button>
+                                        <button type="submit" class="btn btn-xs btn-error btn-outline w-full">${t("dashboard.leave")}</button>
                                     </form>
                                 </div>
                             </div>

@@ -235,7 +235,7 @@ app.get("/auth/callback", async (c) => {
 
 app.post("/auth/debug", async (c) => {
     if (!IS_DEV) {
-        return c.text("Forbidden", 403);
+        return c.text("Forbidden (Not Dev Environment)", 403);
     }
 
     const body = await c.req.parseBody();
@@ -246,17 +246,29 @@ app.post("/auth/debug", async (c) => {
 
     pinoLogger.info({ msg: "Debug login attempt", did, handle, role });
 
-    // Ensure user exists in DB
-    const existingUser = await c.env.DB.prepare(
-        "SELECT did FROM users WHERE did = ?",
-    )
-        .bind(did)
-        .first();
+    // Validation
+    if (!did || !did.startsWith("did:")) {
+        return c.text("Invalid DID format", 400);
+    }
 
-    if (!existingUser) {
-        await c.env.DB.prepare("INSERT INTO users (did, handle) VALUES (?, ?)")
-            .bind(did, handle)
-            .run();
+    try {
+        // Ensure user exists in DB
+        const existingUser = await c.env.DB.prepare(
+            "SELECT did FROM users WHERE did = ?",
+        )
+            .bind(did)
+            .first();
+
+        if (!existingUser) {
+            await c.env.DB.prepare(
+                "INSERT INTO users (did, handle) VALUES (?, ?)",
+            )
+                .bind(did, handle)
+                .run();
+        }
+    } catch (e) {
+        pinoLogger.error({ msg: "Debug login DB error", error: e });
+        return c.text("Database Error", 500);
     }
 
     // Create App Session
