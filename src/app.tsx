@@ -54,10 +54,20 @@ app.use(
                 "'unsafe-inline'", // Needed for 'style' blocks in Layout.tsx and many UI libraries
                 "https://cdn.jsdelivr.net",
                 "https://cdnjs.cloudflare.com",
+                "https://fonts.googleapis.com", // Google Fonts
             ],
-            fontSrc: ["'self'", "https://cdnjs.cloudflare.com"],
+            fontSrc: [
+                "'self'",
+                "https://cdnjs.cloudflare.com",
+                "https://fonts.gstatic.com", // Google Fonts
+            ],
             imgSrc: ["'self'", "data:", "https:"], // Allow all https images for user content/avatars
-            connectSrc: ["'self'", "https://queue.simpleanalyticscdn.com"], // Simple Analytics events
+            connectSrc: [
+                "'self'",
+                "https://queue.simpleanalyticscdn.com",
+                "https://scripts.simpleanalyticscdn.com", // Maps
+                "https://cdn.jsdelivr.net", // Maps
+            ], // Simple Analytics events
         },
         strictTransportSecurity: "max-age=63072000; includeSubDomains; preload",
         xFrameOptions: "DENY",
