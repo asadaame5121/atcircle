@@ -75,6 +75,18 @@ describe("Navigation Routes", () => {
             const text = await res.text();
             expect(text).toContain("class WebringNav extends HTMLElement");
         });
+
+        it("returns CORS headers for widget.js", async () => {
+            const res = await navigationApp.request(
+                "http://localhost/widget.js",
+                {
+                    headers: { Origin: "https://example.com" },
+                },
+                env,
+            );
+            expect(res.status).toBe(200);
+            expect(res.headers.get("Access-Control-Allow-Origin")).toBe("*");
+        });
     });
 
     describe("GET /next", () => {

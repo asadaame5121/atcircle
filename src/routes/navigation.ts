@@ -1,10 +1,20 @@
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 import { generateWidgetScript } from "../components/NavigationWidget.js";
 import { PUBLIC_URL } from "../config.js";
 import { NavigationService } from "../services/navigation.service.js";
 import type { AppVariables, Bindings } from "../types/bindings.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
+
+// CORSを全オリジンに許可（ウィジェットは外部サイトから読み込まれるため）
+app.use(
+    "/widget.js",
+    cors({
+        origin: "*",
+        allowMethods: ["GET"],
+    }),
+);
 
 // Random Jump
 app.get("/random", async (c) => {
