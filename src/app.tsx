@@ -73,8 +73,21 @@ app.use(
         xFrameOptions: "DENY",
         xXssProtection: "1; mode=block",
         referrerPolicy: "strict-origin-when-cross-origin",
+        crossOriginResourcePolicy: false,
+        crossOriginOpenerPolicy: false,
     }),
 );
+
+// Manual CORP/COOP Middleware to allow overrides
+app.use("*", async (c, next) => {
+    await next();
+    if (!c.res.headers.get("Cross-Origin-Resource-Policy")) {
+        c.res.headers.set("Cross-Origin-Resource-Policy", "same-origin");
+    }
+    if (!c.res.headers.get("Cross-Origin-Opener-Policy")) {
+        c.res.headers.set("Cross-Origin-Opener-Policy", "same-origin");
+    }
+});
 
 // CSRF Protection
 app.use(
