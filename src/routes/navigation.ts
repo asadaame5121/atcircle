@@ -66,6 +66,7 @@ app.get("/widget.js", async (c) => {
     return c.text(script, 200, {
         "Content-Type": "application/javascript",
         "Cache-Control": "public, max-age=3600",
+        "Cross-Origin-Resource-Policy": "cross-origin", // Allow embedding from any origin
     });
 });
 
