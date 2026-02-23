@@ -401,6 +401,41 @@ export const AtProtoService = {
         return response.data;
     },
 
+    /**
+     * Fetch profiles using the public API (no auth required).
+     * This avoids ScopeMissingError for read-only profile lookups.
+     * Handles the 25-actor-per-request limit automatically.
+     */
+    async getProfilesPublic(actors: string[]) {
+        if (actors.length === 0) return { profiles: [] as any[] };
+
+        const BATCH_SIZE = 25;
+        const allProfiles: any[] = [];
+
+        for (let i = 0; i < actors.length; i += BATCH_SIZE) {
+            const batch = actors.slice(i, i + BATCH_SIZE);
+            const params = new URLSearchParams();
+            for (const actor of batch) {
+                params.append("actors", actor);
+            }
+            const res = await fetch(
+                `https://public.api.bsky.app/xrpc/app.bsky.actor.getProfiles?${params}`,
+            );
+            if (!res.ok) {
+                pinoLogger.warn({
+                    msg: "Public getProfiles failed",
+                    status: res.status,
+                    batch: batch.length,
+                });
+                continue;
+            }
+            const data = (await res.json()) as { profiles: any[] };
+            allProfiles.push(...data.profiles);
+        }
+
+        return { profiles: allProfiles };
+    },
+
     async resolveHandle(agent: Agent, handle: string) {
         try {
             const res = await agent.resolveHandle({ handle });

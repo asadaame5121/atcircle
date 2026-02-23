@@ -139,7 +139,8 @@ app.notFound((c) => {
         method: c.req.method,
         path: c.req.path,
     });
-    return c.text(`404 Not Found (Debug: ${c.req.path})`, 404);
+    const debugInfo = IS_DEV ? ` (Debug: ${c.req.path})` : "";
+    return c.text(`404 Not Found${debugInfo}`, 404);
 });
 
 // Manual feed sync trigger (Admin/Dashboard)
@@ -180,7 +181,7 @@ app.get("/r", (c) =>
 
 // Lexicon distribution (XRPC-style resolution with CORS)
 import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { resolve } from "node:path";
 import { cors } from "hono/cors";
 
 app.use("/xrpc/*", cors());
@@ -188,8 +189,13 @@ app.get("/xrpc/:id", async (c) => {
     const id = c.req.param("id");
     const filename = id.endsWith(".json") ? id : `${id}.json`;
     try {
-        const path = join(process.cwd(), "lexicons", filename);
-        const content = readFileSync(path, "utf8");
+        const basePath = resolve(process.cwd(), "lexicons");
+        const resolvedPath = resolve(basePath, filename);
+        // Prevent path traversal
+        if (!resolvedPath.startsWith(basePath)) {
+            return c.text("Forbidden", 403);
+        }
+        const content = readFileSync(resolvedPath, "utf8");
         return c.json(JSON.parse(content));
     } catch (_e) {
         return c.text("Not found", 404);

@@ -51,46 +51,50 @@ app.get("/", async (c) => {
 const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB (PDS Limit)
 const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
-app.post("/upload-banner", async (c) => {
-    const payload = c.get("jwtPayload");
-    const did = payload.sub;
-    const body = await c.req.parseBody();
-    const banner = body.banner as File;
-    const ringUri = body.ring_uri as string;
-    const memberUri = body.member_uri as string | undefined;
-
-    if (!banner || !ringUri) {
-        return c.json(
-            { success: false, error: "Missing banner or ring_uri" },
-            400,
-        );
-    }
-
-    // Security: Validate file size and type
-    if (banner.size > MAX_FILE_SIZE) {
-        return c.json(
-            { success: false, error: "File too large (Max 1MB)" },
-            400,
-        );
-    }
-    if (!ALLOWED_MIME_TYPES.includes(banner.type)) {
-        return c.json({ success: false, error: "Invalid file type" }, 400);
-    }
-
-    const ringService = new RingService(c.env.DB);
-    const result = await ringService.uploadBanner(
-        did,
-        ringUri,
-        banner,
-        memberUri,
-    );
-
-    if (result.success) {
-        return c.json(result);
-    } else {
-        return c.json(result, result.error === "Unauthorized" ? 403 : 500);
-    }
+const uploadBannerSchema = z.object({
+    banner: z.instanceof(File),
+    ring_uri: z.string().min(1),
+    member_uri: z.string().optional(),
 });
+
+app.post(
+    "/upload-banner",
+    zValidator("form", uploadBannerSchema),
+    async (c) => {
+        const payload = c.get("jwtPayload");
+        const did = payload.sub;
+        const {
+            banner,
+            ring_uri: ringUri,
+            member_uri: memberUri,
+        } = c.req.valid("form");
+
+        // Security: Validate file size and type
+        if (banner.size > MAX_FILE_SIZE) {
+            return c.json(
+                { success: false, error: "File too large (Max 1MB)" },
+                400,
+            );
+        }
+        if (!ALLOWED_MIME_TYPES.includes(banner.type)) {
+            return c.json({ success: false, error: "Invalid file type" }, 400);
+        }
+
+        const ringService = new RingService(c.env.DB);
+        const result = await ringService.uploadBanner(
+            did,
+            ringUri,
+            banner,
+            memberUri,
+        );
+
+        if (result.success) {
+            return c.json(result);
+        } else {
+            return c.json(result, result.error === "Unauthorized" ? 403 : 500);
+        }
+    },
+);
 
 const saveSettingsSchema = z.object({
     ring_uri: z.string(),

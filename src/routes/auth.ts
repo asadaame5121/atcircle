@@ -1,3 +1,4 @@
+import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
 import { html } from "hono/html";
@@ -6,6 +7,7 @@ import { Layout } from "../components/Layout.js";
 import { ADMIN_DID, IS_DEV, PUBLIC_URL, SECRET_KEY } from "../config.js";
 
 import { logger as pinoLogger } from "../lib/logger.js";
+import { loginSchema } from "../schemas/index.js";
 import { createClient } from "../services/oauth.js";
 import type { AppVariables, Bindings } from "../types/bindings.js";
 
@@ -103,10 +105,8 @@ app.get("/login", (c) => {
     );
 });
 
-app.post("/auth/login", async (c) => {
-    const body = await c.req.parseBody();
-    const handle = body.handle as string;
-    const next = body.next as string;
+app.post("/auth/login", zValidator("form", loginSchema), async (c) => {
+    const { handle, next } = c.req.valid("form");
 
     if (next) {
         setCookie(c, "auth_next", next, {
@@ -119,9 +119,7 @@ app.post("/auth/login", async (c) => {
     try {
         pinoLogger.info({ msg: "Attempting login", handle });
         const client = await getOAuthClient(c.env.DB);
-        const url = await client.authorize(handle, {
-            scope: "atproto transition:generic",
-        });
+        const url = await client.authorize(handle);
         return c.redirect(url.toString());
     } catch (e: any) {
         pinoLogger.error({ msg: "Login error", handle, error: e });
@@ -135,7 +133,9 @@ app.post("/auth/login", async (c) => {
                 children: html`
                     <div class="card" style="max-width: 400px; margin: 0 auto; text-align: center;">
                         <h2 class="error">${t("common.brand")} Error</h2>
-                        <p>${e.message}</p>
+                        <p>${
+                            t("error.auth_failed") || "Authentication failed"
+                        }</p>
                         <a href="/login" class="btn">${t("auth.try_again")}</a>
                     </div>
                 `,
@@ -216,7 +216,7 @@ app.get("/auth/callback", async (c) => {
 
         setCookie(c, "session", token, {
             path: "/",
-            secure: false, // Dev
+            secure: !IS_DEV,
             httpOnly: true,
             maxAge: 60 * 60 * 24 * 7,
             sameSite: "Lax",
@@ -284,7 +284,7 @@ app.post("/auth/debug", async (c) => {
 
     setCookie(c, "session", token, {
         path: "/",
-        secure: false,
+        secure: !IS_DEV,
         httpOnly: true,
         maxAge: 60 * 60 * 24 * 7,
         sameSite: "Lax",
@@ -299,7 +299,7 @@ app.post("/auth/debug", async (c) => {
 app.get("/logout", (c) => {
     setCookie(c, "session", "", {
         path: "/",
-        secure: false, // Dev - match login
+        secure: !IS_DEV,
         httpOnly: true,
         maxAge: 0,
         sameSite: "Lax",
@@ -310,7 +310,7 @@ app.get("/logout", (c) => {
 app.post("/logout", (c) => {
     setCookie(c, "session", "", {
         path: "/",
-        secure: false, // Dev - match login
+        secure: !IS_DEV,
         httpOnly: true,
         maxAge: 0,
         sameSite: "Lax",

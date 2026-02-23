@@ -147,7 +147,7 @@ app.post("/", async (c) => {
         }
     } catch (e) {
         pinoLogger.error({ msg: "Sync failed", error: e });
-        return c.text(`Sync failed: ${(e as any).message}`, 500);
+        return c.text("Sync failed due to an internal error.", 500);
     }
 
     return c.redirect("/dashboard?msg=synced");

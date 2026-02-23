@@ -1,6 +1,12 @@
+import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { PUBLIC_URL } from "../../config.js";
 import { logger as pinoLogger } from "../../lib/logger.js";
+import {
+    moderationMemberActionSchema,
+    requestActionSchema,
+    unblockActionSchema,
+} from "../../schemas/index.js";
 import { AtProtoService } from "../../services/atproto.js";
 import { restoreAgent } from "../../services/oauth.js";
 import type { AppVariables, Bindings } from "../../types/bindings.js";
@@ -8,173 +14,195 @@ import type { AppVariables, Bindings } from "../../types/bindings.js";
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
 
 // POST /dashboard/ring/approve
-app.post("/approve", async (c) => {
-    const payload = c.get("jwtPayload");
-    const did = payload.sub;
-    const body = await c.req.parseBody();
-    const memberUri = body.member_uri as string;
+app.post(
+    "/approve",
+    zValidator("form", moderationMemberActionSchema),
+    async (c) => {
+        const payload = c.get("jwtPayload");
+        const did = payload.sub;
+        const { member_uri: memberUri } = c.req.valid("form");
 
-    if (!memberUri) return c.text("Member URI required", 400);
+        if (!memberUri) return c.text("Member URI required", 400);
 
-    // Verify ownership/admin
-    const membership = (await c.env.DB.prepare(`
+        // Verify ownership/admin
+        const membership = (await c.env.DB.prepare(`
         SELECT m.id, r.owner_did, r.admin_did 
         FROM memberships m 
         JOIN rings r ON m.ring_uri = r.uri 
         WHERE m.member_uri = ?
     `)
-        .bind(memberUri)
-        .first()) as {
-        id: number;
-        owner_did: string;
-        admin_did: string | null;
-    };
+            .bind(memberUri)
+            .first()) as {
+            id: number;
+            owner_did: string;
+            admin_did: string | null;
+        };
 
-    if (
-        !membership ||
-        (membership.owner_did !== did && membership.admin_did !== did)
-    ) {
-        return c.text("Unauthorized or membership not found", 403);
-    }
+        if (
+            !membership ||
+            (membership.owner_did !== did && membership.admin_did !== did)
+        ) {
+            return c.text("Unauthorized or membership not found", 403);
+        }
 
-    await c.env.DB.prepare(
-        "UPDATE memberships SET status = 'approved' WHERE id = ?",
-    )
-        .bind(membership.id)
-        .run();
+        await c.env.DB.prepare(
+            "UPDATE memberships SET status = 'approved' WHERE id = ?",
+        )
+            .bind(membership.id)
+            .run();
 
-    return c.redirect("/dashboard?msg=approved");
-});
+        return c.redirect("/dashboard?msg=approved");
+    },
+);
 
 // POST /dashboard/ring/request/approve
-app.post("/request/approve", async (c) => {
-    const payload = c.get("jwtPayload");
-    const did = payload.sub;
-    const body = await c.req.parseBody();
-    const requestId = body.request_id as string;
+app.post(
+    "/request/approve",
+    zValidator("form", requestActionSchema),
+    async (c) => {
+        const payload = c.get("jwtPayload");
+        const did = payload.sub;
+        const { request_id: requestId } = c.req.valid("form");
 
-    if (!requestId) return c.text("Request ID required", 400);
+        if (!requestId) return c.text("Request ID required", 400);
 
-    const request = (await c.env.DB.prepare(`
+        const request = (await c.env.DB.prepare(`
         SELECT jr.*, r.owner_did, r.admin_did
         FROM join_requests jr
         JOIN rings r ON jr.ring_uri = r.uri
         WHERE jr.id = ?
     `)
-        .bind(requestId)
-        .first()) as any;
+            .bind(requestId)
+            .first()) as any;
 
-    if (!request || (request.owner_did !== did && request.admin_did !== did)) {
-        return c.text("Unauthorized or request not found", 403);
-    }
+        if (
+            !request ||
+            (request.owner_did !== did && request.admin_did !== did)
+        ) {
+            return c.text("Unauthorized or request not found", 403);
+        }
 
-    // Convert request to a membership (locally approved)
-    let siteId = (await c.env.DB.prepare(
-        "SELECT id FROM sites WHERE user_did = ?",
-    )
-        .bind(request.user_did)
-        .first()) as { id: number } | null;
-
-    if (!siteId) {
-        const res = await c.env.DB.prepare(
-            "INSERT INTO sites (user_did, url, title, rss_url, is_active) VALUES (?, ?, ?, ?, 1)",
+        // Convert request to a membership (locally approved)
+        let siteId = (await c.env.DB.prepare(
+            "SELECT id FROM sites WHERE user_did = ?",
         )
-            .bind(
-                request.user_did,
-                request.site_url,
-                request.site_title,
-                request.rss_url,
+            .bind(request.user_did)
+            .first()) as { id: number } | null;
+
+        if (!siteId) {
+            const res = await c.env.DB.prepare(
+                "INSERT INTO sites (user_did, url, title, rss_url, is_active) VALUES (?, ?, ?, ?, 1)",
             )
-            .run();
-        siteId = { id: Number(res.meta.last_row_id) };
-    }
+                .bind(
+                    request.user_did,
+                    request.site_url,
+                    request.site_title,
+                    request.rss_url,
+                )
+                .run();
+            siteId = { id: Number(res.meta.last_row_id) };
+        }
 
-    await c.env.DB.batch([
-        c.env.DB.prepare(
-            "INSERT OR REPLACE INTO memberships (ring_uri, site_id, member_uri, status) VALUES (?, ?, ?, ?)",
-        ).bind(request.ring_uri, siteId.id, request.atproto_uri, "approved"),
-        c.env.DB.prepare(
-            "UPDATE join_requests SET status = 'approved' WHERE id = ?",
-        ).bind(requestId),
-    ]);
+        await c.env.DB.batch([
+            c.env.DB.prepare(
+                "INSERT OR REPLACE INTO memberships (ring_uri, site_id, member_uri, status) VALUES (?, ?, ?, ?)",
+            ).bind(
+                request.ring_uri,
+                siteId.id,
+                request.atproto_uri,
+                "approved",
+            ),
+            c.env.DB.prepare(
+                "UPDATE join_requests SET status = 'approved' WHERE id = ?",
+            ).bind(requestId),
+        ]);
 
-    return c.redirect("/dashboard?msg=approved");
-});
+        return c.redirect("/dashboard?msg=approved");
+    },
+);
 
 // POST /dashboard/ring/request/reject
-app.post("/request/reject", async (c) => {
-    const payload = c.get("jwtPayload");
-    const did = payload.sub;
-    const body = await c.req.parseBody();
-    const requestId = body.request_id as string;
+app.post(
+    "/request/reject",
+    zValidator("form", requestActionSchema),
+    async (c) => {
+        const payload = c.get("jwtPayload");
+        const did = payload.sub;
+        const { request_id: requestId } = c.req.valid("form");
 
-    if (!requestId) return c.text("Request ID required", 400);
+        if (!requestId) return c.text("Request ID required", 400);
 
-    const request = (await c.env.DB.prepare(`
+        const request = (await c.env.DB.prepare(`
         SELECT jr.*, r.owner_did, r.admin_did
         FROM join_requests jr
         JOIN rings r ON jr.ring_uri = r.uri
         WHERE jr.id = ?
     `)
-        .bind(requestId)
-        .first()) as any;
+            .bind(requestId)
+            .first()) as any;
 
-    if (!request || (request.owner_did !== did && request.admin_did !== did)) {
-        return c.text("Unauthorized or request not found", 403);
-    }
+        if (
+            !request ||
+            (request.owner_did !== did && request.admin_did !== did)
+        ) {
+            return c.text("Unauthorized or request not found", 403);
+        }
 
-    await c.env.DB.prepare(
-        "UPDATE join_requests SET status = 'rejected' WHERE id = ?",
-    )
-        .bind(requestId)
-        .run();
+        await c.env.DB.prepare(
+            "UPDATE join_requests SET status = 'rejected' WHERE id = ?",
+        )
+            .bind(requestId)
+            .run();
 
-    return c.redirect("/dashboard?msg=rejected");
-});
+        return c.redirect("/dashboard?msg=rejected");
+    },
+);
 
 // POST /dashboard/ring/reject
-app.post("/reject", async (c) => {
-    const payload = c.get("jwtPayload");
-    const did = payload.sub;
-    const body = await c.req.parseBody();
-    const memberUri = body.member_uri as string;
+app.post(
+    "/reject",
+    zValidator("form", moderationMemberActionSchema),
+    async (c) => {
+        const payload = c.get("jwtPayload");
+        const did = payload.sub;
+        const { member_uri: memberUri } = c.req.valid("form");
 
-    if (!memberUri) return c.text("Member URI required", 400);
+        if (!memberUri) return c.text("Member URI required", 400);
 
-    // Verify ownership/admin
-    const membership = (await c.env.DB.prepare(`
+        // Verify ownership/admin
+        const membership = (await c.env.DB.prepare(`
         SELECT m.id, r.owner_did, r.admin_did 
         FROM memberships m 
         JOIN rings r ON m.ring_uri = r.uri 
         WHERE m.member_uri = ?
     `)
-        .bind(memberUri)
-        .first()) as {
-        id: number;
-        owner_did: string;
-        admin_did: string | null;
-    };
+            .bind(memberUri)
+            .first()) as {
+            id: number;
+            owner_did: string;
+            admin_did: string | null;
+        };
 
-    if (
-        !membership ||
-        (membership.owner_did !== did && membership.admin_did !== did)
-    ) {
-        return c.text("Unauthorized or membership not found", 403);
-    }
+        if (
+            !membership ||
+            (membership.owner_did !== did && membership.admin_did !== did)
+        ) {
+            return c.text("Unauthorized or membership not found", 403);
+        }
 
-    await c.env.DB.prepare("DELETE FROM memberships WHERE id = ?")
-        .bind(membership.id)
-        .run();
+        await c.env.DB.prepare("DELETE FROM memberships WHERE id = ?")
+            .bind(membership.id)
+            .run();
 
-    return c.redirect("/dashboard?msg=rejected");
-});
+        return c.redirect("/dashboard?msg=rejected");
+    },
+);
 
 // POST /dashboard/ring/unblock
-app.post("/unblock", async (c) => {
+app.post("/unblock", zValidator("form", unblockActionSchema), async (c) => {
     const payload = c.get("jwtPayload");
     const did = payload.sub;
-    const body = await c.req.parseBody();
-    const blockUri = body.uri as string;
+    const { uri: blockUri } = c.req.valid("form");
 
     if (!blockUri) return c.text("Block URI required", 400);
 

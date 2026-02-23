@@ -11,15 +11,18 @@ class WebringNav extends HTMLElement {
         const layout = this.getAttribute("layout") || "horizontal";
         const customTitle = this.getAttribute("title");
         const listUrl = this.getAttribute("list-url"); // Custom list button URL
+        const banner = this.getAttribute("banner"); // Banner URL
              
-        this.render(ring, theme, layout, customTitle, listUrl);
+        this.render(ring, theme, layout, customTitle, listUrl, banner);
     }
 
-    async render(ring, theme, layout, customTitle, listUrl) {
+    async render(ring, theme, layout, customTitle, listUrl, banner) {
+
         if (!ring) return;
 
         const isDark = theme === "dark";
-        const isVertical = layout === "vertical";
+        // Force vertical layout if banner is present
+        const isVertical = layout === "vertical" || !!banner;
         const accentColor = isDark ? "#78b5ff" : "#0052d1";
         const bgColor = isDark ? "#1a1a1b" : "#ffffff";
         const textColor = isDark ? "#eeeeee" : "#333333";
@@ -27,6 +30,20 @@ class WebringNav extends HTMLElement {
 
         const title = customTitle || "Webring";
         const listHref = listUrl || "${baseUrl}/rings/view?ring=" + encodeURIComponent(ring);
+
+        // Header content: Banner Image or Text Title
+        let headerHtml = "";
+        if (banner) {
+             headerHtml = \`
+                <a href="${baseUrl}" target="_blank" class="banner-link">
+                    <img src="\${banner}" alt="\${title}" class="banner-img" />
+                </a>
+             \`;
+        } else {
+             headerHtml = \`
+                <a href="${baseUrl}" target="_blank" class="title">\${title}</a>
+             \`;
+        }
 
         this.shadowRoot.innerHTML = \`
             <style>
@@ -58,6 +75,18 @@ class WebringNav extends HTMLElement {
                 .title:hover {
                     text-decoration: underline;
                 }
+                .banner-link {
+                    display: block;
+                    text-decoration: none;
+                    line-height: 0; 
+                }
+                .banner-img {
+                    max-width: 100%;
+                    height: auto;
+                    object-fit: contain;
+                    display: block;
+                    border-radius: 4px; /* Optional: slight rounding for banner */
+                }
                 .nav-links {
                     display: flex;
                     gap: 8px;
@@ -75,6 +104,7 @@ class WebringNav extends HTMLElement {
                     border: 1px solid \${borderColor};
                     background: transparent;
                     color: \${textColor};
+                    white-space: nowrap;
                 }
                 .btn:hover {
                     background: \${accentColor};
@@ -89,7 +119,7 @@ class WebringNav extends HTMLElement {
                 }
             </style>
             <div class="container">
-                <a href="${baseUrl}" target="_blank" class="title">\${title}</a>
+                \${headerHtml}
                 <div class="nav-links">
                     <a href="${baseUrl}/nav/prev?ring=\${encodeURIComponent(ring)}&from=\${encodeURIComponent(window.location.href)}" class="btn">Prev</a>
                     <a href="${baseUrl}/nav/random?ring=\${encodeURIComponent(ring)}" class="btn">Random</a>

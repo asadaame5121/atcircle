@@ -1,6 +1,5 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
-import { PUBLIC_URL } from "../../config.js";
 import { logger as pinoLogger } from "../../lib/logger.js";
 import {
     blockActionSchema,
@@ -10,7 +9,6 @@ import {
 } from "../../schemas/index.js";
 import { AtProtoService } from "../../services/atproto.js";
 import { verifyWidget } from "../../services/discovery.js";
-import { restoreAgent } from "../../services/oauth.js";
 import type { AppVariables, Bindings } from "../../types/bindings.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
@@ -45,27 +43,21 @@ app.get("/list", zValidator("query", memberQuerySchema), async (c) => {
 
     const memberList = members.results || [];
 
-    // 3. Enrich with profile data
+    // 3. Enrich with profile data (using public API to avoid ScopeMissingError)
     if (memberList.length > 0) {
         try {
-            const agent = await restoreAgent(c.env.DB, PUBLIC_URL, did);
-            if (agent) {
-                const dids = memberList.map((m: any) => m.user_did);
-                const profileResult = await AtProtoService.getProfiles(
-                    agent,
-                    dids,
-                );
-                const profileMap = new Map(
-                    profileResult.profiles.map((p) => [p.did, p]),
-                );
+            const dids = memberList.map((m: any) => m.user_did);
+            const profileResult = await AtProtoService.getProfilesPublic(dids);
+            const profileMap = new Map(
+                profileResult.profiles.map((p) => [p.did, p]),
+            );
 
-                for (const m of memberList) {
-                    const profile = profileMap.get(m.user_did);
-                    if (profile) {
-                        m.handle = profile.handle;
-                        m.displayName = profile.displayName;
-                        m.avatar = profile.avatar;
-                    }
+            for (const m of memberList) {
+                const profile = profileMap.get(m.user_did);
+                if (profile) {
+                    m.handle = profile.handle;
+                    m.displayName = profile.displayName;
+                    m.avatar = profile.avatar;
                 }
             }
         } catch (e) {
@@ -111,7 +103,7 @@ app.post("/kick", zValidator("form", memberActionSchema), async (c) => {
         return c.json({ success: true });
     } catch (e: any) {
         pinoLogger.error({ msg: "Kick failed", error: e });
-        return c.json({ success: false, error: e.message }, 500);
+        return c.json({ success: false, error: "Internal server error" }, 500);
     }
 });
 
@@ -166,7 +158,7 @@ app.post("/block", zValidator("form", blockActionSchema), async (c) => {
         return c.json({ success: true });
     } catch (e: any) {
         pinoLogger.error({ msg: "Block failed", error: e });
-        return c.json({ success: false, error: e.message }, 500);
+        return c.json({ success: false, error: "Internal server error" }, 500);
     }
 });
 
@@ -204,7 +196,7 @@ app.post("/update", zValidator("form", memberUpdateSchema), async (c) => {
         return c.json({ success: true });
     } catch (e: any) {
         pinoLogger.error({ msg: "Update failed", error: e });
-        return c.json({ success: false, error: e.message }, 500);
+        return c.json({ success: false, error: "Internal server error" }, 500);
     }
 });
 
@@ -266,7 +258,7 @@ app.post("/verify", zValidator("form", memberActionSchema), async (c) => {
         });
     } catch (e: any) {
         pinoLogger.error({ msg: "Verification failed", error: e });
-        return c.json({ success: false, error: e.message }, 500);
+        return c.json({ success: false, error: "Internal server error" }, 500);
     }
 });
 

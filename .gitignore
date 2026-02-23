@@ -47,6 +47,7 @@ docs/help_ja.md
 docs/release_article_draft.md
 GEMINI.md
 *-ZAP-Report-*.html
+.playwright-mcp
 
 # database
 *.db

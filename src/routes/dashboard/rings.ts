@@ -193,8 +193,10 @@ app.post("/join", zValidator("form", joinRingSchema), async (c) => {
             stack: e.stack,
         });
 
-        const errorMessage = e instanceof Error ? e.message : "Unknown error";
-        // Check for specific error types if possible (e.g. from generated lexicon types)
+        const errorMessage =
+            e instanceof Error && e.message.includes("Invalid")
+                ? e.message
+                : "An unexpected error occurred.";
 
         return c.text(`Failed to join ring: ${errorMessage}`, 500);
     }
