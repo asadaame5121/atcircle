@@ -1,0 +1,222 @@
+﻿[
+    {
+        "id": "784057ec932278",
+        "name": "white-feather-1053",
+        "state": "failed",
+        "region": "nrt",
+        "image_ref": {
+            "registry": "registry.fly.io",
+            "repository": "asadaame5121-webring",
+            "tag": "deployment-01KHE776A3MAJC1QV001BXTVQ0",
+            "digest": "sha256:de5b382642368b127b6e9e9468e6081a995afe364ddbcc3079dcd6196fa1d32b"
+        },
+        "instance_id": "01KJVC59CPYJGB589BNHQYMT8K",
+        "private_ip": "fdaa:3b:4c4c:a7b:466:858a:c2b0:2",
+        "created_at": "2026-03-04T02:52:15Z",
+        "updated_at": "2026-03-04T05:55:06Z",
+        "config": {
+            "env": {
+                "BSKY_SERVICE_URL": "https://bsky.social",
+                "CLIENT_NAME": "at-circle",
+                "FLY_PROCESS_GROUP": "app",
+                "NODE_ENV": "production",
+                "PORT": "8080",
+                "PRIMARY_REGION": "nrt",
+                "PUBLIC_URL": "https://at-circle.asadaame5121.net"
+            },
+            "init": {},
+            "guest": {
+                "cpu_kind": "shared",
+                "cpus": 1,
+                "memory_mb": 256
+            },
+            "metadata": {
+                "fly_builder_id": "3287d34ebe2628",
+                "fly_flyctl_version": "0.4.0",
+                "fly_platform_version": "v2",
+                "fly_process_group": "app",
+                "fly_release_id": "rel_76njzd8g71lk2ko3",
+                "fly_release_version": "143"
+            },
+            "services": [
+                {
+                    "protocol": "tcp",
+                    "internal_port": 8080,
+                    "autostop": "suspend",
+                    "autostart": true,
+                    "min_machines_running": 0,
+                    "ports": [
+                        {
+                            "port": 80,
+                            "handlers": [
+                                "http"
+                            ],
+                            "force_https": true
+                        },
+                        {
+                            "port": 443,
+                            "handlers": [
+                                "http",
+                                "tls"
+                            ]
+                        }
+                    ],
+                    "force_instance_key": null
+                }
+            ],
+            "image": "registry.fly.io/asadaame5121-webring:deployment-01KHE776A3MAJC1QV001BXTVQ0",
+            "restart": {
+                "policy": "on-failure",
+                "max_retries": 10
+            },
+            "stop_config": {
+                "timeout": "10s"
+            }
+        },
+        "events": [
+            {
+                "type": "launch",
+                "status": "failed",
+                "request": {},
+                "source": "flyd",
+                "timestamp": 1772603706101
+            },
+            {
+                "type": "launch",
+                "status": "failed",
+                "request": {},
+                "source": "flyd",
+                "timestamp": 1772603705974
+            },
+            {
+                "type": "migration",
+                "status": "migrating",
+                "source": "flyd",
+                "timestamp": 1772603203927
+            },
+            {
+                "type": "start",
+                "status": "starting",
+                "source": "proxy",
+                "timestamp": 1772603203097
+            },
+            {
+                "type": "uncordon",
+                "status": "suspended",
+                "source": "flyd",
+                "timestamp": 1772602569162
+            }
+        ],
+        "host_status": "ok"
+    },
+    {
+        "id": "68303d5b054448",
+        "name": "weathered-snow-7628",
+        "state": "failed",
+        "region": "nrt",
+        "image_ref": {
+            "registry": "registry.fly.io",
+            "repository": "asadaame5121-webring",
+            "tag": "deployment-01KHE776A3MAJC1QV001BXTVQ0",
+            "digest": "sha256:de5b382642368b127b6e9e9468e6081a995afe364ddbcc3079dcd6196fa1d32b"
+        },
+        "instance_id": "01KJVP4XJCA3N0FR5C6ZFVRRAM",
+        "private_ip": "fdaa:3b:4c4c:a7b:2de:bc73:30e1:2",
+        "created_at": "2026-03-04T05:46:49Z",
+        "updated_at": "2026-03-04T08:02:19Z",
+        "config": {
+            "env": {
+                "BSKY_SERVICE_URL": "https://bsky.social",
+                "CLIENT_NAME": "at-circle",
+                "FLY_PROCESS_GROUP": "app",
+                "NODE_ENV": "production",
+                "PORT": "8080",
+                "PRIMARY_REGION": "nrt",
+                "PUBLIC_URL": "https://at-circle.asadaame5121.net"
+            },
+            "init": {},
+            "guest": {
+                "cpu_kind": "shared",
+                "cpus": 1,
+                "memory_mb": 256
+            },
+            "metadata": {
+                "fly_builder_id": "3287d34ebe2628",
+                "fly_flyctl_version": "0.4.0",
+                "fly_platform_version": "v2",
+                "fly_process_group": "app",
+                "fly_release_id": "rel_76njzd8g71lk2ko3",
+                "fly_release_version": "143"
+            },
+            "services": [
+                {
+                    "protocol": "tcp",
+                    "internal_port": 8080,
+                    "autostop": "suspend",
+                    "autostart": true,
+                    "min_machines_running": 0,
+                    "ports": [
+                        {
+                            "port": 80,
+                            "handlers": [
+                                "http"
+                            ],
+                            "force_https": true
+                        },
+                        {
+                            "port": 443,
+                            "handlers": [
+                                "http",
+                                "tls"
+                            ]
+                        }
+                    ],
+                    "force_instance_key": null
+                }
+            ],
+            "image": "registry.fly.io/asadaame5121-webring:deployment-01KHE776A3MAJC1QV001BXTVQ0",
+            "restart": {
+                "policy": "on-failure",
+                "max_retries": 10
+            },
+            "stop_config": {
+                "timeout": "10s"
+            }
+        },
+        "events": [
+            {
+                "type": "launch",
+                "status": "failed",
+                "request": {},
+                "source": "flyd",
+                "timestamp": 1772611339147
+            },
+            {
+                "type": "launch",
+                "status": "failed",
+                "request": {},
+                "source": "flyd",
+                "timestamp": 1772611338947
+            },
+            {
+                "type": "update",
+                "status": "stopped",
+                "source": "flyd",
+                "timestamp": 1772611338937
+            },
+            {
+                "type": "migration",
+                "status": "migrating",
+                "source": "flyd",
+                "timestamp": 1772610853620
+            },
+            {
+                "type": "start",
+                "status": "starting",
+                "source": "proxy",
+                "timestamp": 1772610853276
+            }
+        ],
+        "host_status": "ok"
+    }
+]

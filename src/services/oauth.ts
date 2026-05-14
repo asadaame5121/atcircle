@@ -151,7 +151,7 @@ export const createClient = async (
             client_id: `${appUrl}/client-metadata.json`,
             client_uri: appUrl,
             redirect_uris: [`${appUrl}/auth/callback`],
-            scope: "atproto blob repo:app.bsky.actor.profile repo:net.asadaame5121.at-circle.ring repo:net.asadaame5121.at-circle.member repo:net.asadaame5121.at-circle.request repo:net.asadaame5121.at-circle.block repo:net.asadaame5121.at-circle.banner",
+            scope: "atproto blob repo:net.asadaame5121.at-circle.ring repo:net.asadaame5121.at-circle.member repo:net.asadaame5121.at-circle.request repo:net.asadaame5121.at-circle.block repo:net.asadaame5121.at-circle.banner",
             grant_types: ["authorization_code", "refresh_token"],
             response_types: ["code"],
             application_type: "web",

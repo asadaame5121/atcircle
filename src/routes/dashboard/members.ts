@@ -1,5 +1,6 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
+import { PUBLIC_URL } from "../../config.js";
 import { logger as pinoLogger } from "../../lib/logger.js";
 import {
     blockActionSchema,
@@ -9,6 +10,7 @@ import {
 } from "../../schemas/index.js";
 import { AtProtoService } from "../../services/atproto.js";
 import { verifyWidget } from "../../services/discovery.js";
+import { restoreAgent } from "../../services/oauth.js";
 import type { AppVariables, Bindings } from "../../types/bindings.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
