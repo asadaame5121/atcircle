@@ -1,0 +1,33 @@
+# Dev PDS (Personal Data Server) for atcircle development
+# Runs an independent, non-federated PDS on Fly.io.
+# Handles: *.pds-dev.asadaame5121.net
+
+app = "asadaame5121-pds-dev"
+primary_region = "nrt"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[mounts]
+  source = "pds_data"
+  destination = "/pds"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = "off"
+  min_machines_running = 1
+
+[env]
+  PDS_HOSTNAME = "pds-dev.asadaame5121.net"
+  PDS_INVITE_REQUIRED = "true"
+  PDS_DID_PLC_URL = "https://plc.directory"
+  PDS_DATA_DIRECTORY = "/pds"
+  PDS_BLOBSTORE_DISK_LOCATION = "/pds/blocks"
+  PDS_BSKY_APP_VIEW_URL = "https://api.bsky.app"
+  PDS_BSKY_APP_VIEW_DID = "did:web:api.bsky.app"
+  PDS_REPORT_SERVICE_URL = ""
+  PDS_CRAWLERS = ""
+  PDS_RATE_LIMITS_ENABLED = "true"
+  LOG_ENABLED = "true"
+  LOG_LEVEL = "info"

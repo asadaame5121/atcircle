@@ -10,6 +10,7 @@ import * as jose from "jose";
 import {
     BSKY_SERVICE_URL,
     CLIENT_NAME,
+    IDENTITY_RESOLVER_URL,
     IS_DEV,
     OAUTH_PRIVATE_KEY,
     PLC_DIRECTORY_URL,
@@ -210,7 +211,7 @@ export const createClient = async (
                         handle,
                     });
                     const res = await fetch(
-                        `https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle?handle=${handle}`,
+                        `${IDENTITY_RESOLVER_URL}/xrpc/com.atproto.identity.resolveHandle?handle=${handle}`,
                     );
                     if (!res.ok) {
                         pinoLogger.error({

@@ -4,9 +4,18 @@ import { getCookie, setCookie } from "hono/cookie";
 import { html } from "hono/html";
 import { sign } from "hono/jwt";
 import { Layout } from "../components/Layout.js";
-import { ADMIN_DID, IS_DEV, PUBLIC_URL, SECRET_KEY } from "../config.js";
+import {
+    ADMIN_DID,
+    DEV_AUTH_BYPASS,
+    IDENTITY_RESOLVER_URL,
+    IS_DEV,
+    PUBLIC_URL,
+    SECRET_KEY,
+} from "../config.js";
 
 import { logger as pinoLogger } from "../lib/logger.js";
+import { SESSION_COOKIE } from "../lib/session.js";
+import { authRateLimiter } from "../middleware/rate-limit.js";
 import { loginSchema } from "../schemas/index.js";
 import { createClient } from "../services/oauth.js";
 import type { AppVariables, Bindings } from "../types/bindings.js";
@@ -22,8 +31,76 @@ const getOAuthClient = async (db: any) => {
     return oauthClient;
 };
 
+// Restrict state-changing auth endpoints per IP
+const authLimiter = authRateLimiter;
+
+// Only allow internal (same-site) redirect targets. Prevents open redirects.
+const sanitizeNext = (next: string | undefined): string => {
+    if (!next) return "/dashboard";
+    if (
+        next.startsWith("/") &&
+        !next.startsWith("//") &&
+        !next.startsWith("/\\")
+    ) {
+        return next;
+    }
+    return "/dashboard";
+};
+
+const escapeHtml = (value: string): string =>
+    value.replace(/[&<>"']/g, (ch) => {
+        const map: Record<string, string> = {
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;",
+        };
+        return map[ch];
+    });
+
+// Resolve a DID to its handle. Uses the configured identity resolver
+// (public AppView by default; the dev PDS in dev environments).
+// Falls back to com.atproto.repo.describeRepo for PDS-style resolvers
+// that don't implement appview APIs.
+const fetchHandleFromResolver = async (
+    did: string,
+): Promise<string | undefined> => {
+    try {
+        const res = await fetch(
+            `${IDENTITY_RESOLVER_URL}/xrpc/app.bsky.actor.getProfile?actor=${did}`,
+        );
+        if (res.ok) {
+            const profile = (await res.json()) as { handle: string };
+            return profile.handle;
+        }
+    } catch (e) {
+        pinoLogger.error({
+            msg: "Failed to fetch profile for handle",
+            did,
+            error: e,
+        });
+    }
+    try {
+        const res = await fetch(
+            `${IDENTITY_RESOLVER_URL}/xrpc/com.atproto.repo.describeRepo?repo=${did}`,
+        );
+        if (res.ok) {
+            const repo = (await res.json()) as { handle: string };
+            return repo.handle;
+        }
+    } catch (e) {
+        pinoLogger.error({
+            msg: "Failed to describe repo for handle",
+            did,
+            error: e,
+        });
+    }
+    return undefined;
+};
+
 app.get("/login", (c) => {
-    const next = c.req.query("next") || "";
+    const next = sanitizeNext(c.req.query("next"));
     const t = c.get("t");
     const lang = c.get("lang");
 
@@ -42,7 +119,7 @@ app.get("/login", (c) => {
                             "auth.enter_handle",
                         )}</p>
                         <form action="/auth/login" method="POST">
-                            <input type="hidden" name="next" value="${next}" />
+                            <input type="hidden" name="next" value="${escapeHtml(next)}" />
                             <div class="form-control w-full max-w-xs mb-4">
                                 <label class="label">
                                     <span class="label-text">${t(
@@ -72,7 +149,7 @@ app.get("/login", (c) => {
                         </div>
 
                         ${
-                            IS_DEV
+                            IS_DEV && DEV_AUTH_BYPASS
                                 ? html`
                                 <div class="divider mt-6 text-xs opacity-50 uppercase tracking-widest">
                                     Debug Info
@@ -105,32 +182,38 @@ app.get("/login", (c) => {
     );
 });
 
-app.post("/auth/login", zValidator("form", loginSchema), async (c) => {
-    const { handle, next } = c.req.valid("form");
+app.post(
+    "/auth/login",
+    authLimiter,
+    zValidator("form", loginSchema),
+    async (c) => {
+        const { handle } = c.req.valid("form");
+        const next = sanitizeNext(c.req.valid("form").next);
 
-    if (next) {
-        setCookie(c, "auth_next", next, {
-            path: "/",
-            maxAge: 600,
-            sameSite: "Lax",
-        });
-    }
+        if (next) {
+            setCookie(c, "auth_next", next, {
+                path: "/",
+                maxAge: 600,
+                sameSite: "Lax",
+                httpOnly: true,
+            });
+        }
 
-    try {
-        pinoLogger.info({ msg: "Attempting login", handle });
-        const client = await getOAuthClient(c.env.DB);
-        const url = await client.authorize(handle);
-        return c.redirect(url.toString());
-    } catch (e: any) {
-        pinoLogger.error({ msg: "Login error", handle, error: e });
-        const t = c.get("t");
-        const lang = c.get("lang");
-        return c.html(
-            Layout({
-                title: t("auth.error_failed"),
-                t,
-                lang,
-                children: html`
+        try {
+            pinoLogger.info({ msg: "Attempting login", handle });
+            const client = await getOAuthClient(c.env.DB);
+            const url = await client.authorize(handle);
+            return c.redirect(url.toString());
+        } catch (e: any) {
+            pinoLogger.error({ msg: "Login error", handle, error: e });
+            const t = c.get("t");
+            const lang = c.get("lang");
+            return c.html(
+                Layout({
+                    title: t("auth.error_failed"),
+                    t,
+                    lang,
+                    children: html`
                     <div class="card" style="max-width: 400px; margin: 0 auto; text-align: center;">
                         <h2 class="error">${t("common.brand")} Error</h2>
                         <p>${
@@ -139,10 +222,11 @@ app.post("/auth/login", zValidator("form", loginSchema), async (c) => {
                         <a href="/login" class="btn">${t("auth.try_again")}</a>
                     </div>
                 `,
-            }),
-        );
-    }
-});
+                }),
+            );
+        }
+    },
+);
 
 app.get("/auth/callback", async (c) => {
     const client = await getOAuthClient(c.env.DB);
@@ -167,20 +251,9 @@ app.get("/auth/callback", async (c) => {
 
         // Resolve handle from DID (OAuthSession doesn't contain handle directly)
         let handle = "unknown";
-        try {
-            const res = await fetch(
-                `https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor=${session.did}`,
-            );
-            if (res.ok) {
-                const profile = (await res.json()) as { handle: string };
-                handle = profile.handle;
-            }
-        } catch (e) {
-            pinoLogger.error({
-                msg: "Failed to fetch profile for handle",
-                did: session.did,
-                error: e,
-            });
+        const resolvedHandle = await fetchHandleFromResolver(session.did);
+        if (resolvedHandle) {
+            handle = resolvedHandle;
         }
 
         // Create or Update User in DB
@@ -214,7 +287,7 @@ app.get("/auth/callback", async (c) => {
 
         const token = await sign(payload, SECRET_KEY);
 
-        setCookie(c, "session", token, {
+        setCookie(c, SESSION_COOKIE, token, {
             path: "/",
             secure: !IS_DEV,
             httpOnly: true,
@@ -222,7 +295,7 @@ app.get("/auth/callback", async (c) => {
             sameSite: "Lax",
         });
 
-        const next = getCookie(c, "auth_next") || "/dashboard";
+        const next = sanitizeNext(getCookie(c, "auth_next"));
         setCookie(c, "auth_next", "", { path: "/", maxAge: 0 });
 
         return c.redirect(next);
@@ -233,9 +306,9 @@ app.get("/auth/callback", async (c) => {
     }
 });
 
-app.post("/auth/debug", async (c) => {
-    if (!IS_DEV) {
-        return c.text("Forbidden (Not Dev Environment)", 403);
+app.post("/auth/debug", authLimiter, async (c) => {
+    if (!IS_DEV || !DEV_AUTH_BYPASS) {
+        return c.text("Forbidden (Dev Auth Bypass Disabled)", 403);
     }
 
     const body = await c.req.parseBody();
@@ -282,7 +355,7 @@ app.post("/auth/debug", async (c) => {
 
     const token = await sign(payload, SECRET_KEY);
 
-    setCookie(c, "session", token, {
+    setCookie(c, SESSION_COOKIE, token, {
         path: "/",
         secure: !IS_DEV,
         httpOnly: true,
@@ -290,14 +363,14 @@ app.post("/auth/debug", async (c) => {
         sameSite: "Lax",
     });
 
-    const next = getCookie(c, "auth_next") || "/dashboard";
+    const next = sanitizeNext(getCookie(c, "auth_next"));
     setCookie(c, "auth_next", "", { path: "/", maxAge: 0 });
 
     return c.redirect(next);
 });
 
 app.get("/logout", (c) => {
-    setCookie(c, "session", "", {
+    setCookie(c, SESSION_COOKIE, "", {
         path: "/",
         secure: !IS_DEV,
         httpOnly: true,
@@ -308,7 +381,7 @@ app.get("/logout", (c) => {
 });
 
 app.post("/logout", (c) => {
-    setCookie(c, "session", "", {
+    setCookie(c, SESSION_COOKIE, "", {
         path: "/",
         secure: !IS_DEV,
         httpOnly: true,

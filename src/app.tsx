@@ -2,7 +2,7 @@ import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
 import { csrf } from "hono/csrf";
 import { secureHeaders } from "hono/secure-headers";
-import { IS_DEV, ZAP_SCAN_KEY } from "./config.js";
+import { IS_DEV } from "./config.js";
 import { logger as pinoLogger } from "./lib/logger.js";
 import { i18nMiddleware } from "./middleware/i18n.js";
 import antenna from "./routes/antenna.js";
@@ -94,12 +94,6 @@ app.use(
     "*",
     csrf({
         origin: (origin, c) => {
-            // ZAP Bypass
-            const zapKey = c.req.header("X-Zap-Scan");
-            if (zapKey && zapKey === ZAP_SCAN_KEY) {
-                return true;
-            }
-
             // Dev Environment: Allow localhost variants
             if (IS_DEV) {
                 return (

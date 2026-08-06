@@ -1,0 +1,25 @@
+# Dev environment for atcircle
+# Mirrors production (fly.toml) but targets the dev PDS and dev Turso DB.
+# Deployed via: fly deploy -c fly.dev.toml --app asadaame5121-webring-dev
+
+app = "asadaame5121-webring-dev"
+primary_region = "nrt"
+kill_timeout = 10
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "suspend"
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+[env]
+  PORT = "8080"
+
+  PUBLIC_URL = "https://dev-at-circle.asadaame5121.net"
+  BSKY_SERVICE_URL = "https://pds-dev.asadaame5121.net"
+  IDENTITY_RESOLVER_URL = "https://pds-dev.asadaame5121.net"
+  PLC_DIRECTORY_URL = "https://plc.directory"
+  CLIENT_NAME = "at-circle-dev"
+  NODE_ENV = "production"

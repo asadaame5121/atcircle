@@ -1,6 +1,8 @@
 import { Hono } from "hono";
 import { deleteCookie } from "hono/cookie";
+import { IS_DEV } from "../../config.js";
 import { logger as pinoLogger } from "../../lib/logger.js";
+import { SESSION_COOKIE } from "../../lib/session.js";
 import type { AppVariables, Bindings } from "../../types/bindings.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
@@ -42,9 +44,9 @@ app.post("/leave", async (c) => {
             .run();
 
         // 2. Clear Session
-        deleteCookie(c, "session", {
+        deleteCookie(c, SESSION_COOKIE, {
             path: "/",
-            secure: true,
+            secure: !IS_DEV,
             httpOnly: true,
         });
 

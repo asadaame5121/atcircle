@@ -2,12 +2,13 @@ import { Hono } from "hono";
 import { getCookie } from "hono/cookie";
 import { html } from "hono/html";
 import { Layout } from "../components/Layout.js";
+import { SESSION_COOKIE } from "../lib/session.js";
 import type { AppVariables, Bindings } from "../types/bindings.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
 
 app.get("/", (c) => {
-    const token = getCookie(c, "session");
+    const token = getCookie(c, SESSION_COOKIE);
     if (token) {
         return c.redirect("/dashboard");
     }

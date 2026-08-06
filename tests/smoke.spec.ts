@@ -5,9 +5,9 @@ test.describe("Webring Smoke Tests", () => {
         page,
     }) => {
         await page.goto("/");
-        await expect(page).toHaveTitle(/Webring Home/);
+        await expect(page).toHaveTitle(/AT CIRCLE - Home/);
         const bodyText = await page.innerText("body");
-        expect(bodyText).toContain("Welcome to the Webring");
+        expect(bodyText).toContain("Welcome to AT CIRCLE");
         expect(bodyText).toContain("Login with Bluesky");
     });
 

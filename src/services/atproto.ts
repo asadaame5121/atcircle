@@ -1,4 +1,5 @@
 import { type Agent, AtUri } from "@atproto/api";
+import { IDENTITY_RESOLVER_URL } from "../config.js";
 import { NetNS } from "../lexicons/index.js";
 import { ids } from "../lexicons/lexicons.js";
 import type * as Banner from "../lexicons/types/net/asadaame5121/at-circle/banner.js";
@@ -419,7 +420,7 @@ export const AtProtoService = {
                 params.append("actors", actor);
             }
             const res = await fetch(
-                `https://public.api.bsky.app/xrpc/app.bsky.actor.getProfiles?${params}`,
+                `${IDENTITY_RESOLVER_URL}/xrpc/app.bsky.actor.getProfiles?${params}`,
             );
             if (!res.ok) {
                 pinoLogger.warn({

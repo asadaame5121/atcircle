@@ -1,5 +1,5 @@
 import { AtUri } from "@atproto/api";
-import { PUBLIC_URL } from "../config.js";
+import { IDENTITY_RESOLVER_URL, PUBLIC_URL } from "../config.js";
 import { RingRepository } from "../repositories/ring.repository.js";
 import { SiteRepository } from "../repositories/site.repository.js";
 // import type { Site, SqliteDatabaseInterface } from "../types/db.js";
@@ -308,7 +308,7 @@ export class DashboardService {
 
         try {
             const profileRes = await fetch(
-                `https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor=${did}`,
+                `${IDENTITY_RESOLVER_URL}/xrpc/app.bsky.actor.getProfile?actor=${did}`,
             );
             if (profileRes.ok) {
                 const profile = (await profileRes.json()) as {
