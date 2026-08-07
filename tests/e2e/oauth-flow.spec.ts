@@ -25,7 +25,10 @@ if (e2eEnabled) {
             await oauthLogin(page, E2E_ACCOUNTS.alice);
             await page.goto("/logout");
             await expect(page).toHaveURL(new RegExp(`^${E2E_APP_ORIGIN}/?$`));
-            await expect(page.getByText("Login with Bluesky")).toBeVisible();
+            // Hero CTA is the primary login link on the refreshed home page
+            await expect(
+                page.getByRole("link", { name: "Login with Bluesky" }).first(),
+            ).toBeVisible();
         });
     });
 }

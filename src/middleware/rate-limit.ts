@@ -1,7 +1,7 @@
 import type { Context, Next } from "hono";
 
 const WINDOW_MS = 60_000;
-const MAX_REQUESTS = 10;
+const MAX_REQUESTS = Number(process.env.RATE_LIMIT_MAX) || 10;
 const MAX_ENTRIES = 10_000;
 
 interface RateEntry {

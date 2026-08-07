@@ -23,3 +23,4 @@ kill_timeout = 10
   PLC_DIRECTORY_URL = "https://plc.directory"
   CLIENT_NAME = "at-circle-dev"
   NODE_ENV = "production"
+  RATE_LIMIT_MAX = "100"

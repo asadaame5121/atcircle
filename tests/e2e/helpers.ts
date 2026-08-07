@@ -32,6 +32,24 @@ function escapeRegExp(s: string) {
 }
 
 export async function oauthLogin(page: Page, account: { handle: string; password: string }) {
+    // Wake up the app first: Fly auto-stops idle machines and the first
+    // request after a cold start can time out.
+    await page.goto("/", { timeout: 60_000 }).catch(() => {});
+
+    for (let attempt = 1; ; attempt++) {
+        try {
+            await attemptLogin(page, account);
+            return;
+        } catch (e) {
+            if (attempt >= 3) throw e;
+            // Retry after a cold start / transient failure
+            await page.waitForTimeout(3_000);
+            await page.goto("/", { timeout: 60_000 }).catch(() => {});
+        }
+    }
+}
+
+async function attemptLogin(page: Page, account: { handle: string; password: string }) {
     await page.goto("/login");
     await page.fill('input[name="handle"]', account.handle);
     await page.click('button[type="submit"]');
