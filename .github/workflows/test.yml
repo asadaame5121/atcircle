@@ -1,0 +1,43 @@
+name: Test
+
+on: [push, pull_request]
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci
+      - run: npm test -- --run
+      - run: npm run lint
+
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - run: npm start &
+      - run: npx playwright test tests/smoke.spec.ts
+
+  e2e:
+    runs-on: ubuntu-latest
+    if: vars.E2E_DEV_PDS_URL != ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test -c playwright.e2e.config.ts --pass-with-no-tests
+        env:
+          E2E_DEV_PDS_URL: ${{ vars.E2E_DEV_PDS_URL }}
+          E2E_BASE_URL: ${{ vars.E2E_BASE_URL }}
