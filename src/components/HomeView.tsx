@@ -11,7 +11,7 @@ export const HomeView = ({ previewRings, ownerLabels, t }: HomeViewProps) => {
     return html`
         <section class="hero min-h-[55vh] bg-base-100 rounded-box shadow-xl">
             <div class="hero-content text-center">
-                <div class="max-w-xl">
+                <div class="max-w-3xl">
                     <h1 class="text-4xl sm:text-5xl font-bold text-primary">${t("home.welcome")}</h1>
                     <p class="py-6 text-lg opacity-75">${t("home.description")}</p>
                     <div class="flex flex-col sm:flex-row gap-3 justify-center">
@@ -49,7 +49,7 @@ export const HomeView = ({ previewRings, ownerLabels, t }: HomeViewProps) => {
 
         <section class="mt-12">
             <h2 class="text-2xl font-bold text-center mb-8">${t("home.features_title")}</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
                 <div class="card bg-base-100 shadow-sm border border-base-300">
                     <div class="card-body">
                         <h3 class="card-title"><i class="fa-solid fa-circle-nodes text-primary"></i>${t("home.feature_rings_title")}</h3>

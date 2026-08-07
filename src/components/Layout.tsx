@@ -49,7 +49,7 @@ export const Layout = (props: {
       }
       .container { 
         width: 100% !important; 
-        max-width: 896px !important; 
+        max-width: 1200px !important; 
         margin-left: auto; 
         margin-right: auto; 
         padding-left: 0.75rem !important; 
@@ -61,7 +61,7 @@ export const Layout = (props: {
     </style>
   </head>
   <body class="bg-base-200 min-h-screen">
-    <div class="container mx-auto p-4 max-w-4xl">
+    <div class="container mx-auto p-4">
       ${
           props.isDebug
               ? html`
