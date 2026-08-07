@@ -23,8 +23,6 @@ jobs:
           node-version: 24
       - run: npm ci
       - run: npx playwright install --with-deps chromium
-      - run: npm run build
-      - run: npm start &
       - run: npx playwright test tests/smoke.spec.ts
 
   e2e:
