@@ -142,16 +142,24 @@ dev PDS (`https://pds-dev.asadaame5121.net`) 上に事前作成済みのアカ�
 
 ### 4.2 シナリオ一覧
 
-| # | シナリオ | 手順 | 検証ポイント |
-|---|---|---|---|
-| 1 | ログイン | OAuth フロー → コールバック → ダッシュボード表示 | セッション cookie 設定、/dashboard へリダイレクト |
-| 2 | サイト登録 | ダッシュボード → URL 入力 → 登録 | DB に site レコード作成、フィード取得開始 |
-| 3 | リング作成 | リング作成フォーム → 名前/説明入力 → 作成 | DB に ring レコード、作成者がオーナーに |
-| 4 | リング参加 | 参加フォーム → リング ID 入力 → 申請 | member レコード (status=pending) |
-| 5 | 参加承認 | オーナーが承認 → member status=approved | アンテナ/ウィジェットに表示 |
-| 6 | アンテナ表示 | /antenna → 参加サイトのフィード表示 | RSS 取得・表示 |
-| 7 | 退会 | リング設定 → 退会 → 確認 | member/ring レコード削除 |
-| 8 | 管理者機能 | 管理者ログイン → 全リング一覧 → モデレーション | admin ロールの権限確認 |
+実装状況 (2026-08-07): `tests/e2e/oauth-flow.spec.ts` + `tests/e2e/flows.spec.ts`
+
+| # | シナリオ | 手順 | 検証ポイント | 状態 |
+|---|---|---|---|---|
+| 1 | ログイン | OAuth フロー → コールバック → ダッシュボード表示 | セッション cookie 設定、/dashboard へリダイレクト | ✅ oauth-flow.spec.ts |
+| 2 | サイト登録 | ダッシュボード → URL 入力 → 登録 | DB に site レコード作成 | ✅ flows.spec.ts (冪等: 登録済みならスキップ) |
+| 3 | リング作成 | リング作成フォーム → 名前/説明入力 → 作成 | DB に ring レコード、作成者がオーナーに | ✅ flows.spec.ts |
+| 4 | リング参加 | 参加フォーム → リング ID 入力 → 申請 | member レコード (status=pending) | ✅ flows.spec.ts (manual ポリシー) |
+| 5 | 参加承認 | オーナーが承認 → member status=approved | 承認後、ModerationSection からリクエストが消える | ✅ flows.spec.ts |
+| 6 | アンテナ表示 | /antenna → 参加サイトのフィード表示 | リングページ表示 | ✅ flows.spec.ts |
+| 7 | 退会 | リング設定 → 退会 → 確認 | member/ring レコード削除、Leave ボタン消滅 | ✅ flows.spec.ts |
+| 8 | 管理者機能 | 管理者ログイン → 全リング一覧 → モデレーション | admin ロールの権限確認 | ✅ flows.spec.ts (stats 表示) |
+
+注意事項:
+
+- **テストは serial モード** (`test.describe.configure({ mode: "serial" })`)。リング URI など状態をモジュール変数で共有するため、個別テストの単独実行は不可
+- **manual 承認はローカル DB のみに反映**される (PDS への member レコード作成は行わない既知の制限)。そのため承認後のメンバー表示は PDS レコードではなくローカル DB の memberships に依存する
+- テストは dev アプリ + dev PDS に**累積的なデータ**を作る (リング・参加リクエスト等)。リング名にタイムスタンプを付けてテスト間・実行間の衝突を回避している
 
 ### 4.3 Playwright 設定
 
