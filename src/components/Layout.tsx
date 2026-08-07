@@ -73,9 +73,9 @@ export const Layout = (props: {
       }
         <header class="navbar bg-base-100/90 backdrop-blur sticky top-0 z-30 shadow-sm rounded-box mb-4">
           <div class="navbar-start min-w-0">
-            <a href="/" class="flex items-center gap-1 btn btn-ghost px-1 min-w-0">
+            <a href="/" class="flex items-center gap-1 btn btn-ghost px-1 min-w-0 max-w-full">
               <img src="${favicon}" alt="AT CIRCLE Logo" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg shadow-sm shrink-0" />
-              <span class="text-lg sm:text-xl text-primary font-black italic tracking-tighter truncate">${props.t ? props.t("common.brand") : "AT CIRCLE"}</span>
+              <span class="text-lg sm:text-xl text-primary font-black italic tracking-tighter truncate min-w-0">${props.t ? props.t("common.brand") : "AT CIRCLE"}</span>
             </a>
           </div>
           <div class="navbar-end hidden sm:flex gap-1">
