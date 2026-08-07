@@ -1,6 +1,7 @@
 # UI/UX 改善プラン
 
 作成日: 2026-08-07
+実装日: 2026-08-07 (タスク0-1〜4-4 すべて実装・検証済み)
 対象: ATcircle (Hono + `hono/html` SSR + daisyUI 4 CDN + Tailwind v4)
 
 このドキュメントは、dev 環境 (https://dev-at-circle.asadaame5121.net)
@@ -51,7 +52,7 @@
 
 ---
 
-## タスク 1: ヘッダー修正・刷新
+## タスク 1: ヘッダー修正・刷新 ✅ 実装済み
 
 **ファイル**: `src/components/Layout.tsx`
 
@@ -98,7 +99,7 @@
 
 ---
 
-## タスク 2: ホームページ刷新(非ログイン訪問者向けのコンテンツ充実)
+## タスク 2: ホームページ刷新 ✅ 実装済み(非ログイン訪問者向けのコンテンツ充実)
 
 **ファイル**: `src/routes/home.tsx`、必要に応じて新規
 `src/components/HomeView.tsx` に分離
@@ -198,7 +199,7 @@ home.step1_title / home.step1_desc  (〜 step3)
 
 ---
 
-## タスク 3: リング一覧 / 詳細の改善
+## タスク 3: リング一覧 / 詳細の改善 ✅ 実装済み
 
 **ファイル**: `src/components/RingListView.tsx`、
 `src/components/RingDetailView.tsx`、`src/routes/rings.tsx`
@@ -257,7 +258,7 @@ rings.owner_unknown   (例: "不明なユーザー" / "Unknown user")
 
 ---
 
-## タスク 4: ダッシュボードの改善
+## タスク 4: ダッシュボードの改善 ✅ 実装済み
 
 **ファイル**: `src/components/dashboard/DashboardView.tsx`、
 `src/components/dashboard/RingsSection.tsx`
