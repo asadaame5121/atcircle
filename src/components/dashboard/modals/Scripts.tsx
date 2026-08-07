@@ -24,6 +24,7 @@ export const Scripts = ({ t }: ScriptsProps) => {
                     widgetNotInstalled: t("members.widget_not_installed"),
                     verifyNow: t("members.verify_now"),
                     inviteSent: "Invite link copied to clipboard!",
+                    uriCopied: t("dashboard.uri_copied"),
                 }),
             )}
         </script>
@@ -247,6 +248,15 @@ export const Scripts = ({ t }: ScriptsProps) => {
                     const url = window.location.origin + '/rings/view?ring=' + encodeURIComponent(uri);
                     navigator.clipboard.writeText(url).then(() => {
                         alert(i18n.inviteSent);
+                    }).catch(err => {
+                        console.error('Failed to copy: ', err);
+                    });
+                };
+
+                window.copyUriFromBtn = function(btn) {
+                    const uri = btn.dataset.uri;
+                    navigator.clipboard.writeText(uri).then(() => {
+                        alert(i18n.uriCopied);
                     }).catch(err => {
                         console.error('Failed to copy: ', err);
                     });

@@ -6,6 +6,7 @@ import { RingListView } from "../components/RingListView.js";
 import { MemberRepository } from "../repositories/member.repository.js";
 import { RingRepository } from "../repositories/ring.repository.js";
 import { ringQuerySchema } from "../schemas/index.js";
+import { AtProtoService } from "../services/atproto.js";
 import { generateOpml } from "../services/opml.js";
 import type { AppVariables, Bindings } from "../types/bindings.js";
 
@@ -18,12 +19,28 @@ app.get("/", async (c) => {
     const ringRepo = new RingRepository(c.env.DB);
     const rings = await ringRepo.getAllWithMemberCount({ onlyOpen: true });
 
+    // Resolve owner DIDs to handles (best-effort; fall back to short DID)
+    const ownerLabels: Record<string, string> = {};
+    try {
+        const dids = [
+            ...new Set(rings.map((r) => r.owner_did).filter(Boolean)),
+        ];
+        if (dids.length > 0) {
+            const profiles = await AtProtoService.getProfilesPublic(dids);
+            for (const p of profiles.profiles) {
+                ownerLabels[p.did] = p.displayName || p.handle || p.did;
+            }
+        }
+    } catch {
+        // Keep raw DIDs on profile resolution failure
+    }
+
     return c.html(
         Layout({
             title: t("rings.explore_title"),
             t,
             lang,
-            children: RingListView({ rings, t }),
+            children: RingListView({ rings, ownerLabels, t }),
         }),
     );
 });

@@ -12,7 +12,7 @@ export const RingsSection = (props: {
             <div class="card bg-base-100 shadow-sm border border-dashed border-base-300 p-12 text-center">
                 <div class="text-4xl mb-4 opacity-30">🌐</div>
                 <h3 class="font-bold text-lg mb-2">${t("dashboard.no_rings")}</h3>
-                <p class="text-sm opacity-60 mb-6">まだ参加しているリングがありません。<br/>既存のリングを探してみませんか？</p>
+                <p class="text-sm opacity-60 mb-6">${t("dashboard.no_rings_desc")}</p>
                 <a href="/rings" class="btn btn-primary btn-sm rounded-full px-8 mx-auto">${t("common.rings")}</a>
             </div>
         `;
@@ -38,8 +38,10 @@ export const RingsSection = (props: {
                                 </div>
                                 <p class="text-sm opacity-70 mb-2">${r.description || html`<span class="italic opacity-50">${t("dashboard.no_description")}</span>`}</p>
                                 
-                                <div class="flex flex-wrap gap-2 items-center text-xs opacity-50 font-mono mb-3">
-                                    <span class="break-all">URI: ${r.uri}</span>
+                                <div class="flex flex-wrap gap-2 items-center text-xs opacity-60 font-mono mb-3">
+                                    <button class="btn btn-ghost btn-xs bg-base-300/50 hover:bg-base-300" onclick="window.copyUriFromBtn(this)" data-uri="${r.uri}" title="${r.uri}">
+                                        <i class="fa-regular fa-copy mr-1 opacity-70"></i> ${t("dashboard.copy_uri")}
+                                    </button>
                                 </div>
 
                                 ${
@@ -76,7 +78,7 @@ export const RingsSection = (props: {
                                 ? html`
                             <div class="mt-4 pt-4 border-t border-base-300 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-base-300/30 -mx-5 -mb-5 px-5 py-3 rounded-b-xl gap-3">
                                 <div class="text-xs min-w-0 flex-1">
-                                    <span class="opacity-50">${t("dashboard.joined_as")}:</span> <a href="${r.siteUrl}" target="_blank" class="link hover:link-primary font-medium break-all">${r.siteUrl}</a>
+                                    <span class="opacity-50">${t("dashboard.joined_as")}:</span> <a href="${r.siteUrl}" target="_blank" class="link hover:link-primary font-medium truncate align-bottom" title="${r.siteUrl}">${r.siteUrl}</a>
                                 </div>
                                 <div class="flex gap-2 w-full sm:w-auto justify-end">
                                     <a href="/dashboard/ring/widget?ring_uri=${encodeURIComponent(r.uri)}" class="btn btn-primary btn-xs gap-1 flex-1 sm:flex-none" target="_blank">

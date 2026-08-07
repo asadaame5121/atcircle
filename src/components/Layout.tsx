@@ -71,17 +71,18 @@ export const Layout = (props: {
       `
               : ""
       }
-        <div class="navbar-start flex-wrap gap-2 w-full">
-          <a href="/" class="flex items-center gap-1 btn btn-ghost px-1 min-w-0">
-            <img src="${favicon}" alt="AT CIRCLE Logo" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg shadow-sm shrink-0" />
-            <span class="text-lg sm:text-xl text-primary font-black italic tracking-tighter truncate">${props.t ? props.t("common.brand") : "AT CIRCLE"}</span>
-          </a>
-          
-          <div class="flex flex-wrap gap-1 ml-auto sm:ml-0">
+        <header class="navbar bg-base-100/90 backdrop-blur sticky top-0 z-30 shadow-sm rounded-box mb-4">
+          <div class="navbar-start min-w-0">
+            <a href="/" class="flex items-center gap-1 btn btn-ghost px-1 min-w-0">
+              <img src="${favicon}" alt="AT CIRCLE Logo" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg shadow-sm shrink-0" />
+              <span class="text-lg sm:text-xl text-primary font-black italic tracking-tighter truncate">${props.t ? props.t("common.brand") : "AT CIRCLE"}</span>
+            </a>
+          </div>
+          <div class="navbar-end hidden sm:flex gap-1">
             <a href="/rings" class="btn btn-ghost btn-sm font-medium">${props.t ? props.t("common.rings") : "Rings"}</a>
             <a href="/dashboard" class="btn btn-ghost btn-sm font-medium">${props.t ? props.t("common.dashboard") : "Dashboard"}</a>
-            <a href="https://asadaame5121.net/Article/help_ja.html" target="_blank" rel="noopener noreferrer" 
-               class="btn btn-ghost btn-sm font-normal opacity-80 hover:opacity-100 hidden sm:flex">
+            <a href="https://asadaame5121.net/Article/help_ja.html" target="_blank" rel="noopener noreferrer"
+               class="btn btn-ghost btn-sm font-normal opacity-80 hover:opacity-100">
               <i class="fa-solid fa-circle-question mr-1"></i>
               ${props.t ? props.t("common.help") : "Help"}
             </a>
@@ -89,8 +90,20 @@ export const Layout = (props: {
               <i class="fa-brands fa-github text-lg"></i>
             </a>
           </div>
-        </div>
-      </header>
+          <div class="navbar-end sm:hidden">
+            <details class="dropdown dropdown-end">
+              <summary class="btn btn-ghost btn-sm" aria-label="${props.t ? props.t("common.menu") : "Menu"}">
+                <i class="fa-solid fa-bars text-lg"></i>
+              </summary>
+              <ul class="menu dropdown-content z-[1] p-2 shadow bg-base-100 rounded-box w-52 mt-2">
+                <li><a href="/rings"><i class="fa-solid fa-circle-nodes w-4"></i>${props.t ? props.t("common.rings") : "Rings"}</a></li>
+                <li><a href="/dashboard"><i class="fa-solid fa-gauge w-4"></i>${props.t ? props.t("common.dashboard") : "Dashboard"}</a></li>
+                <li><a href="https://asadaame5121.net/Article/help_ja.html" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-circle-question w-4"></i>${props.t ? props.t("common.help") : "Help"}</a></li>
+                <li><a href="https://github.com/asadaame5121/atcircle" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-github w-4"></i>GitHub</a></li>
+              </ul>
+            </details>
+          </div>
+        </header>
       ${props.children}
       <footer class="footer p-10 bg-base-100 text-base-content rounded-box shadow-lg mt-12 grid-cols-1 md:grid-cols-3">
         <nav>
@@ -110,6 +123,9 @@ export const Layout = (props: {
             <a href="https://github.com/asadaame5121/atcircle" class="btn btn-ghost btn-circle btn-sm" target="_blank" rel="noopener noreferrer" title="GitHub" aria-label="GitHub">
               <i class="fa-brands fa-github text-lg"></i>
             </a>
+            <a href="https://www.buymeacoffee.com/asadaame5121" class="btn btn-ghost btn-circle btn-sm" target="_blank" rel="noopener noreferrer" title="${props.t ? props.t("common.buy_me_a_coffee") : "Buy me a coffee"}" aria-label="${props.t ? props.t("common.buy_me_a_coffee") : "Buy me a coffee"}">
+              <i class="fa-solid fa-mug-hot text-lg"></i>
+            </a>
           </div>
         </nav>
         <aside class="md:col-span-3 border-t border-base-300 pt-6 w-full">
@@ -125,8 +141,6 @@ export const Layout = (props: {
     </div>
     <script async src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
   </body>
-  <!-- BuyMeACoffee -->
-  <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="asadaame5121" data-color="#FFDD00" data-emoji=""  data-font="Cookie" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script>
 </html>
 `;
 };

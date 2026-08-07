@@ -36,7 +36,7 @@ export const DashboardView = ({
                         </button>
                     </div>
                     <p class="text-sm font-bold opacity-80 mt-1">${t("dashboard.catchphrase")}</p>
-                    <p class="text-[10px] opacity-30 font-mono mt-1">${did}</p>
+                    <p class="text-[10px] opacity-30 font-mono mt-1 truncate max-w-[260px] sm:max-w-md" title="${did}">${did}</p>
                     ${
                         isAdmin
                             ? html`
@@ -81,7 +81,7 @@ export const DashboardView = ({
             })}
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-2">
+                <div class="lg:col-span-2 order-2 lg:order-1">
                     <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
                         ${t("dashboard.my_rings")}
@@ -89,7 +89,7 @@ export const DashboardView = ({
                     ${RingsSection({ unifiedRings, did, t })}
                 </div>
 
-                <div class="space-y-6">
+                <div class="space-y-6 order-1 lg:order-2">
                     <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
                         ${t("dashboard.my_site")}
@@ -111,10 +111,13 @@ export const DashboardView = ({
                         </form>
                     </div>
 
-                    <div class="card bg-error/5 border border-error/10 p-4">
-                        <h3 class="text-xs font-bold text-error uppercase mb-2">${t("dashboard.danger_zone")}</h3>
-                        <button class="btn btn-error btn-xs btn-outline w-full" onclick="leave_modal.showModal()">${t("dashboard.delete_account_button")}</button>
-                    </div>
+                    <details class="collapse collapse-arrow bg-error/5 border border-error/10">
+                        <summary class="collapse-title text-xs font-bold text-error uppercase min-h-0 py-3">${t("dashboard.danger_zone")}</summary>
+                        <div class="collapse-content">
+                            <p class="text-xs opacity-60 mb-3">${t("dashboard.leave_warning")}</p>
+                            <button class="btn btn-error btn-xs btn-outline w-full" onclick="leave_modal.showModal()">${t("dashboard.delete_account_button")}</button>
+                        </div>
+                    </details>
                 </div>
             </div>
 

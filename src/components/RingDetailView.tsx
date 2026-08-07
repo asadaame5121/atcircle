@@ -7,6 +7,15 @@ interface RingDetailViewProps {
     t: (key: string, options?: any) => string;
 }
 
+const displayUrl = (url: string) => {
+    try {
+        const u = new URL(url);
+        return `${u.hostname}${u.pathname === "/" ? "" : u.pathname}`;
+    } catch {
+        return url;
+    }
+};
+
 export const RingDetailView = ({
     ring,
     members,
@@ -38,9 +47,9 @@ export const RingDetailView = ({
                         <p class="opacity-75">${ring.description || t("common.no_description")}</p>
                     </div>
                     <div class="flex flex-wrap gap-2">
-                        <a href="/antenna?ring=${encodeURIComponent(ringUri)}" class="btn btn-outline btn-sm">📡 Antenna</a>
-                        <a href="/rings/opml?ring=${encodeURIComponent(ringUri)}" class="btn btn-outline btn-sm">📦 OPML</a>
-                        <a href="/nav/random?ring=${encodeURIComponent(ringUri)}" class="btn btn-primary btn-sm">${t("rings.random_jump")}</a>
+                        <a href="/antenna?ring=${encodeURIComponent(ringUri)}" class="btn btn-outline btn-sm"><i class="fa-solid fa-tower-broadcast mr-1"></i>Antenna</a>
+                        <a href="/rings/opml?ring=${encodeURIComponent(ringUri)}" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-export mr-1"></i>OPML</a>
+                        <a href="/nav/random?ring=${encodeURIComponent(ringUri)}" class="btn btn-outline btn-sm" title="${t("rings.random_jump")}"><i class="fa-solid fa-shuffle mr-1"></i>${t("rings.random_jump")}</a>
                     </div>
                 </div>
 
@@ -49,42 +58,31 @@ export const RingDetailView = ({
                 ${
                     members && members.length > 0
                         ? html`
-                    <div class="overflow-x-auto">
-                        <table class="table table-zebra w-full text-sm">
-                            <thead>
-                                <tr>
-                                    <th>${t("common.site")}</th>
-                                    <th>${t("common.description")}</th>
-                                    <th>${t("common.actions")}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${members.map(
-                                    (site) => html`
-                                    <tr>
-                                        <td>
-                                            <div class="font-bold">${site.title}</div>
-                                            <div class="text-xs opacity-50 underline truncate max-w-[200px]"><a href="${site.url}" target="_blank">${site.url}</a></div>
-                                        </td>
-                                        <td class="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">${site.description || "-"}</td>
-                                        <td>
-                                            <div class="flex gap-2">
-                                                <a href="${site.url}" target="_blank" class="btn btn-xs btn-ghost">${t("common.visit")}</a>
-                                                ${site.rss_url ? html`<a href="${site.rss_url}" target="_blank" class="badge badge-warning badge-sm">RSS</a>` : ""}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                `,
-                                )}
-                            </tbody>
-                        </table>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        ${members.map(
+                            (site) => html`
+                            <div class="card bg-base-200 shadow-sm border border-base-300">
+                                <div class="card-body p-5">
+                                    <h3 class="font-bold break-all">${site.title}</h3>
+                                    <p class="text-xs opacity-50 underline truncate" title="${site.url}">
+                                        <a href="${site.url}" target="_blank" rel="noopener noreferrer">${displayUrl(site.url)}</a>
+                                    </p>
+                                    <p class="text-sm text-base-content/70 line-clamp-2">${site.description || "-"}</p>
+                                    <div class="card-actions justify-end mt-2">
+                                        ${site.rss_url ? html`<a href="${site.rss_url}" target="_blank" rel="noopener noreferrer" class="badge badge-warning badge-sm">RSS</a>` : ""}
+                                        <a href="${site.url}" target="_blank" rel="noopener noreferrer" class="btn btn-xs btn-ghost">${t("common.visit")}</a>
+                                    </div>
+                                </div>
+                            </div>
+                        `,
+                        )}
                     </div>
                 `
                         : html`<div class="alert alert-ghost border-dashed">${t("rings.no_members_found")}</div>`
                 }
 
                 <div class="card-actions justify-center mt-12 gap-4">
-                    <a href="/dashboard?ring=${encodeURIComponent(ringUri)}" class="btn btn-secondary">${t("rings.join_this_ring")}</a>
+                    <a href="/dashboard?ring=${encodeURIComponent(ringUri)}" class="btn btn-primary btn-lg">${t("rings.join_this_ring")}</a>
                     <a href="/rings" class="btn btn-ghost">${t("common.back_to_list")}</a>
                 </div>
             </div>

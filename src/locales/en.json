@@ -23,12 +23,37 @@
         "share_on_bluesky": "Share on Bluesky",
         "share_on_twitter": "Share on X (Twitter)",
         "github": "GitHub",
-        "back_to_dashboard": "Back to Dashboard"
+        "back_to_dashboard": "Back to Dashboard",
+        "menu": "Menu",
+        "buy_me_a_coffee": "Buy me a coffee"
     },
     "home": {
         "welcome": "Welcome to AT CIRCLE",
         "description": "Join a webring to discover amazing sites and connect with the community.",
-        "login_button": "Login with Bluesky"
+        "login_button": "Login with Bluesky",
+        "cta_login": "Login with Bluesky",
+        "cta_explore": "Explore webrings",
+        "preview_rings_title": "Public webrings",
+        "preview_rings_desc": "Join webrings created by the community",
+        "preview_rings_more": "See all webrings",
+        "features_title": "What you can do with AT CIRCLE",
+        "feature_rings_title": "Create and manage webrings",
+        "feature_rings_desc": "Approval flows, invite links, and member management",
+        "feature_widget_title": "Embeddable widget",
+        "feature_widget_desc": "Prev / next / random navigation widget for your site",
+        "feature_antenna_title": "Antenna RSS aggregation",
+        "feature_antenna_desc": "Track member site updates in one place and export OPML",
+        "feature_oauth_title": "Login with Bluesky",
+        "feature_oauth_desc": "Secure login via ATProto OAuth",
+        "steps_title": "Getting started",
+        "step1_title": "Login with Bluesky",
+        "step1_desc": "One-click auth with your ATProto account",
+        "step2_title": "Register your site",
+        "step2_desc": "Register your site URL and RSS feed",
+        "step3_title": "Join or create a ring",
+        "step3_desc": "Join community webrings or create your own",
+        "final_cta_title": "Ready to get started?",
+        "final_cta_desc": "Connect your site with a webring today"
     },
     "auth": {
         "login_title": "Join AT CIRCLE",
@@ -137,7 +162,10 @@
         "sync_from_pds": "Sync from PDS",
         "usage_guide_step": "Step {{n}}",
         "warning": "Warning",
-        "yes_delete_account": "Yes, Delete Account"
+        "yes_delete_account": "Yes, Delete Account",
+        "no_rings_desc": "You haven't joined any webrings yet.\nFind an existing ring to join!",
+        "copy_uri": "Copy URI",
+        "uri_copied": "URI copied to clipboard!"
     },
     "ring_ops": {
         "create_title": "Create a New Webring",

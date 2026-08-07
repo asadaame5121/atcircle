@@ -38,7 +38,7 @@ export const ModerationSection = (props: {
                             </form>
                             <form action="/dashboard/ring/request/reject" method="POST">
                                 <input type="hidden" name="request_id" value="${jr.id}" />
-                                <button type="submit" class="btn btn-ghost btn-xs text-error w-full">${t("dashboard.reject")}</button>
+                                <button type="submit" class="btn btn-error btn-xs btn-outline w-full">${t("dashboard.reject")}</button>
                             </form>
                         </div>
                     </div>

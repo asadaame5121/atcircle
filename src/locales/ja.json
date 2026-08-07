@@ -34,13 +34,37 @@
         "share_on_bluesky": "Blueskyでシェア",
         "share_on_twitter": "X (Twitter)でシェア",
         "github": "GitHub",
-        "back_to_dashboard": "ダッシュボードに戻る"
+        "back_to_dashboard": "ダッシュボードに戻る",
+        "menu": "メニュー",
+        "buy_me_a_coffee": "コーヒーをごちそうする"
     },
-
     "home": {
         "welcome": "AT CIRCLEへようこそ",
         "description": "ウェブリングに参加して、素晴らしいサイトを見つけ、コミュニティと繋がりましょう。",
-        "login_button": "Blueskyでログイン"
+        "login_button": "Blueskyでログイン",
+        "cta_login": "Blueskyでログイン",
+        "cta_explore": "ウェブリングを探す",
+        "preview_rings_title": "公開中のウェブリング",
+        "preview_rings_desc": "みんなが作ったウェブリングに参加してみよう",
+        "preview_rings_more": "すべてのウェブリングを見る",
+        "features_title": "AT CIRCLE でできること",
+        "feature_rings_title": "ウェブリングを作成・管理",
+        "feature_rings_desc": "承認フロー・招待リンク・メンバー管理に対応",
+        "feature_widget_title": "埋め込みウィジェット",
+        "feature_widget_desc": "前へ・次へ・ランダム移動ウィジェットをあなたのサイトに",
+        "feature_antenna_title": "アンテナで RSS 集約",
+        "feature_antenna_desc": "メンバーサイトの更新をまとめてチェック、OPML 出力も",
+        "feature_oauth_title": "Bluesky でログイン",
+        "feature_oauth_desc": "ATProto OAuth で安全にログイン",
+        "steps_title": "はじめ方",
+        "step1_title": "Bluesky でログイン",
+        "step1_desc": "ATProto アカウントでワンクリック認証",
+        "step2_title": "サイトを登録",
+        "step2_desc": "あなたのウェブサイトの URL と RSS を登録",
+        "step3_title": "リングに参加・作成",
+        "step3_desc": "仲間のウェブリングに参加、自分でも作れる",
+        "final_cta_title": "さあ、はじめよう",
+        "final_cta_desc": "あなたのサイトをウェブリングでつなごう"
     },
     "auth": {
         "login_title": "AT CIRCLEに参加する",
@@ -146,7 +170,10 @@
         "error_slug_exists": "このスラッグは既に使用されています。",
         "error_slug_invalid": "スラッグの形式が正しくありません。",
         "updates_title": "お知らせ・更新情報",
-        "updates_desc": "機能追加や使い方はこちらを確認してください（外部サイト）"
+        "updates_desc": "機能追加や使い方はこちらを確認してください（外部サイト）",
+        "no_rings_desc": "まだ参加しているリングがありません。\n既存のリングを探してみませんか？",
+        "copy_uri": "URIをコピー",
+        "uri_copied": "URIをコピーしました"
     },
     "ring_ops": {
         "create_title": "新しいウェブリングを作成",
@@ -274,7 +301,6 @@
         "verify_now": "今すぐ確認",
         "last_verified": "最終確認: {{time}}"
     },
-
     "admin": {
         "stats_title": "システム統計",
         "total_users": "総ユーザー数",

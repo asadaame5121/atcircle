@@ -29,8 +29,8 @@ if (e2eEnabled) {
         await expect(page.getByText(site.title)).toBeVisible();
     }
 
-    async function ringCard(page: Page, uri: string) {
-        return page.locator(".card", { hasText: uri });
+    async function ringCard(page: Page) {
+        return page.locator(".card", { hasText: RING_TITLE });
     }
 
     test("alice registers a site (idempotent)", async ({ page }) => {
@@ -54,10 +54,10 @@ if (e2eEnabled) {
 
         const card = page.locator(".card", { hasText: RING_TITLE });
         await card.waitFor();
-        const uriText = await card
-            .locator("span", { hasText: "URI:" })
-            .innerText();
-        ringUri = uriText.replace("URI:", "").trim();
+        // The ring URI is now hidden behind the "Copy URI" button (data-uri)
+        const copyBtn = card.locator('button[data-uri^="at://"]').first();
+        await copyBtn.waitFor();
+        ringUri = (await copyBtn.getAttribute("data-uri")) || "";
         expect(ringUri).toMatch(/^at:\/\//);
     });
 
@@ -126,7 +126,7 @@ if (e2eEnabled) {
         await card.getByRole("button", { name: /leave/i }).click();
         await expect(page).toHaveURL(/msg=left/);
         // The leave action (isMember section) disappears from the card
-        const cardAfter = await ringCard(page, ringUri);
+        const cardAfter = await ringCard(page);
         await expect(
             cardAfter.getByRole("button", { name: /leave/i }),
         ).toHaveCount(0);
