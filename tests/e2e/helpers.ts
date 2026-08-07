@@ -21,6 +21,10 @@ export const E2E_ACCOUNTS = {
         handle: "bob.pds-dev.asadaame5121.net",
         password: process.env.TEST_BOB_PASSWORD || "bob-test-pw-2026",
     },
+    admin: {
+        handle: "atcircle-admin.pds-dev.asadaame5121.net",
+        password: process.env.TEST_ADMIN_PASSWORD || "admin-test-pw-2026",
+    },
 };
 
 function escapeRegExp(s: string) {
