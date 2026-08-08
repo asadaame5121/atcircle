@@ -58,3 +58,4 @@ GEMINI.md
 *.txt
 machines*.json
 wrangler.toml
+screenshots/
