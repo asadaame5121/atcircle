@@ -32,7 +32,7 @@ export const RingListView = ({ rings, ownerLabels, t }: RingListViewProps) => {
              `
                      : html`<div class="alert alert-info">${t("rings.no_rings_found")}</div>`
 }
-
+             
              <div class="card-actions justify-center mt-8">
                 <a href="/" class="btn btn-ghost">${t("common.back_to_home")}</a>
              </div>
