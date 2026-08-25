@@ -70,8 +70,7 @@ export const Layout = (props: {
       </div>
       `
               : ""
-}
-      
+}      
         <header class="navbar bg-base-100/90 backdrop-blur sticky top-0 z-30 shadow-sm rounded-box mb-4">
           <div class="navbar-start min-w-0">
             <a href="/" class="flex items-center gap-1 btn btn-ghost px-1 min-w-0 max-w-full">
