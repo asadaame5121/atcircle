@@ -43,6 +43,11 @@ export const Layout = (props: {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
     <link href="/assets/index.css" rel="stylesheet" />
     <style>
+      html[data-theme="light"] {
+        --p: 0.46 0.12 250;
+        --pc: 0.98 0.01 250;
+      }
+
       /* Custom overrides for responsive layout */
       body { 
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -56,9 +61,19 @@ export const Layout = (props: {
         padding-left: 0.75rem !important; 
         padding-right: 0.75rem !important; 
       }
-      
-      /* Ensure everything stays within viewport */
-      * { max-width: 100%; box-sizing: border-box; }
+
+      *, *::before, *::after { box-sizing: border-box; }
+      .navbar-desktop { display: flex !important; }
+      .navbar-mobile { display: none !important; }
+
+      @media (max-width: 639px) {
+        .navbar-desktop { display: none !important; }
+        .navbar-mobile { display: flex !important; }
+        .navbar-mobile .dropdown-content {
+          width: 13rem;
+          max-width: calc(100vw - 2rem);
+        }
+      }
     </style>
   </head>
   <body class="bg-base-200 min-h-screen">
@@ -71,7 +86,7 @@ export const Layout = (props: {
       </div>
       `
               : ""
-      }
+}
         <header class="navbar bg-base-100/90 backdrop-blur sticky top-0 z-30 shadow-sm rounded-box mb-4">
           <div class="navbar-start min-w-0">
             <a href="/" class="flex items-center gap-1 btn btn-ghost px-1 min-w-0 max-w-full">
@@ -79,7 +94,7 @@ export const Layout = (props: {
               <span class="text-lg sm:text-xl text-primary font-black italic tracking-tighter truncate min-w-0">${props.t ? props.t("common.brand") : "AT CIRCLE"}</span>
             </a>
           </div>
-          <div class="navbar-end hidden sm:flex gap-1">
+          <div class="navbar-end navbar-desktop gap-1">
             <a href="/rings" class="btn btn-ghost btn-sm font-medium">${props.t ? props.t("common.rings") : "Rings"}</a>
             <a href="/dashboard" class="btn btn-ghost btn-sm font-medium">${props.t ? props.t("common.dashboard") : "Dashboard"}</a>
             <a href="https://asadaame5121.net/Article/help_ja.html" target="_blank" rel="noopener noreferrer" 
@@ -91,7 +106,7 @@ export const Layout = (props: {
               <i class="fa-brands fa-github text-lg"></i>
             </a>
           </div>
-          <div class="navbar-end sm:hidden">
+          <div class="navbar-end navbar-mobile">
             <details class="dropdown dropdown-end">
               <summary class="btn btn-ghost btn-sm" aria-label="${props.t ? props.t("common.menu") : "Menu"}">
                 <i class="fa-solid fa-bars text-lg"></i>
