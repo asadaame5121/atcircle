@@ -294,6 +294,9 @@
   .mt-12 {
     margin-top: calc(var(--spacing) * 12);
   }
+  .mt-16 {
+    margin-top: calc(var(--spacing) * 16);
+  }
   .mr-1 {
     margin-right: calc(var(--spacing) * 1);
   }
@@ -336,6 +339,9 @@
   .block {
     display: block;
   }
+  .contents {
+    display: contents;
+  }
   .flex {
     display: flex;
   }
@@ -366,6 +372,9 @@
   .h-7 {
     height: calc(var(--spacing) * 7);
   }
+  .h-9 {
+    height: calc(var(--spacing) * 9);
+  }
   .h-10 {
     height: calc(var(--spacing) * 10);
   }
@@ -387,8 +396,8 @@
   .min-h-0 {
     min-height: calc(var(--spacing) * 0);
   }
-  .min-h-\[55vh\] {
-    min-height: 55vh;
+  .min-h-\[46vh\] {
+    min-height: 46vh;
   }
   .min-h-screen {
     min-height: 100vh;
@@ -407,6 +416,9 @@
   }
   .w-7 {
     width: calc(var(--spacing) * 7);
+  }
+  .w-9 {
+    width: calc(var(--spacing) * 9);
   }
   .w-10 {
     width: calc(var(--spacing) * 10);
@@ -566,6 +578,9 @@
   .gap-x-3 {
     column-gap: calc(var(--spacing) * 3);
   }
+  .gap-x-12 {
+    column-gap: calc(var(--spacing) * 12);
+  }
   .gap-y-1 {
     row-gap: calc(var(--spacing) * 1);
   }
@@ -612,6 +627,10 @@
   .border-2 {
     border-style: var(--tw-border-style);
     border-width: 2px;
+  }
+  .border-y {
+    border-block-style: var(--tw-border-style);
+    border-block-width: 1px;
   }
   .border-t {
     border-top-style: var(--tw-border-style);
@@ -954,11 +973,6 @@
       display: flex;
     }
   }
-  .sm\:hidden {
-    @media (width >= 40rem) {
-      display: none;
-    }
-  }
   .sm\:h-8 {
     @media (width >= 40rem) {
       height: calc(var(--spacing) * 8);
@@ -1076,6 +1090,11 @@
       align-items: flex-end;
     }
   }
+  .md\:px-5 {
+    @media (width >= 48rem) {
+      padding-inline: calc(var(--spacing) * 5);
+    }
+  }
   .lg\:order-1 {
     @media (width >= 64rem) {
       order: 1;
@@ -1110,11 +1129,6 @@
   .xl\:grid-cols-3 {
     @media (width >= 80rem) {
       grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-  .xl\:grid-cols-4 {
-    @media (width >= 80rem) {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
   }
 }
