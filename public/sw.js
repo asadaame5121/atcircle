@@ -3,7 +3,7 @@
  * Basic App Shell caching for standalone PWA mode.
  */
 
-const CACHE_NAME = "atcircle-companion-v2";
+const CACHE_NAME = "atcircle-companion-v3";
 
 const APP_SHELL_ASSETS = [
     "/assets/favicon.png",
@@ -36,20 +36,36 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-    // Only cache static assets (not dynamic ATProto API or SSR HTML)
+    // Only cache GET requests for static assets (not dynamic ATProto API or SSR HTML)
+    if (event.request.method !== "GET") return;
+
     const url = new URL(event.request.url);
     if (url.pathname.startsWith("/assets/")) {
         event.respondWith(
             caches.match(event.request).then((cachedResponse) => {
-                return (
-                    cachedResponse ||
-                    fetch(event.request).then((response) => {
-                        return caches.open(CACHE_NAME).then((cache) => {
-                            cache.put(event.request, response.clone());
-                            return response;
-                        });
+                if (cachedResponse) {
+                    return cachedResponse;
+                }
+                return fetch(event.request)
+                    .then((response) => {
+                        // Validate response before caching (status 200 and basic type)
+                        if (
+                            response &&
+                            response.status === 200 &&
+                            response.type === "basic"
+                        ) {
+                            const responseToCache = response.clone();
+                            // Asynchronous cache update without blocking response return
+                            caches.open(CACHE_NAME).then((cache) => {
+                                cache.put(event.request, responseToCache).catch(() => {});
+                            });
+                        }
+                        return response;
                     })
-                );
+                    .catch(() => {
+                        // Return offline cached response if available or fallback
+                        return caches.match(event.request);
+                    });
             }),
         );
     }
