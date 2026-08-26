@@ -1,98 +1,80 @@
-# ATcircle
+# AT CIRCLE
 
-ATProtoを利用したモダンなウェブリング。
+AT CIRCLE は、ATProto を利用して個人サイト同士をつなぐウェブリングです。
+Bluesky アカウントでログインし、サイトの登録、リングの作成・参加、埋め込み
+ウィジェットによるサイト間移動、RSS 更新の閲覧ができます。
 
-## 概要
+## 主な機能
 
-ATcircle は、分散型 SNS プロトコルである ATProto
-を活用し、個人サイト同士を繋ぐプラットフォームです。
-かつての個人サイト文化にあったウェブリングを、ATProtoで再現しようという試みです。
+- Bluesky の ATProto OAuth を使ったログイン
+- Bluesky プロフィールからのサイト候補検出と手動登録
+- ウェブリングの作成、参加、承認、メンバー管理
+- 前へ・ランダム・次へ・一覧を備えた埋め込みウィジェット
+- リング別の RSS アンテナと OPML エクスポート
+- 公開プロフィールとリングの公開ページ
 
-## 特徴
+## 文書
 
-- **Bluesky 連携 (OAuth)**: Bluesky ハンドルでログインできます。
-- **ウェブリング作成・管理**:
-  独自のテーマでサークルを作成し、メンバーを招待・管理できます。
-- **カスタムウィジェット**:
-  サイトに埋め込み可能なナビゲーションウィジェット（前へ・次へ・ランダム）。
-- **アンテナ (RSS集約)**: 参加サイトの更新情報を一括で表示。
-- **OPML エクスポート**: リング内のサイトをまとめて RSS リーダーに登録可能。
+- [ユーザー向けヘルプ](docs/help_ja.md)
+- [開発・保守マニュアル](docs/development-maintenance.md)
+- [文書一覧](docs/README.md)
+- [ATProto CRUD 仕様](docs/spec/atproto_crud.md)
+- [Lexicon リファレンス](docs/lexicons.md)
 
-## 技術スタック
+## 開発を始める
 
-- **Framework**: [Hono](https://hono.dev/)
-- **Runtime**: [Node.js](https://nodejs.org/) (>= 24)
-- **Database**: SQLite (`node:sqlite`)
-- **Infrastructure**: [Fly.io](https://fly.io/) (Docker)
-- **Auth**: [ATProto OAuthClient](https://github.com/bluesky-social/atproto)
+### 前提条件
 
----
+- Node.js 24 以上
+- npm
 
-# ATcircle
+### セットアップ
 
-A modern webring using ATProto.
+```bash
+git clone https://github.com/asadaame5121/atcircle.git
+cd atcircle
+npm install
+npm run dev
+```
 
-## Overview
+既定では `http://localhost:8080` で起動します。ローカル開発では
+`DB_PATH` を省略すると `./dev.db` を使用します。
 
-ATcircle is a platform that connects personal websites using the decentralized
-SNS protocol, ATProto. It is an attempt to recreate the webring culture once
-found in personal sites using ATProto.
+### よく使うコマンド
 
-## Features
+| コマンド | 用途 |
+| --- | --- |
+| `npm run dev` | 開発サーバーを起動 |
+| `npm run build` | CSS とアプリケーションを本番用にビルド |
+| `npm start` | ビルド済みの `dist/index.js` を起動 |
+| `npm test` | Vitest の単体・ルートテストを実行 |
+| `npm run test:e2e` | Playwright の E2E テストを実行 |
+| `npm run lint` | Biome による静的検査 |
+| `npm run format` | Biome による整形と自動修正 |
 
-- **Bluesky Integration (OAuth)**: Log in with your Bluesky handle.
-- **Webring Management**: Create circles with custom themes and manage members.
-- **Custom Widget**: Embeddable navigation widget for member sites
-  (Prev/Next/Random).
-- **Antenna (RSS Aggregation)**: A unified feed of recent updates from all
-  members.
-- **OPML Export**: Easily export the subscription list for your favorite RSS
-  reader.
+### 最小構成の環境変数
 
-## Tech Stack
+ローカル開発では多くの項目に既定値があります。本番運用では少なくとも次を
+明示的に設定してください。
 
-- **Framework**: [Hono](https://hono.dev/)
-- **Runtime**: [Node.js](https://nodejs.org/) (>= 24)
-- **Database**: SQLite (`node:sqlite`)
-- **Infrastructure**: [Fly.io](https://fly.io/) (Docker)
-- **Auth**: [ATProto OAuthClient](https://github.com/bluesky-social/atproto)
+- `PUBLIC_URL`: 外部からアクセスできる HTTPS のベース URL
+- `SECRET_KEY`: アプリ内セッション JWT の署名鍵
+- `OAUTH_PRIVATE_KEY`: ATProto OAuth 用の秘密 JWK、またはその Base64 表現
+- `NODE_ENV=production`
+- `TURSO_DATABASE_URL` と `TURSO_AUTH_TOKEN`: Turso を利用する場合
+- `ADMIN_DID`: 管理機能を利用するアカウントの DID
 
-## Getting Started / 開発の始め方
+設定項目の完全な一覧、データベース、テスト、デプロイ、障害対応については
+[開発・保守マニュアル](docs/development-maintenance.md)を参照してください。
 
-### Prerequisites / 前提条件
+## 技術構成
 
-- **Node.js**: >= 24
-- **npm** or **bun**
+- Hono / TypeScript / Vite
+- Node.js 24
+- Tailwind CSS
+- libSQL（ローカル SQLite または Turso）
+- ATProto OAuth と独自 Lexicon
+- Vitest / Playwright / Biome
 
-### Installation / インストール
-
-1. Clone the repository / リポジトリをクローン:
-   ```bash
-   git clone https://github.com/asadaame5121/atcircle.git
-   cd atcircle
-   ```
-2. Install dependencies / 依存関係のインストール:
-   ```bash
-   npm install
-   ```
-
-### Local Development / ローカル開発
-
-1. Start the dev server / 開発サーバーの起動:
-   ```bash
-   npm run dev
-   ```
-2. Open `http://localhost:8080` in your browser.
-
-### Configuration / 設定
-
-以下の環境変数を設定してください (.env ファイルなど): Set the following
-environment variables (e.g., in a `.env` file):
-
-- `PUBLIC_URL`: サイトの公開 URL (例: `https://at-circle.example.com`)
-- `SECRET_KEY`: JWT セッション署名用の秘密鍵
-- `OAUTH_PRIVATE_KEY`: ATProto OAuth 用の非公開鍵 (JWK形式をBase64変換したもの)
-
-## License
-
-MIT
+`docs/lexicons.md` と `src/lexicons/` 配下は Lexicon から生成される成果物です。
+独自レコードの名前空間は `net.asadaame5121.at-circle.*` です。

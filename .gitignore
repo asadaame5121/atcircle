@@ -43,7 +43,6 @@ playwright-report/
 blob-report/
 playwright/.cache/
 wrangler.jsonc
-docs/help_ja.md
 docs/release_article_draft.md
 GEMINI.md
 *-ZAP-Report-*.html

@@ -1,161 +1,193 @@
-# ATProto Ring & Member CRUD Specification
+# ATProto レコード CRUD 仕様
 
-This document details the operations for managing Webrings on the AT Protocol
-using the `@atproto/api` SDK.
+この文書は、AT CIRCLE が ATProto のユーザーリポジトリへ保存する独自レコードと、
+アプリケーション内のキャッシュとの役割分担を説明します。Lexicon の正本は
+`lexicons/net.asadaame5121.at-circle.*.json` です。
 
-## Prerequisites
+## コレクション
 
-- **Agent**: An authenticated `AtpAgent` instance.
-- **NSIDs**:
-  - Ring: `com.webring.ring`
-  - Member: `com.webring.member`
-  - Block: `com.webring.block`
+| 用途 | NSID | レコードを所有する主体 |
+| --- | --- | --- |
+| リング | `net.asadaame5121.at-circle.ring` | リング作成者 |
+| メンバー | `net.asadaame5121.at-circle.member` | 参加者 |
+| 参加申請 | `net.asadaame5121.at-circle.request` | 申請者 |
+| ブロック | `net.asadaame5121.at-circle.block` | リング管理者 |
+| バナー | `net.asadaame5121.at-circle.banner` | リング管理者 |
 
-## 1. Ring Operations
+OAuth クライアントは上記5コレクションへのリポジトリアクセスと、バナー用 blob
+アクセスを要求します。
 
-### 1.1 Create a Ring
+## 共通の参照形式
 
-Create a record in the `com.webring.ring` collection.
+リングへの参照は `net.asadaame5121.at-circle.defs#ringRef` を使用します。
 
-```typescript
-async function createRing(agent: AtpAgent, title: string, description: string) {
-    const record = {
-        $type: "com.webring.ring",
-        title: title,
-        description: description,
-        createdAt: new Date().toISOString(),
-    };
-
-    const response = await agent.api.com.atproto.repo.createRecord({
-        repo: agent.session?.did ?? "",
-        collection: "com.webring.ring",
-        record: record,
-    });
-
-    return response.uri;
+```json
+{
+  "uri": "at://did:plc:example/net.asadaame5121.at-circle.ring/3example",
+  "cid": "省略可能"
 }
 ```
 
-### 1.2 List Rings (listRings)
+## リング
 
-Fetch records with pagination.
+### 作成
 
-```typescript
-async function listRings(
-    agent: AtpAgent,
-    ownerDid: string,
-    cursor?: string,
-    limit: number = 50,
-) {
-    // Currently wraps com.atproto.repo.listRecords
-    const response = await agent.api.com.atproto.repo.listRecords({
-        repo: ownerDid,
-        collection: "com.webring.ring",
-        cursor: cursor,
-        limit: limit,
-    });
-    return response.data;
+`AtProtoService.createRing` はログイン中の DID のリポジトリにリングレコードを
+作成します。初期値は `status: "open"`、`acceptancePolicy: "automatic"` です。
+
+```json
+{
+  "$type": "net.asadaame5121.at-circle.ring",
+  "title": "個人サイトの輪",
+  "description": "個人サイト同士をつなぐリング",
+  "admin": "did:plc:example",
+  "status": "open",
+  "acceptancePolicy": "automatic",
+  "createdAt": "2026-01-01T00:00:00.000Z"
 }
 ```
 
-## 2. Membership Operations (Sidecar Pattern)
+### 取得・一覧
 
-Membership is declared by the user creates a `com.webring.member` record in
-their own repository.
+- 1件取得: AT URI を分解し、`com.atproto.repo.getRecord` を使用
+- 所有リング一覧: `net.asadaame5121.at-circle.ring` のレコードを
+  `com.atproto.repo.listRecords` 相当の生成クライアントで取得
 
-### 2.1 Join a Ring
+### 更新
 
-Create a `com.webring.member` record that references the Ring's AT-URI.
+`AtProtoService.updateRing` は同じ rkey に `putRecord` します。更新可能な ATProto
+項目はタイトル、説明、公開状態、承認方式、管理者 DID です。公開スラッグと外部
+バナー URL はアプリケーション側の表示用データです。
 
-```typescript
-async function joinRing(
-    agent: AtpAgent,
-    ringUri: string,
-    siteData: { url: string; title: string; rss?: string },
-) {
-    const record = {
-        $type: "com.webring.member",
-        ring: ringUri, // Reference to the Ring
-        url: siteData.url,
-        title: siteData.title,
-        rss: siteData.rss,
-        createdAt: new Date().toISOString(),
-    };
+### 削除
 
-    const response = await agent.api.com.atproto.repo.createRecord({
-        repo: agent.session?.did ?? "",
-        collection: "com.webring.member",
-        record: record,
-    });
+`AtProtoService.deleteRing` はリング URI の rkey を使って、所有者のリング
+レコードを削除します。ルート処理は関連するローカルの参加・申請データも整理
+します。
 
-    return response.uri;
+## 参加
+
+### 自動承認リング
+
+`AtProtoService.joinRing` は参加者自身のリポジトリにメンバーレコードを作成します。
+
+```json
+{
+  "$type": "net.asadaame5121.at-circle.member",
+  "ring": {
+    "uri": "at://did:plc:owner/net.asadaame5121.at-circle.ring/3example"
+  },
+  "url": "https://example.com/",
+  "title": "Example Site",
+  "rss": "https://example.com/feed.xml",
+  "note": "省略可能",
+  "createdAt": "2026-01-01T00:00:00.000Z"
 }
 ```
 
-### 2.2 Leave a Ring
+作成後、アプリケーションは `memberships` に承認済みのインデックスを保存します。
 
-Delete the `com.webring.member` record. This removes the "Sidecar" declaration.
+### 要承認リング
 
-```typescript
-async function leaveRing(agent: AtpAgent, memberRecordUri: string) {
-    const { rkey } = new AtUri(memberRecordUri);
+`AtProtoService.createJoinRequest` は申請者自身のリポジトリに申請レコードを作成
+し、アプリケーションは `join_requests` に保留中の申請を保存します。
 
-    await agent.api.com.atproto.repo.deleteRecord({
-        repo: agent.session?.did ?? "",
-        collection: "com.webring.member",
-        rkey: rkey,
-    });
+```json
+{
+  "$type": "net.asadaame5121.at-circle.request",
+  "ring": {
+    "uri": "at://did:plc:owner/net.asadaame5121.at-circle.ring/3example"
+  },
+  "siteUrl": "https://example.com/",
+  "siteTitle": "Example Site",
+  "rssUrl": "https://example.com/feed.xml",
+  "message": "参加希望です",
+  "createdAt": "2026-01-01T00:00:00.000Z"
 }
 ```
 
-### 2.3 List Members (listMembers)
+現行の承認処理はローカルの `memberships` を承認済みにし、
+`join_requests.status` を更新します。申請者の PDS にある申請レコードを
+メンバーレコードへ自動変換する処理ではありません。このため、要承認フローの
+PDS レコードとローカル参加状態を調査するときは別々に確認してください。
 
-To show the list of members for a Ring:
+### 離脱
 
-1. **List all candidates**: Typically requires an AppView. For MVP, we query our
-   D1 cache or specific known repos.
-2. **Fetch blocks**: Query the Ring Owner's repository for `com.webring.block`.
-3. **Filter**: Exclude blocked members.
+`AtProtoService.leaveRing` はメンバーレコード URI の rkey を使って、参加者自身の
+メンバーレコードを削除します。アプリケーション側の `memberships` も削除します。
 
-```typescript
-async function listMembers(
-    agent: AtpAgent,
-    ringUri: string,
-    cursor?: string,
-    limit: number = 50,
-) {
-    // In a full AppView, this would be a single API call:
-    // return agent.api.com.webring.view.listMembers({ ring: ringUri, cursor, limit });
+## モデレーション
 
-    // For MVP PDS-only interaction, this logic resides in the backend service.
+### ブロック
+
+リング管理者は自身のリポジトリに独自のブロックレコードを作成します。これは
+Bluesky の `app.bsky.graph.block` とは別の、リング単位の記録です。
+
+```json
+{
+  "$type": "net.asadaame5121.at-circle.block",
+  "subject": "did:plc:member",
+  "ring": {
+    "uri": "at://did:plc:owner/net.asadaame5121.at-circle.ring/3example"
+  },
+  "reason": "省略可能",
+  "createdAt": "2026-01-01T00:00:00.000Z"
 }
 ```
 
-## 3. Moderation (Kick/Block)
+`AtProtoService.unblock` はブロック URI の rkey を削除します。ローカルの
+`block_records` は公開一覧や参加判定に使うインデックスです。
 
-### 3.1 Block a Member
+## バナー
 
-The Ring Owner creates a block record.
+`AtProtoService.setRingBanner` は画像を blob としてアップロードした後、リングと
+同じ rkey でバナーレコードを `put` します。これにより1リングにつき1バナーを
+扱います。
 
-```typescript
-async function blockMember(
-    agent: AtpAgent,
-    ringUri: string,
-    memberDid: string,
-    reason?: string,
-) {
-    const record = {
-        $type: "com.webring.block",
-        ring: ringUri,
-        subject: memberDid,
-        reason: reason,
-        createdAt: new Date().toISOString(),
-    };
-
-    await agent.api.com.atproto.repo.createRecord({
-        repo: agent.session?.did ?? "",
-        collection: "com.webring.block",
-        record: record,
-    });
+```json
+{
+  "$type": "net.asadaame5121.at-circle.banner",
+  "ring": {
+    "uri": "at://did:plc:owner/net.asadaame5121.at-circle.ring/3example"
+  },
+  "banner": {
+    "$type": "blob",
+    "ref": {
+      "$link": "bafy..."
+    },
+    "mimeType": "image/png",
+    "size": 12345
+  },
+  "createdAt": "2026-01-01T00:00:00.000Z"
 }
 ```
+
+Lexicon 上の最大サイズは1,000,000バイトです。アップロード画面は JPEG、PNG、
+WebP のみを受け付けます。
+
+## ATProto とローカルデータベースの役割
+
+ATProto レコードはユーザーの意思と所有権を示す正本です。ローカル DB は公開
+一覧、承認状態、ナビゲーション、RSS アンテナを高速に提供する AppView 相当の
+インデックスです。
+
+| ローカルテーブル | 主な役割 |
+| --- | --- |
+| `rings` | リング表示、状態、スラッグ、外部バナーURL |
+| `join_requests` | 承認待ち申請 |
+| `memberships` | 参加状態、設置確認、参加者バナー |
+| `block_records` | ブロック状態 |
+| `sites` | 参加サイトの表示・RSS情報 |
+
+PDS との同期や管理者の全体同期でローカルインデックスを再構築します。新しい
+処理を追加するときは、ATProto 側の更新とローカル側の更新の片方だけが成功した
+場合を考慮してください。
+
+## 実装上の参照先
+
+- CRUD 実装: `src/services/atproto.ts`
+- ルート処理: `src/routes/dashboard/rings.ts`,
+  `src/routes/dashboard/members.ts`, `src/routes/dashboard/moderation.ts`
+- Lexicon 正本: `lexicons/net.asadaame5121.at-circle.*.json`
+- 生成クライアント: `src/lexicons/`
+- 生成リファレンス: `docs/lexicons.md`
