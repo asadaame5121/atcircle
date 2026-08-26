@@ -48,8 +48,11 @@ function setupCron() {
     pinoLogger.info("[Startup] Cron job scheduled (Daily at 00:00)");
 }
 
+import { pathToFileURL } from "node:url";
+
 setupCron();
-const isMain = import.meta.url === `file://${process.argv[1]}`;
+const isMain =
+    process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 if (isMain || process.env.NODE_ENV === "production") {
     const serverInstance = serve(
         {
