@@ -37,7 +37,10 @@ function generateCompanionScript(
             if (typeof BroadcastChannel !== "undefined") {
                 channel = new BroadcastChannel(channelName);
             }
+        } catch (e) {}
+
         function normalizeWebUrl(url) {
+
             if (!url || typeof url !== "string") return null;
             const trimmed = url.trim();
             if (!trimmed) return null;
