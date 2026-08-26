@@ -1,4 +1,4 @@
-import { html } from "hono/html";
+import { html, raw } from "hono/html";
 import type { NavigationMember } from "../lib/navigation-session.js";
 
 interface CompanionViewProps {
@@ -28,30 +28,36 @@ function generateCompanionScript(
         const ringUri = ${JSON.stringify(ringUri)};
         let members = ${JSON.stringify(initialMembers)};
         const initialMemberUri = ${JSON.stringify(initialMemberUri)};
-        const STORAGE_PREFIX = "atcircle_session_";
-        const LAST_RING_KEY = "atcircle_last_session_ring";
-        const storageKey = STORAGE_PREFIX + encodeURIComponent(ringUri);
+        const storageKey = "atcircle_session_" + encodeURIComponent(ringUri);
         const channelName = "atcircle_nav_" + encodeURIComponent(ringUri);
+        const LAST_RING_KEY = "atcircle_last_session_ring";
 
         let channel = null;
         try {
             if (typeof BroadcastChannel !== "undefined") {
                 channel = new BroadcastChannel(channelName);
             }
-        } catch (e) {
-            console.warn("BroadcastChannel not supported", e);
-        }
+        } catch (e) {}
 
-        function isValidWebUrl(urlString) {
-            if (!urlString || typeof urlString !== "string") return false;
-            const trimmed = urlString.trim();
-            if (!trimmed) return false;
+        function isValidWebUrl(url) {
+            if (!url || typeof url !== "string") return false;
+            const trimmed = url.trim();
             try {
                 const parsed = new URL(trimmed);
                 return parsed.protocol === "http:" || parsed.protocol === "https:";
             } catch {
                 return false;
             }
+        }
+
+        function matchMember(query) {
+            if (!query || !members.length) return null;
+            const q = query.trim().toLowerCase();
+            return members.find(m => 
+                (m.uri && m.uri.toLowerCase() === q) || 
+                (m.url && m.url.toLowerCase() === q) ||
+                (m.url && m.url.toLowerCase().replace(/\\/+$/, "") === q.replace(/\\/+$/, ""))
+            ) || null;
         }
 
         function loadSession() {
@@ -79,8 +85,9 @@ function generateCompanionScript(
 
         function initSession() {
             let currentUri = null;
-            if (initialMemberUri && members.some(m => m.uri === initialMemberUri)) {
-                currentUri = initialMemberUri;
+            const matched = matchMember(initialMemberUri);
+            if (matched) {
+                currentUri = matched.uri;
             } else if (members.length > 0) {
                 currentUri = members[0].uri;
             }
@@ -131,9 +138,23 @@ function generateCompanionScript(
         }
 
         function getCurrentMember() {
-            if (!session.currentMemberUri) return null;
-            return members.find(m => m.uri === session.currentMemberUri) || null;
+            if (!members.length) return null;
+            if (session && session.currentMemberUri) {
+                const found = members.find(m => m.uri === session.currentMemberUri);
+                if (found) return found;
+            }
+            if (members.length > 0) {
+                session.currentMemberUri = members[0].uri;
+                if (!session.history || session.history.length === 0) {
+                    session.history = [members[0].uri];
+                    session.historyIndex = 0;
+                }
+                saveSession(session);
+                return members[0];
+            }
+            return null;
         }
+
 
         function openCurrentSite() {
             const current = getCurrentMember();
@@ -459,8 +480,9 @@ export const CompanionView = ({
         </div>
 
         <script>
-            ${generateCompanionScript(ring.uri, members, initialMemberUri || null)}
+            ${raw(generateCompanionScript(ring.uri, members, initialMemberUri || null))}
         </script>
+
         <script>
             // Register PWA Service Worker
             if ('serviceWorker' in navigator) {

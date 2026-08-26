@@ -1,4 +1,4 @@
-import { html } from "hono/html";
+import { html, raw } from "hono/html";
 import type { NavigationMember } from "../lib/navigation-session.js";
 
 interface RingDetailViewProps {
@@ -49,6 +49,16 @@ function generateRingTourScript(
             } catch { return false; }
         }
 
+        function matchMember(query) {
+            if (!query || !members.length) return null;
+            const q = query.trim().toLowerCase();
+            return members.find(m => 
+                (m.uri && m.uri.toLowerCase() === q) || 
+                (m.url && m.url.toLowerCase() === q) ||
+                (m.url && m.url.toLowerCase().replace(/\\/+$/, "") === q.replace(/\\/+$/, ""))
+            ) || null;
+        }
+
         function loadSession() {
             try {
                 const raw = localStorage.getItem(storageKey);
@@ -72,8 +82,9 @@ function generateRingTourScript(
 
         function initSession() {
             let currentUri = null;
-            if (initialMemberUri && members.some(m => m.uri === initialMemberUri)) {
-                currentUri = initialMemberUri;
+            const matched = matchMember(initialMemberUri);
+            if (matched) {
+                currentUri = matched.uri;
             } else if (members.length > 0) {
                 currentUri = members[0].uri;
             }
@@ -104,8 +115,22 @@ function generateRingTourScript(
         const elBtnOpenWindow = document.getElementById("btn-open-companion-win");
 
         function getCurrentMember() {
-            if (!session.currentMemberUri) return null;
-            return members.find(m => m.uri === session.currentMemberUri) || null;
+            if (!members.length) return null;
+            if (session && session.currentMemberUri) {
+                const found = members.find(m => m.uri === session.currentMemberUri);
+                if (found) return found;
+            }
+            // Fallback to first member and auto-repair session
+            if (members.length > 0) {
+                session.currentMemberUri = members[0].uri;
+                if (!session.history || session.history.length === 0) {
+                    session.history = [members[0].uri];
+                    session.historyIndex = 0;
+                }
+                saveSession(session);
+                return members[0];
+            }
+            return null;
         }
 
         function openCurrentSite() {
@@ -141,7 +166,7 @@ function generateRingTourScript(
             }
         }
 
-        function advanceTo(memberUri) {
+        function advanceTo(memberUri, andOpen) {
             const hist = session.history.slice(0, session.historyIndex + 1);
             hist.push(memberUri);
             session.history = hist;
@@ -150,39 +175,49 @@ function generateRingTourScript(
             session.updatedAt = new Date().toISOString();
             saveSession(session);
             updateUI();
+            if (andOpen) {
+                openCurrentSite();
+            }
         }
 
         if (elBtnNext) {
-            elBtnNext.addEventListener("click", function() {
+            elBtnNext.addEventListener("click", function(e) {
+                e.preventDefault();
                 if (members.length === 0) return;
                 const curIdx = members.findIndex(m => m.uri === session.currentMemberUri);
                 const nextIdx = curIdx === -1 ? 0 : (curIdx + 1) % members.length;
-                advanceTo(members[nextIdx].uri);
+                advanceTo(members[nextIdx].uri, true);
             });
         }
 
         if (elBtnPrev) {
-            elBtnPrev.addEventListener("click", function() {
+            elBtnPrev.addEventListener("click", function(e) {
+                e.preventDefault();
                 if (session.history.length === 0 || session.historyIndex <= 0) return;
                 session.historyIndex -= 1;
                 session.currentMemberUri = session.history[session.historyIndex];
                 session.updatedAt = new Date().toISOString();
                 saveSession(session);
                 updateUI();
+                openCurrentSite();
             });
         }
 
         if (elBtnRandom) {
-            elBtnRandom.addEventListener("click", function() {
+            elBtnRandom.addEventListener("click", function(e) {
+                e.preventDefault();
                 if (members.length === 0) return;
                 const pool = members.filter(m => m.uri !== session.currentMemberUri);
                 const cands = pool.length > 0 ? pool : members;
                 const rnd = Math.floor(Math.random() * cands.length);
-                advanceTo(cands[rnd].uri);
+                advanceTo(cands[rnd].uri, true);
             });
         }
 
-        if (elBtnVisit) elBtnVisit.addEventListener("click", openCurrentSite);
+        if (elBtnVisit) elBtnVisit.addEventListener("click", function(e) {
+            e.preventDefault();
+            openCurrentSite();
+        });
 
         if (elBtnOpenWindow) {
             elBtnOpenWindow.addEventListener("click", function() {
@@ -318,18 +353,18 @@ export const RingDetailView = ({
                             </div>
 
                             <div class="flex items-center gap-2 ml-auto">
-                                <button id="tour-btn-prev" class="btn btn-outline btn-sm" aria-label="${t("rings.prev_member")}">
+                                <a href="/nav/prev?ring=${encodeURIComponent(ringUri)}" id="tour-btn-prev" class="btn btn-outline btn-sm" aria-label="${t("rings.prev_member")}">
                                     <i class="fa-solid fa-chevron-left mr-1"></i>
                                     ${t("rings.prev_member")}
-                                </button>
-                                <button id="tour-btn-random" class="btn btn-outline btn-sm" aria-label="${t("rings.random_member")}">
+                                </a>
+                                <a href="/nav/random?ring=${encodeURIComponent(ringUri)}" id="tour-btn-random" class="btn btn-outline btn-sm" aria-label="${t("rings.random_member")}">
                                     <i class="fa-solid fa-shuffle mr-1"></i>
                                     ${t("rings.random_member")}
-                                </button>
-                                <button id="tour-btn-next" class="btn btn-outline btn-sm font-semibold" aria-label="${t("rings.next_member")}">
+                                </a>
+                                <a href="/nav/next?ring=${encodeURIComponent(ringUri)}" id="tour-btn-next" class="btn btn-outline btn-sm font-semibold" aria-label="${t("rings.next_member")}">
                                     ${t("rings.next_member")}
                                     <i class="fa-solid fa-chevron-right ml-1"></i>
-                                </button>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -373,7 +408,7 @@ export const RingDetailView = ({
         </div>
         ${
             navMembers.length > 0
-                ? html`<script>${generateRingTourScript(ringUri, navMembers, initialMemberUri || null)}</script>`
+                ? html`<script>${raw(generateRingTourScript(ringUri, navMembers, initialMemberUri || null))}</script>`
                 : ""
         }
     `;
