@@ -320,7 +320,7 @@ app.post("/auth/debug", authLimiter, async (c) => {
     pinoLogger.info({ msg: "Debug login attempt", did, handle, role });
 
     // Validation
-    if (!did || !did.startsWith("did:")) {
+    if (!did?.startsWith("did:")) {
         return c.text("Invalid DID format", 400);
     }
 

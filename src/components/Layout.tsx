@@ -38,6 +38,7 @@ export const Layout = (props: {
     <meta name="twitter:image" content="${ogImage}">
 
     <link rel="icon" type="image/png" href="${favicon}">
+    <link rel="manifest" href="/manifest.webmanifest">
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
     <link href="/assets/index.css" rel="stylesheet" />
@@ -46,7 +47,7 @@ export const Layout = (props: {
       body { 
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         overflow-x: hidden;
-      }
+        }
       .container { 
         width: 100% !important; 
         max-width: 1200px !important; 
@@ -81,7 +82,7 @@ export const Layout = (props: {
           <div class="navbar-end hidden sm:flex gap-1">
             <a href="/rings" class="btn btn-ghost btn-sm font-medium">${props.t ? props.t("common.rings") : "Rings"}</a>
             <a href="/dashboard" class="btn btn-ghost btn-sm font-medium">${props.t ? props.t("common.dashboard") : "Dashboard"}</a>
-            <a href="https://asadaame5121.net/Article/help_ja.html" target="_blank" rel="noopener noreferrer"
+            <a href="https://asadaame5121.net/Article/help_ja.html" target="_blank" rel="noopener noreferrer" 
                class="btn btn-ghost btn-sm font-normal opacity-80 hover:opacity-100">
               <i class="fa-solid fa-circle-question mr-1"></i>
               ${props.t ? props.t("common.help") : "Help"}

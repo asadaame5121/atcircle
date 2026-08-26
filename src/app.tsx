@@ -159,6 +159,38 @@ app.route("/", auth);
 app.route("/", legal);
 app.route("/nav", navigation);
 
+// PWA Assets
+app.get("/manifest.webmanifest", async (c) => {
+    try {
+        const content = readFileSync(
+            resolve(process.cwd(), "assets/manifest.webmanifest"),
+            "utf8",
+        );
+        return c.text(content, 200, {
+            "Content-Type": "application/manifest+json",
+            "Cache-Control": "public, max-age=3600",
+        });
+    } catch {
+        return c.redirect("/assets/manifest.webmanifest");
+    }
+});
+
+app.get("/sw.js", async (c) => {
+    try {
+        const content = readFileSync(
+            resolve(process.cwd(), "assets/sw.js"),
+            "utf8",
+        );
+        return c.text(content, 200, {
+            "Content-Type": "application/javascript",
+            "Cache-Control": "no-cache",
+            "Service-Worker-Allowed": "/",
+        });
+    } catch {
+        return c.redirect("/assets/sw.js");
+    }
+});
+
 // Compatibility redirect for users who use /widget.js
 app.get("/widget.js", (c) => c.redirect("/nav/widget.js"));
 

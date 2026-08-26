@@ -7,6 +7,24 @@ import type { AppVariables, Bindings } from "../types/bindings.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
 
+app.get("/:slug/companion", async (c) => {
+    const slug = c.req.param("slug");
+    const db = c.env.DB;
+
+    const ring = await db
+        .prepare("SELECT uri FROM rings WHERE slug = ?")
+        .bind(slug)
+        .first<{ uri: string }>();
+
+    if (ring) {
+        return c.redirect(
+            `/rings/companion?ring=${encodeURIComponent(ring.uri)}`,
+        );
+    }
+
+    return c.notFound();
+});
+
 app.get("/:slug", async (c) => {
     const slug = c.req.param("slug");
     const db = c.env.DB;
