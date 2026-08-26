@@ -1202,6 +1202,9 @@
     }
   }
 }
+.hidden, [hidden] {
+  display: none !important;
+}
 @property --tw-rotate-x {
   syntax: "*";
   inherits: false;

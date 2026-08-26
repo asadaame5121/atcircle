@@ -381,6 +381,9 @@ export const CompanionView = ({
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
         <link href="/assets/index.css" rel="stylesheet" />
         <style>
+            .hidden, [hidden] {
+                display: none !important;
+            }
             body {
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
                 margin: 0;
@@ -395,6 +398,7 @@ export const CompanionView = ({
                 overflow: hidden;
             }
         </style>
+
     </head>
     <body class="bg-base-200 min-h-screen flex flex-col justify-between">
         <div class="w-full max-w-md mx-auto space-y-3">

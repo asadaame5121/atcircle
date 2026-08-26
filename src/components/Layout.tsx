@@ -43,10 +43,14 @@ export const Layout = (props: {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
     <link href="/assets/index.css" rel="stylesheet" />
     <style>
+      .hidden, [hidden] {
+        display: none !important;
+      }
       html[data-theme="light"] {
         --p: 0.46 0.12 250;
         --pc: 0.98 0.01 250;
       }
+
 
       /* Custom overrides for responsive layout */
       body { 
