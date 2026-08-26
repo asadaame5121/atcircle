@@ -37,18 +37,31 @@ function generateCompanionScript(
             if (typeof BroadcastChannel !== "undefined") {
                 channel = new BroadcastChannel(channelName);
             }
-        } catch (e) {}
+        function normalizeWebUrl(url) {
+            if (!url || typeof url !== "string") return null;
+            const trimmed = url.trim();
+            if (!trimmed) return null;
+            const lower = trimmed.toLowerCase();
+            if (lower.startsWith("javascript:") || lower.startsWith("data:") || lower.startsWith("vbscript:") || lower.startsWith("file:")) {
+                return null;
+            }
+            try {
+                let u = trimmed;
+                if (!/^https?:\\/\\//i.test(trimmed)) {
+                    u = "https://" + trimmed;
+                }
+                const parsed = new URL(u);
+                if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+                    return parsed.toString();
+                }
+                return null;
+            } catch { return null; }
+        }
 
         function isValidWebUrl(url) {
-            if (!url || typeof url !== "string") return false;
-            const trimmed = url.trim();
-            try {
-                const parsed = new URL(trimmed);
-                return parsed.protocol === "http:" || parsed.protocol === "https:";
-            } catch {
-                return false;
-            }
+            return normalizeWebUrl(url) !== null;
         }
+
 
         function matchMember(query) {
             if (!query || !members.length) return null;
@@ -158,9 +171,12 @@ function generateCompanionScript(
 
         function openCurrentSite() {
             const current = getCurrentMember();
-            if (!current || !isValidWebUrl(current.url)) return;
-            window.open(current.url, "atcircle-visit", "noopener,noreferrer");
+            if (!current) return;
+            const targetUrl = normalizeWebUrl(current.url);
+            if (!targetUrl) return;
+            window.open(targetUrl, "atcircle-visit", "noopener,noreferrer");
         }
+
 
         function updateUI() {
             if (members.length === 0) {

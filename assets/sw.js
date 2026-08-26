@@ -3,7 +3,8 @@
  * Basic App Shell caching for standalone PWA mode.
  */
 
-const CACHE_NAME = "atcircle-companion-v1";
+const CACHE_NAME = "atcircle-companion-v2";
+
 const APP_SHELL_ASSETS = [
     "/assets/favicon.png",
     "/assets/index.css",

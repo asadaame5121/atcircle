@@ -23,28 +23,56 @@ export interface NavigationSession {
 }
 
 /**
- * Validates whether a URL is a safe, valid web URL (http or https).
- * Rejects javascript:, data:, file:, etc.
+ * Normalizes an external URL, prepending https:// if missing,
+ * while strictly rejecting unsafe schemes (javascript:, data:, vbscript:, ftp:, file:, etc.).
  */
-export function isValidWebUrl(urlString?: string | null): boolean {
-    if (!urlString || typeof urlString !== "string") return false;
+export function normalizeWebUrl(urlString?: string | null): string | null {
+    if (!urlString || typeof urlString !== "string") return null;
     const trimmed = urlString.trim();
-    if (!trimmed) return false;
+    if (!trimmed) return null;
+
+    // If it contains a scheme (e.g. ftp:, javascript:, custom:), it must be http: or https:
+    if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed)) {
+        if (!/^https?:\/\//i.test(trimmed)) {
+            return null;
+        }
+    }
 
     try {
-        const parsed = new URL(trimmed);
-        return parsed.protocol === "http:" || parsed.protocol === "https:";
+        let urlWithScheme = trimmed;
+        if (!/^https?:\/\//i.test(trimmed)) {
+            // Must have a valid hostname structure (e.g. example.com or localhost)
+            if (!trimmed.includes(".") && !trimmed.startsWith("localhost")) {
+                return null;
+            }
+            urlWithScheme = `https://${trimmed}`;
+        }
+        const parsed = new URL(urlWithScheme);
+        if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+            if (parsed.hostname && parsed.hostname.length > 0) {
+                return parsed.toString();
+            }
+        }
+        return null;
     } catch {
-        return false;
+        return null;
     }
 }
 
 /**
- * Sanitizes an external URL, returning trimmed valid URL or null if invalid.
+ * Validates whether a URL is a safe, valid web URL (http or https).
+ * Accepts domain strings and prepends https:// for validation.
+ * Rejects javascript:, data:, file:, etc.
+ */
+export function isValidWebUrl(urlString?: string | null): boolean {
+    return normalizeWebUrl(urlString) !== null;
+}
+
+/**
+ * Sanitizes an external URL, returning normalized valid URL or null if invalid.
  */
 export function sanitizeExternalUrl(urlString?: string | null): string | null {
-    if (!isValidWebUrl(urlString)) return null;
-    return urlString ? urlString.trim() : null;
+    return normalizeWebUrl(urlString);
 }
 
 const STORAGE_PREFIX = "atcircle_session_";
