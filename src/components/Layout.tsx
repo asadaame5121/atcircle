@@ -100,9 +100,9 @@ export const Layout = (props: {
           </div>
           <div class="navbar-end navbar-desktop gap-1">
             <a href="/rings" class="btn btn-ghost btn-sm font-medium">${props.t ? props.t("common.rings") : "Rings"}</a>
+            <a href="/antenna" class="btn btn-ghost btn-sm font-medium">${props.t ? props.t("common.antenna") : "Antenna"}</a>
             <a href="/dashboard" class="btn btn-ghost btn-sm font-medium">${props.t ? props.t("common.dashboard") : "Dashboard"}</a>
-            <a href="https://asadaame5121.net/Article/help_ja.html" target="_blank" rel="noopener noreferrer" 
-               class="btn btn-ghost btn-sm font-normal opacity-80 hover:opacity-100">
+            <a href="/help" class="btn btn-ghost btn-sm font-normal opacity-80 hover:opacity-100">
               <i class="fa-solid fa-circle-question mr-1"></i>
               ${props.t ? props.t("common.help") : "Help"}
             </a>
@@ -117,15 +117,31 @@ export const Layout = (props: {
               </summary>
               <ul class="menu dropdown-content z-[1] p-2 shadow bg-base-100 rounded-box w-52 mt-2">
                 <li><a href="/rings"><i class="fa-solid fa-circle-nodes w-4"></i>${props.t ? props.t("common.rings") : "Rings"}</a></li>
+                <li><a href="/antenna"><i class="fa-solid fa-tower-broadcast w-4"></i>${props.t ? props.t("common.antenna") : "Antenna"}</a></li>
                 <li><a href="/dashboard"><i class="fa-solid fa-gauge w-4"></i>${props.t ? props.t("common.dashboard") : "Dashboard"}</a></li>
-                <li><a href="https://asadaame5121.net/Article/help_ja.html" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-circle-question w-4"></i>${props.t ? props.t("common.help") : "Help"}</a></li>
+                <li><a href="/help"><i class="fa-solid fa-circle-question w-4"></i>${props.t ? props.t("common.help") : "Help"}</a></li>
+                <li><a href="/changelog"><i class="fa-solid fa-clock-rotate-left w-4"></i>${props.t ? props.t("common.changelog") : "Changelog"}</a></li>
                 <li><a href="https://github.com/asadaame5121/atcircle" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-github w-4"></i>GitHub</a></li>
               </ul>
             </details>
           </div>
         </header>
       ${props.children}
-      <footer class="footer p-10 bg-base-100 text-base-content rounded-box shadow-lg mt-12 grid-cols-1 md:grid-cols-3">
+      <footer class="footer p-10 bg-base-100 text-base-content rounded-box shadow-lg mt-12 grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+        <nav>
+          <h6 class="footer-title">${props.t ? props.t("common.brand") : "Navigation"}</h6> 
+          <a href="/rings" class="link link-hover">${props.t ? props.t("common.rings") : "Rings"}</a>
+          <a href="/antenna" class="link link-hover">${props.t ? props.t("common.antenna") : "Antenna"}</a>
+          <a href="/dashboard" class="link link-hover">${props.t ? props.t("common.dashboard") : "Dashboard"}</a>
+        </nav>
+        <nav>
+          <h6 class="footer-title">${props.t ? props.t("help.title") : "Help & Docs"}</h6> 
+          <a href="/help" class="link link-hover">${props.t ? props.t("common.help") : "Help & Guide"}</a>
+          <a href="/changelog" class="link link-hover">${props.t ? props.t("common.changelog") : "Changelog"}</a>
+          <a href="https://github.com/asadaame5121/atcircle/tree/main/docs" target="_blank" rel="noopener noreferrer" class="link link-hover flex items-center gap-1">
+            ${props.t ? props.t("common.documentation") : "Documentation"} <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-60"></i>
+          </a>
+        </nav>
         <nav>
           <h6 class="footer-title">${props.t ? props.t("common.legal") : "Legal"}</h6> 
           <a href="/terms" class="link link-hover">${props.t ? props.t("common.terms") : "Terms of Use"}</a>
@@ -148,7 +164,7 @@ export const Layout = (props: {
             </a>
           </div>
         </nav>
-        <aside class="md:col-span-3 border-t border-base-300 pt-6 w-full">
+        <aside class="col-span-full border-t border-base-300 pt-6 w-full">
           <p class="font-bold text-primary">${props.t ? props.t("common.brand") : "ATcircle"}</p>
           <p class="text-xs opacity-60">${props.t ? props.t("common.footer_desc") : "Webring system for personal sites"}</p>
           <p class="mt-2">

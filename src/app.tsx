@@ -8,7 +8,9 @@ import { i18nMiddleware } from "./middleware/i18n.js";
 import antenna from "./routes/antenna.js";
 import api from "./routes/api.js";
 import auth from "./routes/auth.js";
+import changelog from "./routes/changelog.js";
 import dashboard from "./routes/dashboard.js";
+import help from "./routes/help.js";
 import home from "./routes/home.js";
 import legal from "./routes/legal.js";
 import navigation from "./routes/navigation.js";
@@ -151,6 +153,8 @@ app.post("/dashboard/sync/feeds", async (c) => {
 app.route("/api", api);
 app.route("/", home);
 app.route("/antenna", antenna);
+app.route("/help", help);
+app.route("/changelog", changelog);
 app.route("/rings", rings);
 app.route("/dashboard", dashboard);
 app.route("/r", r);

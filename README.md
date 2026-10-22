@@ -20,10 +20,12 @@ Bluesky アカウントでログインし、サイトの登録、リングの作
 - 前へ・ランダム・次へ・一覧を備えた埋め込みウィジェット（レガシー互換維持）
 - リング別の RSS アンテナと OPML エクスポート
 - 公開プロフィールとリングの公開ページ
+- **アプリ内ヘルプ (`/help`) & チェンジログ (`/changelog`)** による利用ガイドと更新履歴
 
 ## 文書
 
-- [ユーザー向けヘルプ](docs/help_ja.md)
+- [ユーザー向けヘルプ Markdown](docs/help_ja.md)（アプリ内でも `/help` で閲覧可能）
+- [更新履歴 (CHANGELOG.md)](CHANGELOG.md)（アプリ内でも `/changelog` で閲覧可能）
 - [開発・保守マニュアル](docs/development-maintenance.md)
 - [文書一覧](docs/README.md)
 - [ATProto CRUD 仕様](docs/spec/atproto_crud.md)
@@ -41,8 +43,8 @@ Bluesky アカウントでログインし、サイトの登録、リングの作
 ```bash
 git clone https://github.com/asadaame5121/atcircle.git
 cd atcircle
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 既定では `http://localhost:8080` で起動します。ローカル開発では
@@ -52,13 +54,13 @@ npm run dev
 
 | コマンド | 用途 |
 | --- | --- |
-| `npm run dev` | 開発サーバーを起動 |
-| `npm run build` | CSS とアプリケーションを本番用にビルド |
-| `npm start` | ビルド済みの `dist/index.js` を起動 |
-| `npm test` | Vitest の単体・ルートテストを実行 |
-| `npm run test:e2e` | Playwright の E2E テストを実行 |
-| `npm run lint` | Biome による静的検査 |
-| `npm run format` | Biome による整形と自動修正 |
+| `pnpm dev` | 開発サーバーを起動 |
+| `pnpm build` | CSS とアプリケーションを本番用にビルド |
+| `pnpm start` | ビルド済みの `dist/index.js` を起動 |
+| `pnpm test` | Vitest の単体・ルートテストを実行 |
+| `pnpm run test:e2e` | Playwright の E2E テストを実行 |
+| `pnpm lint` | Biome による静的検査 |
+| `pnpm format` | Biome による整形と自動修正 |
 
 ### 最小構成の環境変数
 
