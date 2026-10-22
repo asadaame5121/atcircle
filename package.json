@@ -19,12 +19,12 @@
     "prepare": "test -n \"$CI\" || husky || true"
   },
   "dependencies": {
-    "@atproto/api": "^0.18.8",
-    "@atproto/lex": "^0.0.6",
-    "@atproto/lex-cli": "^0.9.8",
-    "@atproto/lexicon": "^0.6.0",
-    "@atproto/oauth-client-node": "^0.3.13",
-    "@atproto/xrpc": "0.7.7",
+    "@atproto/api": "^0.29.1",
+    "@atproto/lex": "^0.4.2",
+    "@atproto/lex-cli": "^0.10.16",
+    "@atproto/lexicon": "^0.7.17",
+    "@atproto/oauth-client-node": "^0.5.12",
+    "@atproto/xrpc": "0.8.16",
     "@hono/node-server": "^1.19.7",
     "@hono/zod-validator": "^0.7.6",
     "@libsql/client": "^0.15.15",

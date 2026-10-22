@@ -1,5 +1,5 @@
 # ビルド環境
-FROM node:24-slim AS build
+FROM node:24.22.1-slim AS build
 
 WORKDIR /app
 RUN corepack enable
@@ -11,7 +11,7 @@ COPY . .
 RUN pnpm build
 
 # 本番環境
-FROM node:24-slim AS runtime
+FROM node:24.22.1-slim AS runtime
 
 WORKDIR /app
 RUN corepack enable

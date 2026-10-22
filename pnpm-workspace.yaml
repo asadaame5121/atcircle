@@ -4,3 +4,9 @@ allowBuilds:
   esbuild: true
   sharp: true
   workerd: true
+minimumReleaseAgeExclude:
+  - '@atproto-labs/fetch-node@0.4.3'
+  - '@atproto-labs/handle-resolver-node@0.2.14'
+  - '@atproto/lex-installer@0.2.2'
+  - '@atproto/lex@0.4.2'
+  - '@atproto/oauth-client-node@0.5.12'
