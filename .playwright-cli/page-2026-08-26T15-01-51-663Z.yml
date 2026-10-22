@@ -1,0 +1,53 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - generic "同期中" [ref=e5]
+      - link "AT CIRCLE" [ref=e6] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e7]: /
+      - link "個人サイトの集い" [ref=e8] [cursor=pointer]:
+        - /url: /rings/view?ring=at%3A%2F%2Fdid%3Aplc%3Aql5sv4umsrxadcsgtz3m5mq6%2Fnet.asadaame5121.at-circle.ring%2F3mayxgyxr4v2m
+    - generic [ref=e9]:
+      - generic [ref=e10]: 1 / 4
+      - link "リング詳細画面を開く" [ref=e11] [cursor=pointer]:
+        - /url: /rings/view?ring=at%3A%2F%2Fdid%3Aplc%3Aql5sv4umsrxadcsgtz3m5mq6%2Fnet.asadaame5121.at-circle.ring%2F3mayxgyxr4v2m
+        - generic [ref=e12]: 
+  - generic [ref=e14]:
+    - generic [ref=e15]:
+      - heading "あたしンちのおとうさんの独り言" [level=2] [ref=e16]
+      - link "RSS" [ref=e18] [cursor=pointer]:
+        - /url: https://atasinti.chu.jp/dad3/feed
+    - paragraph [ref=e19]: マンガ「あたしンち」ファンの家族のサイト「あたしンち atasinti.chu.jp/ 」のおとうさんです。 / 川崎フロンターレ / BABYMETAL / ビール / 仮面ライダー / 横浜 / 福岡 / 大河ドラマ /...
+    - link " https://atasinti.chu.jp/dad3/" [ref=e21] [cursor=pointer]:
+      - /url: https://atasinti.chu.jp/dad3/
+      - generic [ref=e22]: 
+      - generic [ref=e23]: https://atasinti.chu.jp/dad3/
+    - generic [ref=e24]:
+      - generic [ref=e25]: 
+      - generic [ref=e26]: このメンバーのサイトURLは無効です。
+    - button "サイトを開く" [ref=e27] [cursor=pointer]:
+      - generic [ref=e29]: 
+  - generic [ref=e30]:
+    - generic [ref=e31]: 
+    - generic [ref=e32]: このリングにはまだメンバーがいません。
+  - generic [ref=e33]:
+    - generic [ref=e34]: 
+    - generic [ref=e35]: このメンバーは現在利用できません。
+  - generic [ref=e36]:
+    - button "前へ" [disabled]:
+      - generic: 
+      - text: 前へ
+    - button "ランダム" [ref=e37] [cursor=pointer]:
+      - generic [ref=e38]: 
+      - text: ランダム
+    - button "次へ" [ref=e39] [cursor=pointer]:
+      - text: 次へ
+      - generic [ref=e40]: 
+  - generic [ref=e41]:
+    - generic [ref=e42] [cursor=pointer]:
+      - generic [ref=e43]: 次へ進むと自動でサイトを開く
+      - checkbox "次へ進むと自動でサイトを開く" [ref=e44]
+    - generic [ref=e46]:
+      - button "最初から" [ref=e47] [cursor=pointer]
+      - button "セッション初期化" [ref=e48] [cursor=pointer]
+  - generic [ref=e49]: "ショートカット: ← (前) / → (次) / R (ランダム) / Enter, O (開く)"

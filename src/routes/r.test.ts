@@ -17,6 +17,20 @@ describe("Short URL Proxy Route", () => {
         );
     });
 
+    it("redirects slug companion to companion view", async () => {
+        const env = {
+            DB: createMockDB({
+                first: { uri: "at://test-uri" },
+            }),
+        };
+        const app = wrapApp(rApp);
+        const res = await app.request("/test-slug/companion", {}, env);
+        expect(res.status).toBe(302);
+        expect(res.headers.get("Location")).toContain(
+            "/rings/companion?ring=at%3A%2F%2Ftest-uri",
+        );
+    });
+
     it("returns 404 for unknown slug", async () => {
         const env = { DB: createMockDB({ first: null }) };
         const app = wrapApp(rApp);

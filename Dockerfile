@@ -1,31 +1,28 @@
-# Build stage
+# ビルド環境
 FROM node:24-slim AS build
 
 WORKDIR /app
+RUN corepack enable
 
-COPY package.json package-lock.json ./
-RUN npm ci --ignore-scripts
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 COPY . .
-RUN npm run build
+RUN pnpm build
 
-# Runtime stage
+# 本番環境
 FROM node:24-slim AS runtime
 
 WORKDIR /app
+RUN corepack enable
 
-# Copy only necessary files
-COPY package.json package-lock.json ./
-# No native build dependencies needed for node:sqlite
-RUN npm ci --omit=dev --ignore-scripts
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN pnpm install --prod --frozen-lockfile --ignore-scripts
 
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/assets ./assets
 COPY lexicons ./lexicons
 
-
-
 USER node
 EXPOSE 8080
-
 CMD ["node", "dist/index.js"]

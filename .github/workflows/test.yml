@@ -10,9 +10,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-      - run: npm ci
-      - run: npm test -- --run
-      - run: npm run lint
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test --run
+      - run: pnpm lint
 
   smoke:
     runs-on: ubuntu-latest
@@ -21,9 +22,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-      - run: npm ci
-      - run: npx playwright install --with-deps chromium
-      - run: npx playwright test tests/smoke.spec.ts
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm build
+      - run: pnpm exec playwright test tests/smoke.spec.ts
 
   e2e:
     runs-on: ubuntu-latest
@@ -33,9 +36,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-      - run: npm ci
-      - run: npx playwright install --with-deps chromium
-      - run: npx playwright test -c playwright.e2e.config.ts --pass-with-no-tests
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm exec playwright test -c playwright.e2e.config.ts --pass-with-no-tests
         env:
           E2E_DEV_PDS_URL: ${{ vars.E2E_DEV_PDS_URL }}
           E2E_BASE_URL: ${{ vars.E2E_BASE_URL }}

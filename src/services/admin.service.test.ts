@@ -1,10 +1,15 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { AdminService } from "./admin.service.js";
 import { restoreAgent } from "./oauth.js";
 
 // Mock dependencies
 vi.mock("./atproto.js");
 vi.mock("./oauth.js");
+
+afterEach(() => {
+    vi.restoreAllMocks();
+    vi.clearAllMocks();
+});
 
 const createMockDB = (data: any = {}) => {
     return {

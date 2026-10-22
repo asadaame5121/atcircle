@@ -17,8 +17,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-      - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
       - run: node scripts/pr-screenshots.mjs
         env:
           E2E_DEV_PDS_URL: ${{ vars.E2E_DEV_PDS_URL }}

@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { SignJWT } from "jose";
+import { sign } from "hono/jwt";
 import { vi } from "vitest";
 import { SECRET_KEY } from "../src/config.js";
 import { i18nMiddleware } from "../src/middleware/i18n.js";
@@ -65,17 +65,14 @@ export async function createMockAuthToken(
     handle: string,
     role: "admin" | "user" = "user",
 ) {
-    const secret = new TextEncoder().encode(SECRET_KEY);
     const payload = {
         sub: did,
         handle: handle,
         role: role,
+        exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7,
     };
 
-    return await new SignJWT(payload)
-        .setProtectedHeader({ alg: "HS256" })
-        .setExpirationTime("7d")
-        .sign(secret);
+    return await sign(payload, SECRET_KEY);
 }
 
 /**

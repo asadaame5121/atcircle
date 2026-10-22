@@ -10,6 +10,13 @@ export class RingRepository {
             .first<Ring>();
     }
 
+    async findBySlug(slug: string): Promise<Ring | null> {
+        return await this.db
+            .prepare("SELECT * FROM rings WHERE slug = ?")
+            .bind(slug)
+            .first<Ring>();
+    }
+
     async findByUriWithMemberCount(uri: string): Promise<Ring | null> {
         return await this.db
             .prepare(

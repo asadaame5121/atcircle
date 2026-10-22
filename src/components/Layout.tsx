@@ -38,15 +38,25 @@ export const Layout = (props: {
     <meta name="twitter:image" content="${ogImage}">
 
     <link rel="icon" type="image/png" href="${favicon}">
+    <link rel="manifest" href="/manifest.webmanifest">
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
     <link href="/assets/index.css" rel="stylesheet" />
     <style>
+      .hidden, [hidden] {
+        display: none !important;
+      }
+      html[data-theme="light"] {
+        --p: 0.46 0.12 250;
+        --pc: 0.98 0.01 250;
+      }
+
+
       /* Custom overrides for responsive layout */
       body { 
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         overflow-x: hidden;
-      }
+        }
       .container { 
         width: 100% !important; 
         max-width: 1200px !important; 
@@ -55,9 +65,19 @@ export const Layout = (props: {
         padding-left: 0.75rem !important; 
         padding-right: 0.75rem !important; 
       }
-      
-      /* Ensure everything stays within viewport */
-      * { max-width: 100%; box-sizing: border-box; }
+
+      *, *::before, *::after { box-sizing: border-box; }
+      .navbar-desktop { display: flex !important; }
+      .navbar-mobile { display: none !important; }
+
+      @media (max-width: 639px) {
+        .navbar-desktop { display: none !important; }
+        .navbar-mobile { display: flex !important; }
+        .navbar-mobile .dropdown-content {
+          width: 13rem;
+          max-width: calc(100vw - 2rem);
+        }
+      }
     </style>
   </head>
   <body class="bg-base-200 min-h-screen">
@@ -70,7 +90,7 @@ export const Layout = (props: {
       </div>
       `
               : ""
-      }
+}
         <header class="navbar bg-base-100/90 backdrop-blur sticky top-0 z-30 shadow-sm rounded-box mb-4">
           <div class="navbar-start min-w-0">
             <a href="/" class="flex items-center gap-1 btn btn-ghost px-1 min-w-0 max-w-full">
@@ -78,11 +98,11 @@ export const Layout = (props: {
               <span class="text-lg sm:text-xl text-primary font-black italic tracking-tighter truncate min-w-0">${props.t ? props.t("common.brand") : "AT CIRCLE"}</span>
             </a>
           </div>
-          <div class="navbar-end hidden sm:flex gap-1">
+          <div class="navbar-end navbar-desktop gap-1">
             <a href="/rings" class="btn btn-ghost btn-sm font-medium">${props.t ? props.t("common.rings") : "Rings"}</a>
+            <a href="/antenna" class="btn btn-ghost btn-sm font-medium">${props.t ? props.t("common.antenna") : "Antenna"}</a>
             <a href="/dashboard" class="btn btn-ghost btn-sm font-medium">${props.t ? props.t("common.dashboard") : "Dashboard"}</a>
-            <a href="https://asadaame5121.net/Article/help_ja.html" target="_blank" rel="noopener noreferrer"
-               class="btn btn-ghost btn-sm font-normal opacity-80 hover:opacity-100">
+            <a href="/help" class="btn btn-ghost btn-sm font-normal opacity-80 hover:opacity-100">
               <i class="fa-solid fa-circle-question mr-1"></i>
               ${props.t ? props.t("common.help") : "Help"}
             </a>
@@ -90,22 +110,38 @@ export const Layout = (props: {
               <i class="fa-brands fa-github text-lg"></i>
             </a>
           </div>
-          <div class="navbar-end sm:hidden">
+          <div class="navbar-end navbar-mobile">
             <details class="dropdown dropdown-end">
               <summary class="btn btn-ghost btn-sm" aria-label="${props.t ? props.t("common.menu") : "Menu"}">
                 <i class="fa-solid fa-bars text-lg"></i>
               </summary>
               <ul class="menu dropdown-content z-[1] p-2 shadow bg-base-100 rounded-box w-52 mt-2">
                 <li><a href="/rings"><i class="fa-solid fa-circle-nodes w-4"></i>${props.t ? props.t("common.rings") : "Rings"}</a></li>
+                <li><a href="/antenna"><i class="fa-solid fa-tower-broadcast w-4"></i>${props.t ? props.t("common.antenna") : "Antenna"}</a></li>
                 <li><a href="/dashboard"><i class="fa-solid fa-gauge w-4"></i>${props.t ? props.t("common.dashboard") : "Dashboard"}</a></li>
-                <li><a href="https://asadaame5121.net/Article/help_ja.html" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-circle-question w-4"></i>${props.t ? props.t("common.help") : "Help"}</a></li>
+                <li><a href="/help"><i class="fa-solid fa-circle-question w-4"></i>${props.t ? props.t("common.help") : "Help"}</a></li>
+                <li><a href="/changelog"><i class="fa-solid fa-clock-rotate-left w-4"></i>${props.t ? props.t("common.changelog") : "Changelog"}</a></li>
                 <li><a href="https://github.com/asadaame5121/atcircle" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-github w-4"></i>GitHub</a></li>
               </ul>
             </details>
           </div>
         </header>
       ${props.children}
-      <footer class="footer p-10 bg-base-100 text-base-content rounded-box shadow-lg mt-12 grid-cols-1 md:grid-cols-3">
+      <footer class="footer p-10 bg-base-100 text-base-content rounded-box shadow-lg mt-12 grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+        <nav>
+          <h6 class="footer-title">${props.t ? props.t("common.brand") : "Navigation"}</h6> 
+          <a href="/rings" class="link link-hover">${props.t ? props.t("common.rings") : "Rings"}</a>
+          <a href="/antenna" class="link link-hover">${props.t ? props.t("common.antenna") : "Antenna"}</a>
+          <a href="/dashboard" class="link link-hover">${props.t ? props.t("common.dashboard") : "Dashboard"}</a>
+        </nav>
+        <nav>
+          <h6 class="footer-title">${props.t ? props.t("help.title") : "Help & Docs"}</h6> 
+          <a href="/help" class="link link-hover">${props.t ? props.t("common.help") : "Help & Guide"}</a>
+          <a href="/changelog" class="link link-hover">${props.t ? props.t("common.changelog") : "Changelog"}</a>
+          <a href="https://github.com/asadaame5121/atcircle/tree/main/docs" target="_blank" rel="noopener noreferrer" class="link link-hover flex items-center gap-1">
+            ${props.t ? props.t("common.documentation") : "Documentation"} <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-60"></i>
+          </a>
+        </nav>
         <nav>
           <h6 class="footer-title">${props.t ? props.t("common.legal") : "Legal"}</h6> 
           <a href="/terms" class="link link-hover">${props.t ? props.t("common.terms") : "Terms of Use"}</a>
@@ -128,7 +164,7 @@ export const Layout = (props: {
             </a>
           </div>
         </nav>
-        <aside class="md:col-span-3 border-t border-base-300 pt-6 w-full">
+        <aside class="col-span-full border-t border-base-300 pt-6 w-full">
           <p class="font-bold text-primary">${props.t ? props.t("common.brand") : "ATcircle"}</p>
           <p class="text-xs opacity-60">${props.t ? props.t("common.footer_desc") : "Webring system for personal sites"}</p>
           <p class="mt-2">

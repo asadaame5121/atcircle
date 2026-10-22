@@ -33,4 +33,12 @@ export const ringActionSchema = z.object({
 
 export const ringQuerySchema = z.object({
     ring: z.string().min(1).optional(),
+    slug: z.string().optional(),
+    member: z.string().optional(),
+});
+
+export const companionQuerySchema = z.object({
+    ring: z.string().optional(),
+    slug: z.string().optional(),
+    member: z.string().optional(),
 });

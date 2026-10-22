@@ -14,7 +14,7 @@ export const authMiddleware = async (c: Context, next: Next) => {
     }
 
     try {
-        const payload = await verify(token, SECRET_KEY);
+        const payload = await verify(token, SECRET_KEY, "HS256");
         c.set("jwtPayload", payload);
         await next();
     } catch (_e) {

@@ -34,8 +34,12 @@ export default defineConfig({
 
     /* Run the production server before starting the tests */
     webServer: {
-        command: "npm run build && npm start",
+        command: "node dist/index.js",
         url: "http://localhost:8080",
         reuseExistingServer: !process.env.CI,
+        timeout: 30000,
     },
 });
+
+
+
