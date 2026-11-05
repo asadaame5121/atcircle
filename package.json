@@ -19,6 +19,7 @@
     "prepare": "test -n \"$CI\" || husky || true"
   },
   "dependencies": {
+    "@atproto-labs/fetch-node": "0.4.3",
     "@atproto/api": "^0.29.1",
     "@atproto/lex": "^0.4.2",
     "@atproto/lex-cli": "^0.10.16",

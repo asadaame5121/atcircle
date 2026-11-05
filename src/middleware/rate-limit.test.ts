@@ -112,22 +112,43 @@ describe("Rate Limiter Middleware", () => {
         expect(res2.status).toBe(200);
     });
 
-    it("uses the first IP from x-forwarded-for when multiple are present", async () => {
-        const ip = uniqueIP();
+    it("ignores client-supplied leading x-forwarded-for entries", async () => {
+        const proxyIp = uniqueIP();
+        const app = new Hono();
+        app.use("*", authRateLimiter);
+        app.get("/", (c) => c.text("OK"));
+
+        // An attacker rotating the first XFF entry must still be limited,
+        // because the proxy-appended last entry stays the same.
+        for (let i = 0; i < 10; i++) {
+            const res = await app.request("/", {
+                headers: { "x-forwarded-for": `${uniqueIP()}, ${proxyIp}` },
+            });
+            expect(res.status).toBe(200);
+        }
+        const res = await app.request("/", {
+            headers: { "x-forwarded-for": `${uniqueIP()}, ${proxyIp}` },
+        });
+        expect(res.status).toBe(429);
+    });
+
+    it("prefers fly-client-ip over x-forwarded-for", async () => {
+        const flyIp = uniqueIP();
         const app = new Hono();
         app.use("*", authRateLimiter);
         app.get("/", (c) => c.text("OK"));
 
         for (let i = 0; i < 10; i++) {
             const res = await app.request("/", {
-                headers: { "x-forwarded-for": `${ip}, 192.168.1.1, 10.0.0.1` },
+                headers: {
+                    "fly-client-ip": flyIp,
+                    "x-forwarded-for": uniqueIP(),
+                },
             });
             expect(res.status).toBe(200);
         }
-
-        // Same first IP should be limited
         const res = await app.request("/", {
-            headers: { "x-forwarded-for": `${ip}, 192.168.1.1` },
+            headers: { "fly-client-ip": flyIp, "x-forwarded-for": uniqueIP() },
         });
         expect(res.status).toBe(429);
     });

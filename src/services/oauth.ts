@@ -12,10 +12,32 @@ import {
     CLIENT_NAME,
     IDENTITY_RESOLVER_URL,
     IS_DEV,
+    IS_PROD,
     OAUTH_PRIVATE_KEY,
     PLC_DIRECTORY_URL,
 } from "../config.js";
 import { logger as pinoLogger } from "../lib/logger.js";
+import { createSecretBox, type SecretBox } from "../lib/secret-box.js";
+
+// OAuth state (PKCE verifier, DPoP key) and sessions (refresh tokens, DPoP
+// keys) are encrypted before they are written to the database.
+const secretBox: SecretBox = createSecretBox();
+
+// Authorization flows that were never completed leave state rows behind.
+const STATE_TTL_SECONDS = 60 * 60;
+
+const decodeStored = <T>(stored: string, key: string): T | undefined => {
+    try {
+        return JSON.parse(secretBox.open(stored)) as T;
+    } catch (e) {
+        pinoLogger.warn({
+            msg: "[OAuthStore] Unreadable stored value; treating as missing",
+            key,
+            error: e instanceof Error ? e.message : String(e),
+        });
+        return undefined;
+    }
+};
 // import type { SqliteDatabaseInterface } from "../types/db.js";
 
 export class SqliteStateStore implements NodeSavedStateStore {
@@ -23,7 +45,14 @@ export class SqliteStateStore implements NodeSavedStateStore {
 
     async set(key: string, val: NodeSavedState): Promise<void> {
         pinoLogger.debug({ msg: "[SqliteStateStore] SET", key });
-        const state = JSON.stringify(val);
+        const state = secretBox.seal(JSON.stringify(val));
+        await this.db
+            .prepare(
+                "DELETE FROM oauth_states WHERE key NOT LIKE 'session:%' AND created_at < ?",
+            )
+            .bind(Math.floor(Date.now() / 1000) - STATE_TTL_SECONDS)
+            .run()
+            .catch(() => {});
         await this.db
             .prepare(
                 "INSERT INTO oauth_states (key, state) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET state = excluded.state",
@@ -47,7 +76,7 @@ export class SqliteStateStore implements NodeSavedStateStore {
             return undefined;
         }
         pinoLogger.debug({ msg: "[SqliteStateStore] GET -> FOUND", key });
-        return JSON.parse(result.state) as NodeSavedState;
+        return decodeStored<NodeSavedState>(result.state, key);
     }
 
     async del(key: string): Promise<void> {
@@ -66,7 +95,7 @@ export class SqliteSessionStore implements NodeSavedSessionStore {
     constructor(private db: D1Database) {}
 
     async set(key: string, val: NodeSavedSession): Promise<void> {
-        const session = JSON.stringify(val);
+        const session = secretBox.seal(JSON.stringify(val));
         await this.db
             .prepare(
                 "INSERT INTO oauth_states (key, state) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET state = excluded.state",
@@ -81,7 +110,12 @@ export class SqliteSessionStore implements NodeSavedSessionStore {
             .bind(`session:${key}`)
             .first<{ state: string }>();
         if (!result) return undefined;
-        return JSON.parse(result.state) as NodeSavedSession;
+        const session = decodeStored<NodeSavedSession>(result.state, key);
+        // Migrate sessions stored before encryption was introduced.
+        if (session && !secretBox.isSealed(result.state)) {
+            await this.set(key, session).catch(() => {});
+        }
+        return session;
     }
 
     async del(key: string): Promise<void> {
@@ -162,7 +196,8 @@ export const createClient = async (
         keyset: [privateJwk] as any,
         stateStore: new SqliteStateStore(db),
         sessionStore: new SqliteSessionStore(db),
-        allowHttp: true,
+        // Plain-http OAuth endpoints are only acceptable for local development.
+        allowHttp: !IS_PROD,
         fetch: (async (input: any, init: any) => {
             const url = typeof input === "string" ? input : (input as any).url;
             const start = Date.now();
@@ -198,7 +233,7 @@ export const createClient = async (
                         handle,
                     });
                     const res = await fetch(
-                        `${bskyServiceUrl}/xrpc/com.atproto.identity.resolveHandle?handle=${handle}`,
+                        `${bskyServiceUrl}/xrpc/com.atproto.identity.resolveHandle?handle=${encodeURIComponent(handle)}`,
                     );
                     if (!res.ok) throw new Error("Handle not found");
                     const data = (await res.json()) as { did: string };
@@ -211,7 +246,7 @@ export const createClient = async (
                         handle,
                     });
                     const res = await fetch(
-                        `${IDENTITY_RESOLVER_URL}/xrpc/com.atproto.identity.resolveHandle?handle=${handle}`,
+                        `${IDENTITY_RESOLVER_URL}/xrpc/com.atproto.identity.resolveHandle?handle=${encodeURIComponent(handle)}`,
                     );
                     if (!res.ok) {
                         pinoLogger.error({

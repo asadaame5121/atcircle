@@ -1,4 +1,5 @@
 import { html, raw } from "hono/html";
+import { jsonForScript } from "../lib/html.js";
 import type { NavigationMember } from "../lib/navigation-session.js";
 
 interface CompanionViewProps {
@@ -25,9 +26,9 @@ function generateCompanionScript(
 ): string {
     return `
     (function() {
-        const ringUri = ${JSON.stringify(ringUri)};
-        let members = ${JSON.stringify(initialMembers)};
-        const initialMemberUri = ${JSON.stringify(initialMemberUri)};
+        const ringUri = ${jsonForScript(ringUri)};
+        let members = ${jsonForScript(initialMembers)};
+        const initialMemberUri = ${jsonForScript(initialMemberUri)};
         const storageKey = "atcircle_session_" + encodeURIComponent(ringUri);
         const channelName = "atcircle_nav_" + encodeURIComponent(ringUri);
         const LAST_RING_KEY = "atcircle_last_session_ring";

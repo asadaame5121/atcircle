@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { Layout } from "../components/Layout.js";
 import { RingDetailView } from "../components/RingDetailView.js";
 import { RingListView } from "../components/RingListView.js";
+import { toNavigationMembers } from "../lib/navigation-session.js";
 import { MemberRepository } from "../repositories/member.repository.js";
 import { RingRepository } from "../repositories/ring.repository.js";
 import { ringQuerySchema } from "../schemas/index.js";
@@ -111,13 +112,7 @@ app.get("/companion", zValidator("query", ringQuerySchema), async (c) => {
 
     const ringUri = ring.uri;
     const rawMembers = await memberRepo.findApprovedMembersByRing(ringUri);
-    const members = rawMembers.map((m) => ({
-        uri: m.member_uri || `member-${m.id}`,
-        url: m.url,
-        title: m.title,
-        description: m.description,
-        rssUrl: m.rss_url,
-    }));
+    const members = toNavigationMembers(rawMembers);
 
     const { CompanionView } = await import("../components/CompanionView.js");
 

@@ -1,5 +1,7 @@
 import Parser from "rss-parser";
+import { isHttpUrl } from "../lib/html.js";
 import { logger as pinoLogger } from "../lib/logger.js";
+import { safeFetch } from "../lib/safe-fetch.js";
 import type { Bindings } from "../types/bindings.js";
 
 /**
@@ -27,7 +29,10 @@ export async function fetchAndParseFeed(url: string): Promise<ParsedFeed> {
     const parser = new Parser();
 
     try {
-        const response = await fetch(url, {
+        if (!isHttpUrl(url)) {
+            throw new Error("Feed URL must be http(s)");
+        }
+        const response = await safeFetch(url, {
             headers: {
                 "User-Agent": "Webring-Antenna/1.0 (Node.js)",
             },
@@ -101,6 +106,8 @@ export async function updateAllFeeds(db: Bindings["DB"], force = false) {
 
                 for (const item of recentItems) {
                     if (!item.link || !item.title) continue;
+                    // Feed content is untrusted: never store javascript:/data: links
+                    if (!isHttpUrl(item.link)) continue;
 
                     // Check for duplicates
                     const exists = await db

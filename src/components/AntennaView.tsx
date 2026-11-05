@@ -1,4 +1,5 @@
 import { html } from "hono/html";
+import { safeHref } from "../lib/html.js";
 import type { AntennaItem } from "../repositories/antenna.repository.js";
 
 interface AntennaViewProps {
@@ -41,12 +42,12 @@ export const AntennaView = ({
                                     <div class="flex items-center gap-2 mb-2">
                                         <span class="text-xs font-mono opacity-40 uppercase">${new Date(item.published_at * 1000).toLocaleDateString()}</span>
                                         <div class="h-1 w-1 bg-base-300 rounded-full"></div>
-                                        <a href="${item.site_url}" target="_blank" class="text-xs font-bold link link-hover opacity-60 hover:opacity-100">
+                                        <a href="${safeHref(item.site_url)}" target="_blank" rel="noopener noreferrer" class="text-xs font-bold link link-hover opacity-60 hover:opacity-100">
                                             ${item.site_title}
                                         </a>
                                     </div>
                                     <h3 class="text-xl font-bold mb-2">
-                                        <a href="${item.item_url}" target="_blank" class="hover:text-primary transition-colors">
+                                        <a href="${safeHref(item.item_url)}" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors">
                                             ${item.item_title}
                                         </a>
                                     </h3>

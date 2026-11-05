@@ -68,7 +68,7 @@ const fetchHandleFromResolver = async (
 ): Promise<string | undefined> => {
     try {
         const res = await fetch(
-            `${IDENTITY_RESOLVER_URL}/xrpc/app.bsky.actor.getProfile?actor=${did}`,
+            `${IDENTITY_RESOLVER_URL}/xrpc/app.bsky.actor.getProfile?actor=${encodeURIComponent(did)}`,
         );
         if (res.ok) {
             const profile = (await res.json()) as { handle: string };
@@ -83,7 +83,7 @@ const fetchHandleFromResolver = async (
     }
     try {
         const res = await fetch(
-            `${IDENTITY_RESOLVER_URL}/xrpc/com.atproto.repo.describeRepo?repo=${did}`,
+            `${IDENTITY_RESOLVER_URL}/xrpc/com.atproto.repo.describeRepo?repo=${encodeURIComponent(did)}`,
         );
         if (res.ok) {
             const repo = (await res.json()) as { handle: string };

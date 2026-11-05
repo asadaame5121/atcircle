@@ -237,3 +237,22 @@ describe("NavigationSession & Security Utilities", () => {
         });
     });
 });
+
+describe("toNavigationMembers", () => {
+    it("drops non-http site URLs and clears unsafe RSS URLs", async () => {
+        const { toNavigationMembers } = await import("./navigation-session");
+        const result = toNavigationMembers([
+            { id: 1, url: "javascript:alert(1)", title: "bad" },
+            {
+                id: 2,
+                member_uri: "at://did:plc:a/m/1",
+                url: "https://ok.test/",
+                title: "ok",
+                rss_url: "javascript:alert(1)",
+            },
+        ]);
+        expect(result).toHaveLength(1);
+        expect(result[0].url).toBe("https://ok.test/");
+        expect(result[0].rssUrl).toBeNull();
+    });
+});

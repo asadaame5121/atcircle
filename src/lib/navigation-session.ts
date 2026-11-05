@@ -75,6 +75,36 @@ export function sanitizeExternalUrl(urlString?: string | null): string | null {
     return normalizeWebUrl(urlString);
 }
 
+/**
+ * Builds the member list embedded in navigation pages. Member URLs come from
+ * other users' records, so anything that is not a valid http(s) URL is
+ * dropped (site) or cleared (RSS) before it can reach href/window.open.
+ */
+export function toNavigationMembers(
+    rows: Array<{
+        id?: number | string;
+        member_uri?: string | null;
+        url: string;
+        title: string;
+        description?: string | null;
+        rss_url?: string | null;
+    }>,
+): NavigationMember[] {
+    const result: NavigationMember[] = [];
+    for (const m of rows) {
+        const url = sanitizeExternalUrl(m.url);
+        if (!url) continue;
+        result.push({
+            uri: m.member_uri || `member-${m.id}`,
+            url,
+            title: m.title,
+            description: m.description ?? null,
+            rssUrl: sanitizeExternalUrl(m.rss_url),
+        });
+    }
+    return result;
+}
+
 const STORAGE_PREFIX = "atcircle_session_";
 const LAST_RING_KEY = "atcircle_last_session_ring";
 

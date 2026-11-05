@@ -11,6 +11,8 @@ permissions:
 
 jobs:
   screenshots:
+    # 撮影対象は旧 dev 環境。dev 廃止後は vars.E2E_DEV_PDS_URL を未設定にしてスキップする
+    if: vars.E2E_DEV_PDS_URL != ''
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

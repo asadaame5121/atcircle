@@ -1,4 +1,5 @@
 import { html } from "hono/html";
+import { safeHref } from "../../lib/html.js";
 
 export const ModerationSection = (props: {
     joinRequests: any[];
@@ -27,7 +28,7 @@ export const ModerationSection = (props: {
                         <div>
                             <div class="text-xs font-bold text-warning uppercase tracking-wider mb-1">${t("dashboard.join_request_for", { ring_title: jr.ring_title }) || `Join Request for ${jr.ring_title}`}</div>
                             <div class="font-bold">${jr.site_title}</div>
-                            <div class="text-xs opacity-60 underline"><a href="${jr.site_url}" target="_blank">${jr.site_url}</a></div>
+                            <div class="text-xs opacity-60 underline"><a href="${safeHref(jr.site_url)}" target="_blank" rel="noopener noreferrer">${jr.site_url}</a></div>
                             ${jr.message ? html`<p class="text-sm mt-2 p-2 bg-base-100 rounded italic">"${jr.message}"</p>` : ""}
                             <div class="text-[10px] opacity-40 mt-1">From: ${jr.user_did}</div>
                         </div>

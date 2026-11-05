@@ -1,5 +1,7 @@
 import * as cheerio from "cheerio";
+import { isHttpUrl } from "../lib/html.js";
 import { logger as pinoLogger } from "../lib/logger.js";
+import { safeFetch } from "../lib/safe-fetch.js";
 
 export interface DiscoveredFeed {
     url: string;
@@ -39,7 +41,7 @@ export function discoverMetadata(baseUrl: string, html: string): SiteMetadata {
         ) {
             try {
                 const absUrl = new URL(href, baseUrl).toString();
-                feeds.push({ url: absUrl, type });
+                if (isHttpUrl(absUrl)) feeds.push({ url: absUrl, type });
             } catch (_e) {
                 // Ignore invalid URLs
             }
@@ -57,7 +59,8 @@ export async function fetchAndDiscoverMetadata(
     url: string,
 ): Promise<SiteMetadata | null> {
     try {
-        const res = await fetch(url, {
+        if (!isHttpUrl(url)) return null;
+        const res = await safeFetch(url, {
             headers: {
                 "User-Agent": "Webring-Discovery/1.0",
             },
@@ -82,11 +85,11 @@ export async function verifyWidget(
     ringUri?: string,
 ): Promise<boolean> {
     try {
-        const res = await fetch(url, {
+        if (!isHttpUrl(url)) return false;
+        const res = await safeFetch(url, {
             headers: {
                 "User-Agent": "Webring-Verify/1.0",
             },
-            signal: AbortSignal.timeout(10000), // 10s timeout
         });
         if (!res.ok) return false;
         const html = await res.text();

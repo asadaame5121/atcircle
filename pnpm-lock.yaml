@@ -166,6 +166,9 @@ importers:
 
   .:
     dependencies:
+      '@atproto-labs/fetch-node':
+        specifier: 0.4.3
+        version: 0.4.3
       '@atproto/api':
         specifier: ^0.29.1
         version: 0.29.1
