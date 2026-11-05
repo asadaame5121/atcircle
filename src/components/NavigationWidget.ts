@@ -1,4 +1,18 @@
 export const generateWidgetScript = (baseUrl: string) => `
+(() => {
+if (customElements.get("webring-nav")) return;
+
+const __atcEsc = (v) => String(v == null ? "" : v)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+const __atcUrl = (v, fallback) => {
+    try {
+        const u = new URL(String(v), window.location.href);
+        if (u.protocol === "http:" || u.protocol === "https:") return u.href;
+    } catch (e) {}
+    return fallback;
+};
+
 class WebringNav extends HTMLElement {
     constructor() {
         super();
@@ -28,15 +42,17 @@ class WebringNav extends HTMLElement {
         const textColor = isDark ? "#eeeeee" : "#333333";
         const borderColor = isDark ? "#333333" : "#e1e4e8";
 
-        const title = customTitle || "Webring";
-        const listHref = listUrl || "${baseUrl}/rings/view?ring=" + encodeURIComponent(ring);
+        const defaultListHref = "${baseUrl}/rings/view?ring=" + encodeURIComponent(ring);
+        const title = __atcEsc(customTitle || "Webring");
+        const listHref = __atcEsc(listUrl ? __atcUrl(listUrl, defaultListHref) : defaultListHref);
+        const bannerSrc = banner ? __atcEsc(__atcUrl(banner, "")) : "";
 
         // Header content: Banner Image or Text Title
         let headerHtml = "";
-        if (banner) {
+        if (bannerSrc) {
              headerHtml = \`
                 <a href="${baseUrl}" target="_blank" class="banner-link">
-                    <img src="\${banner}" alt="\${title}" class="banner-img" />
+                    <img src="\${bannerSrc}" alt="\${title}" class="banner-img" />
                 </a>
              \`;
         } else {
@@ -132,4 +148,5 @@ class WebringNav extends HTMLElement {
 }
 
 customElements.define("webring-nav", WebringNav);
+})();
 `;

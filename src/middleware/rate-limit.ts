@@ -11,11 +11,30 @@ interface RateEntry {
 
 const hits = new Map<string, RateEntry>();
 
+/**
+ * Best-effort client IP.
+ *
+ * On Fly.io the edge proxy sets `Fly-Client-IP`, which clients cannot spoof.
+ * The first `X-Forwarded-For` entry is client-controlled, so when only XFF is
+ * available we use its last entry (the one appended by the nearest proxy).
+ */
+export const clientIp = (c: Context): string => {
+    const fly = c.req.header("fly-client-ip")?.trim();
+    if (fly) return fly;
+    const xff = c.req.header("x-forwarded-for");
+    if (xff) {
+        const parts = xff
+            .split(",")
+            .map((p) => p.trim())
+            .filter(Boolean);
+        const last = parts[parts.length - 1];
+        if (last) return last;
+    }
+    return c.req.header("x-real-ip")?.trim() || "unknown";
+};
+
 export const authRateLimiter = async (c: Context, next: Next) => {
-    const key =
-        c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ||
-        c.req.header("x-real-ip") ||
-        "unknown";
+    const key = clientIp(c);
 
     const now = Date.now();
 

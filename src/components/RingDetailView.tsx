@@ -1,4 +1,5 @@
 import { html } from "hono/html";
+import { safeHref } from "../lib/html.js";
 
 interface RingDetailViewProps {
     ring: any;
@@ -38,7 +39,7 @@ export const RingDetailView = ({
                             ring.banner_url
                                 ? html`
                             <div class="mb-4 rounded-xl overflow-hidden shadow-sm aspect-3/1 max-h-[150px] w-full bg-base-200 border border-base-300">
-                                <img src="${ring.banner_url}" alt="${ring.title}" class="w-full h-full object-contain" />
+                                <img src="${safeHref(ring.banner_url, "")}" alt="${ring.title}" class="w-full h-full object-contain" />
                             </div>
                         `
                                 : ""
@@ -65,12 +66,12 @@ export const RingDetailView = ({
                                 <div class="card-body p-5">
                                     <h3 class="font-bold break-all">${site.title}</h3>
                                     <p class="text-xs opacity-50 underline truncate" title="${site.url}">
-                                        <a href="${site.url}" target="_blank" rel="noopener noreferrer">${displayUrl(site.url)}</a>
+                                        <a href="${safeHref(site.url)}" target="_blank" rel="noopener noreferrer">${displayUrl(site.url)}</a>
                                     </p>
                                     <p class="text-sm text-base-content/70 line-clamp-2">${site.description || "-"}</p>
                                     <div class="card-actions justify-end mt-2">
-                                        ${site.rss_url ? html`<a href="${site.rss_url}" target="_blank" rel="noopener noreferrer" class="badge badge-warning badge-sm">RSS</a>` : ""}
-                                        <a href="${site.url}" target="_blank" rel="noopener noreferrer" class="btn btn-xs btn-ghost">${t("common.visit")}</a>
+                                        ${site.rss_url ? html`<a href="${safeHref(site.rss_url)}" target="_blank" rel="noopener noreferrer" class="badge badge-warning badge-sm">RSS</a>` : ""}
+                                        <a href="${safeHref(site.url)}" target="_blank" rel="noopener noreferrer" class="btn btn-xs btn-ghost">${t("common.visit")}</a>
                                     </div>
                                 </div>
                             </div>

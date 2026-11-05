@@ -256,9 +256,11 @@ export const AdminService = {
             // 3. Final cleanup of memberships the user might have in other rings (redundant but safe)
             // They should have been deleted in step 1 if sites were correctly identified.
 
-            // 4. Delete OAuth states and session info (optional, but good for privacy)
-            // Note: oauth_states doesn't have a did column in our schema, it's keyed by 'key'.
-            // If we have a way to link it, we should. For now, we skip.
+            // 4. Delete the stored OAuth session (keyed as "session:<did>")
+            await db
+                .prepare("DELETE FROM oauth_states WHERE key = ?")
+                .bind(`session:${did}`)
+                .run();
 
             // 5. Finally delete user
             await db.prepare("DELETE FROM users WHERE did = ?").bind(did).run();
