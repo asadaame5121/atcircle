@@ -82,7 +82,7 @@ GitHub Actions (repo level):
 | シークレット/変数 | 用途 |
 |---|---|
 | `FLY_API_TOKEN` | Fly デプロイ用 API トークン (org スコープ、1年有効)。PR ごとに `check-fly-token` で有効性を確認 |
-| `E2E_DEV_PDS_URL` (vars) | dev PDS の URL、e2e ジョブの有効化スイッチ。dev 環境廃止後は未設定にする |
+| `E2E_DEV_PDS_URL` (vars) | dev PDS の URL。e2e ジョブと PR Screenshots の有効化スイッチ。dev 環境廃止後は未設定にする |
 | `E2E_BASE_URL` (vars) | e2e のベース URL (旧 dev アプリ) |
 
 Fly secrets はアプリごとに設定済み。変更は `fly secrets set -a <app> KEY=VALUE`。
