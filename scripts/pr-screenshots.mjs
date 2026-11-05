@@ -1,4 +1,4 @@
-import { chromium } from "playwright";
+import { chromium } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 
 const BASE = process.env.E2E_BASE_URL || "https://dev-at-circle.asadaame5121.net";

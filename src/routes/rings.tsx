@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { Layout } from "../components/Layout.js";
 import { RingDetailView } from "../components/RingDetailView.js";
 import { RingListView } from "../components/RingListView.js";
+import { toNavigationMembers } from "../lib/navigation-session.js";
 import { MemberRepository } from "../repositories/member.repository.js";
 import { RingRepository } from "../repositories/ring.repository.js";
 import { ringQuerySchema } from "../schemas/index.js";
@@ -47,20 +48,27 @@ app.get("/", async (c) => {
 
 // View sites in a specific ring
 app.get("/view", zValidator("query", ringQuerySchema), async (c) => {
-    const { ring: ringUri } = c.req.valid("query");
+    const {
+        ring: rawRingUri,
+        slug,
+        member: initialMemberUri,
+    } = c.req.valid("query");
     const t = c.get("t");
     const lang = c.get("lang");
-
-    if (!ringUri) return c.redirect("/rings");
 
     const ringRepo = new RingRepository(c.env.DB);
     const memberRepo = new MemberRepository(c.env.DB);
 
-    // Fetch ring info
-    const ring = await ringRepo.findByUri(ringUri);
+    let ring: any = null;
+    if (rawRingUri) {
+        ring = await ringRepo.findByUri(rawRingUri);
+    } else if (slug) {
+        ring = await ringRepo.findBySlug(slug);
+    }
+
     if (!ring) return c.redirect("/rings");
 
-    // Fetch members
+    const ringUri = ring.uri;
     const members = await memberRepo.findApprovedMembersByRing(ringUri);
 
     return c.html(
@@ -73,8 +81,48 @@ app.get("/view", zValidator("query", ringQuerySchema), async (c) => {
                 ring,
                 members,
                 ringUri,
+                initialMemberUri,
                 t,
             }),
+        }),
+    );
+});
+
+// Companion Navigation route (standalone compact UI)
+app.get("/companion", zValidator("query", ringQuerySchema), async (c) => {
+    const {
+        ring: rawRingUri,
+        slug,
+        member: initialMemberUri,
+    } = c.req.valid("query");
+    const t = c.get("t");
+    const lang = c.get("lang") || "ja";
+
+    const ringRepo = new RingRepository(c.env.DB);
+    const memberRepo = new MemberRepository(c.env.DB);
+
+    let ring: any = null;
+    if (rawRingUri) {
+        ring = await ringRepo.findByUri(rawRingUri);
+    } else if (slug) {
+        ring = await ringRepo.findBySlug(slug);
+    }
+
+    if (!ring) return c.redirect("/rings");
+
+    const ringUri = ring.uri;
+    const rawMembers = await memberRepo.findApprovedMembersByRing(ringUri);
+    const members = toNavigationMembers(rawMembers);
+
+    const { CompanionView } = await import("../components/CompanionView.js");
+
+    return c.html(
+        CompanionView({
+            ring,
+            members,
+            initialMemberUri,
+            lang,
+            t,
         }),
     );
 });

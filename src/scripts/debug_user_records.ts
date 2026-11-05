@@ -23,11 +23,7 @@ async function main() {
 
             const ringUri = (record.value as any).ring?.uri;
             console.log(`Ring URI check: '${ringUri}'`);
-            if (
-                !ringUri ||
-                !ringUri.startsWith("at://") ||
-                !ringUri.includes("/")
-            ) {
+            if (!ringUri?.startsWith("at://") || !ringUri.includes("/")) {
                 console.log("-> INVALID RING URI DETECTED");
             } else {
                 console.log("-> VALID RING URI FORMAT");

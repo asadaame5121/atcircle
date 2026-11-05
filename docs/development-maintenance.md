@@ -52,8 +52,8 @@ Hono アプリケーション
 ### セットアップ
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 既定の URL は `http://localhost:8080`、ローカル DB は `dev.db` です。起動時に
@@ -67,21 +67,21 @@ npm run dev
 
 | コマンド | 内容 |
 | --- | --- |
-| `npm run dev` | Vite 開発サーバー |
-| `npm run build` | Tailwind CSS とアプリを `dist/` へビルド |
-| `npm start` | ビルド済み Node サーバーを起動 |
-| `npm test` | `src` 配下の Vitest テスト |
-| `npm run test:e2e` | Playwright E2E テスト |
-| `npm run lint` | `src` を Biome で検査 |
-| `npm run format` | `src` を Biome で整形・自動修正 |
+| `pnpm dev` | Vite 開発サーバー |
+| `pnpm build` | Tailwind CSS とアプリを `dist/` へビルド |
+| `pnpm start` | ビルド済み Node サーバーを起動 |
+| `pnpm test` | `src` 配下の Vitest テスト |
+| `pnpm run test:e2e` | Playwright E2E テスト |
+| `pnpm lint` | `src` を Biome で検査 |
+| `pnpm format` | `src` を Biome で整形・自動修正 |
 
 変更の種類に応じた最小確認は次のとおりです。
 
 - 文言・文書のみ: リンク、見出し、コード例を目視確認
-- UI・ルート: `npm test` と関係する Playwright テスト
-- サービス・DB: `npm test`、必要に応じて `npm run test:e2e`
-- リリース前: `npm run lint`、`npm test`、`npm run build`,
-  `npm run test:e2e`
+- UI・ルート: `pnpm test` と関係する Playwright テスト
+- サービス・DB: `pnpm test`、必要に応じて `pnpm run test:e2e`
+- リリース前: `pnpm lint`、`pnpm test`、`pnpm build`,
+  `pnpm run test:e2e`
 
 ## 環境変数
 
@@ -198,7 +198,7 @@ Vite の設定により `src` 配下の `*.test.ts` / `*.test.tsx` を対象と�
 `tests/` の Playwright テストは除外します。
 
 ```bash
-npm test
+pnpm test
 ```
 
 ### Playwright
@@ -206,8 +206,8 @@ npm test
 Playwright は Chromium を使い、既定で開発サーバーをポート8080に起動します。
 
 ```bash
-npx playwright install chromium
-npm run test:e2e
+pnpm exec playwright install chromium
+pnpm run test:e2e
 ```
 
 失敗時は `playwright-report/` と `test-results/` を確認します。固定文言に依存する
@@ -219,8 +219,8 @@ npm run test:e2e
 ### ローカルで本番ビルドを確認
 
 ```bash
-npm run build
-npm start
+pnpm build
+pnpm start
 ```
 
 `Dockerfile` は Node 24 slim の二段階ビルドです。実行コンテナは非 root の

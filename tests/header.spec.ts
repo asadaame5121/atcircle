@@ -19,12 +19,25 @@ for (const width of [320, 390, 1280]) {
 
         const navItems =
             width >= 640
-                ? 'div.navbar-end.hidden a:last-child'
+                ? ".navbar-desktop a:last-child"
                 : "details.dropdown summary";
         const menu = header.locator(navItems).last();
         await expect(menu).toBeVisible();
         const menuBox = await menu.boundingBox();
         expect(menuBox).not.toBeNull();
         expect(menuBox.x + menuBox.width).toBeLessThanOrEqual(width + 0.5);
+
+        if (width < 640) {
+            await menu.click();
+            const dropdown = header.locator(".navbar-mobile .dropdown-content");
+            await expect(dropdown).toBeVisible();
+            const dropdownBox = await dropdown.boundingBox();
+            expect(dropdownBox).not.toBeNull();
+            expect(dropdownBox.width).toBeGreaterThan(160);
+            expect(dropdownBox.x).toBeGreaterThanOrEqual(0);
+            expect(dropdownBox.x + dropdownBox.width).toBeLessThanOrEqual(
+                width + 0.5,
+            );
+        }
     });
 }

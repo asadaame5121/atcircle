@@ -36,3 +36,17 @@ export const isHttpUrl = (value: unknown): value is string => {
  */
 export const safeHref = (value: unknown, fallback = "#"): string =>
     isHttpUrl(value) ? value : fallback;
+
+/**
+ * Serialize a value as a JavaScript literal that is safe to place inside an
+ * inline `<script>` element. Plain `JSON.stringify` leaves `</script>` and
+ * `<!--` intact, so attacker-controlled strings (site titles, query params)
+ * could close the script element and inject markup.
+ */
+export const jsonForScript = (value: unknown): string =>
+    (JSON.stringify(value) ?? "null")
+        .replace(/</g, "\\u003c")
+        .replace(/>/g, "\\u003e")
+        .replace(/&/g, "\\u0026")
+        .replace(/\u2028/g, "\\u2028")
+        .replace(/\u2029/g, "\\u2029");
