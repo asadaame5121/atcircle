@@ -1,4 +1,5 @@
 import { html, raw } from "hono/html";
+import { escapeHtml, safeHref } from "../../lib/html.js";
 
 interface WidgetBuilderProps {
     ringUri: string;
@@ -28,7 +29,7 @@ export const WidgetBuilder = ({
 
                     <div class="alert alert-info mb-8 text-sm">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <span>${raw(t("widget_builder.info_alert", { ring: ringTitle }))}</span>
+                        <span>${raw(t("widget_builder.info_alert", { ring: escapeHtml(ringTitle) }))}</span>
                     </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -67,7 +68,7 @@ export const WidgetBuilder = ({
                     </div>
 
                     <div class="flex items-center gap-4">
-                        <img id="banner-preview-img" src="${bannerUrl}" alt="Banner preview" class="w-24 h-24 object-contain bg-base-300 rounded overflow-hidden ${bannerUrl ? "" : "hidden"}" />
+                        <img id="banner-preview-img" src="${safeHref(bannerUrl, "")}" alt="Banner preview" class="w-24 h-24 object-contain bg-base-300 rounded overflow-hidden ${bannerUrl ? "" : "hidden"}" />
                         <div class="flex-1">
                             <input type="file" id="banner-upload" class="file-input file-input-bordered w-full" accept="image/*" aria-label="${t("widget_builder.banner_upload_desc")}" />
                             <p class="text-xs mt-1 text-base-content/60">${t("widget_builder.banner_upload_desc")}</p>

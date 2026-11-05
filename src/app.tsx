@@ -8,7 +8,9 @@ import { i18nMiddleware } from "./middleware/i18n.js";
 import antenna from "./routes/antenna.js";
 import api from "./routes/api.js";
 import auth from "./routes/auth.js";
+import changelog from "./routes/changelog.js";
 import dashboard from "./routes/dashboard.js";
+import help from "./routes/help.js";
 import home from "./routes/home.js";
 import legal from "./routes/legal.js";
 import navigation from "./routes/navigation.js";
@@ -151,6 +153,8 @@ app.post("/dashboard/sync/feeds", async (c) => {
 app.route("/api", api);
 app.route("/", home);
 app.route("/antenna", antenna);
+app.route("/help", help);
+app.route("/changelog", changelog);
 app.route("/rings", rings);
 app.route("/dashboard", dashboard);
 app.route("/r", r);
@@ -158,6 +162,38 @@ app.route("/u", u);
 app.route("/", auth);
 app.route("/", legal);
 app.route("/nav", navigation);
+
+// PWA Assets
+app.get("/manifest.webmanifest", async (c) => {
+    try {
+        const content = readFileSync(
+            resolve(process.cwd(), "assets/manifest.webmanifest"),
+            "utf8",
+        );
+        return c.text(content, 200, {
+            "Content-Type": "application/manifest+json",
+            "Cache-Control": "public, max-age=3600",
+        });
+    } catch {
+        return c.redirect("/assets/manifest.webmanifest");
+    }
+});
+
+app.get("/sw.js", async (c) => {
+    try {
+        const content = readFileSync(
+            resolve(process.cwd(), "assets/sw.js"),
+            "utf8",
+        );
+        return c.text(content, 200, {
+            "Content-Type": "application/javascript",
+            "Cache-Control": "no-cache",
+            "Service-Worker-Allowed": "/",
+        });
+    } catch {
+        return c.redirect("/assets/sw.js");
+    }
+});
 
 // Compatibility redirect for users who use /widget.js
 app.get("/widget.js", (c) => c.redirect("/nav/widget.js"));

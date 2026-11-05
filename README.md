@@ -9,13 +9,23 @@ Bluesky アカウントでログインし、サイトの登録、リングの作
 - Bluesky の ATProto OAuth を使ったログイン
 - Bluesky プロフィールからのサイト候補検出と手動登録
 - ウェブリングの作成、参加、承認、メンバー管理
-- 前へ・ランダム・次へ・一覧を備えた埋め込みウィジェット
+- **Companion Navigation（コンパニオン巡回ナビゲーション）**:
+  - 加入サイト無改造で巡回可能な独立型コンパニオンUI（`/rings/companion`）
+  - 前へ (Previous) / ランダム (Random) / 次へ (Next) / サイトを開く (Visit site ↗)
+  - 巡回履歴セッションのローカル永続化（`localStorage`）とリロード・ブラウザ再起動後の再開（Resume）
+  - 同一ブラウジングコンテキスト（`atcircle-visit`）でのタブ再利用巡回
+  - `BroadcastChannel` によるメイン画面とコンパニオン画面間の双方向リアルタイム同期
+  - キーボードショートカット（`←` / `→` / `R` / `Enter, O`）
+  - PWA（Progressive Web App）インストール・スタンドアロン表示対応
+- 前へ・ランダム・次へ・一覧を備えた埋め込みウィジェット（レガシー互換維持）
 - リング別の RSS アンテナと OPML エクスポート
 - 公開プロフィールとリングの公開ページ
+- **アプリ内ヘルプ (`/help`) & チェンジログ (`/changelog`)** による利用ガイドと更新履歴
 
 ## 文書
 
-- [ユーザー向けヘルプ](docs/help_ja.md)
+- [ユーザー向けヘルプ Markdown](docs/help_ja.md)（アプリ内でも `/help` で閲覧可能）
+- [更新履歴 (CHANGELOG.md)](CHANGELOG.md)（アプリ内でも `/changelog` で閲覧可能）
 - [開発・保守マニュアル](docs/development-maintenance.md)
 - [文書一覧](docs/README.md)
 - [ATProto CRUD 仕様](docs/spec/atproto_crud.md)
@@ -33,8 +43,8 @@ Bluesky アカウントでログインし、サイトの登録、リングの作
 ```bash
 git clone https://github.com/asadaame5121/atcircle.git
 cd atcircle
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 既定では `http://localhost:8080` で起動します。ローカル開発では
@@ -44,13 +54,13 @@ npm run dev
 
 | コマンド | 用途 |
 | --- | --- |
-| `npm run dev` | 開発サーバーを起動 |
-| `npm run build` | CSS とアプリケーションを本番用にビルド |
-| `npm start` | ビルド済みの `dist/index.js` を起動 |
-| `npm test` | Vitest の単体・ルートテストを実行 |
-| `npm run test:e2e` | Playwright の E2E テストを実行 |
-| `npm run lint` | Biome による静的検査 |
-| `npm run format` | Biome による整形と自動修正 |
+| `pnpm dev` | 開発サーバーを起動 |
+| `pnpm build` | CSS とアプリケーションを本番用にビルド |
+| `pnpm start` | ビルド済みの `dist/index.js` を起動 |
+| `pnpm test` | Vitest の単体・ルートテストを実行 |
+| `pnpm run test:e2e` | Playwright の E2E テストを実行 |
+| `pnpm lint` | Biome による静的検査 |
+| `pnpm format` | Biome による整形と自動修正 |
 
 ### 最小構成の環境変数
 
@@ -78,3 +88,20 @@ npm run dev
 
 `docs/lexicons.md` と `src/lexicons/` 配下は Lexicon から生成される成果物です。
 独自レコードの名前空間は `net.asadaame5121.at-circle.*` です。
+
+---
+
+## Companion Navigation 実ブラウザ動作検証結果
+
+| 検証項目 | 挙動・結果 | 判定 |
+| --- | --- | --- |
+| **外部サイトURL検証** | `http:` / `https:` 以外の危険なスキーム（`javascript:`, `data:`, `file:` 等）は遮断され、UIにエラーが表示される | PASS |
+| **独立Companion起動** | 親ウィンドウに依存せず、URL直接指定（`/rings/companion?ring=...`）で単独起動可能 | PASS |
+| **巡回履歴（Previous）** | ブラウザBackに依存せず、Next/Randomで訪問した履歴順を正しく逆順に辿る | PASS |
+| **末尾ラップ（Next）** | リングの末尾メンバーからNextを実行した際、先頭メンバーへ正常にラップする | PASS |
+| **セッション永続化 & 再開** | `localStorage` にセッションを保存し、リロード後やブラウザ再起動後も現在位置と履歴が維持される | PASS |
+| **ウィンドウ間同期** | `BroadcastChannel` によりメイン詳細画面とCompanionウィンドウ間でリアルタイムに同期 | PASS |
+| **同一タブ再利用** | `window.open(url, "atcircle-visit")` により、巡回先サイトを同一タブで連続表示可能 | PASS |
+| **キーボードショートカット** | `←` (前へ), `→` (次へ), `r` (ランダム), `Enter` / `o` (サイトを開く) が動作。テキスト入力中は誤発火しない | PASS |
+| **PWAスタンドアロン** | `manifest.webmanifest` と `sw.js` により PWA としてインストール・スタンドアロン表示が可能 | PASS |
+| **後方互換性** | 既存の `/widget.js`、`<at-circle>` および ATProto Lexicon レコードの変更なし | PASS |

@@ -1,6 +1,9 @@
-# デプロイ・運用ガイド (dev / prod 2ライン)
+# デプロイ・運用ガイド (本番1ライン)
 
-最終更新: 2026-08-08
+最終更新: 2026-11-05
+
+dev 環境 (`asadaame5121-webring-dev`) は維持費削減のため廃止した。
+現在は本番 https://at-circle.asadaame5121.net のみで運用する。
 
 ## 0. 開発フロー (プルリク方式)
 
@@ -17,52 +20,37 @@ PR 作成時 (または更新時) に自動実行されるもの:
 
 | ワークフロー | 内容 |
 |---|---|
-| Test (`test.yml`) | unit / smoke / e2e が PR ごとに実行 |
-| PR Screenshots (`pr-screenshots.yml`) | dev 環境の 4 画面を撮影し、PR コメントに自動添付 |
+| Test (`test.yml`) | unit / smoke (e2e は `vars.E2E_DEV_PDS_URL` 設定時のみ) |
+| Deploy (`deploy.yml`) の `check-fly-token` | デプロイせずに `flyctl status` で `FLY_API_TOKEN` の有効性と本番アプリへの権限を確認 |
 
-ブランチ保護 (main):
+**マージ (main への push) で本番へ自動デプロイされる。** 本番に直接出るため、
+PR の unit / smoke が通っていることを必ず確認してからマージする。
 
-- PR 必須 (admin 含む direct push 不可)
-- 必須チェック: `unit` / `smoke` / `e2e` が成功しないとマージ不可
-- force push / ブランチ削除: 禁止
+## 1. 構成
 
-マージで `main` に push され、dev へ自動デプロイされる。
-
-## 1. 2ライン構成
-
-| | dev | prod |
-|---|---|---|
-| Fly アプリ | `asadaame5121-webring-dev` | `asadaame5121-webring` |
-| URL | https://dev-at-circle.asadaame5121.net | https://at-circle.asadaame5121.net |
-| 設定ファイル | `fly.dev.toml` | `fly.toml` |
-| ATProto サービス | dev PDS (`https://pds-dev.asadaame5121.net`) | `https://bsky.social` |
-| PDS 解決 | `IDENTITY_RESOLVER_URL` = dev PDS | デフォルト (`public.api.bsky.app`) |
-| DB | Turso `atcircle-dev` | Turso 本番 DB |
-| デプロイ | main push で自動 | `v*` タグ push で自動 |
+| 項目 | 値 |
+|---|---|
+| Fly アプリ | `asadaame5121-webring` |
+| URL | https://at-circle.asadaame5121.net |
+| 設定ファイル | `fly.toml` |
+| ATProto サービス | `https://bsky.social` |
+| DB | Turso 本番 DB |
+| デプロイ | main への push で自動 / 手動 (workflow_dispatch) |
 
 ## 2. デプロイフロー (GitHub Actions)
 
-### dev (自動)
+- 自動: PR をマージすると `deploy-prod` が実行される
+- 手動: GitHub の Actions タブ → Deploy → Run workflow (main を選択)
+- ローカル: `fly deploy -c fly.toml`
 
-`main` ブランチへの push で `deploy-dev` が実行される:
-
-```bash
-git push origin main
-```
-
-### prod (タグ push)
-
-`vX.Y.Z` 形式のタグを push すると `deploy-prod` が実行される:
+### ロールバック
 
 ```bash
-git tag v0.2.0
-git push origin v0.2.0
+fly releases -a asadaame5121-webring          # 過去のリリース一覧
+fly deploy -a asadaame5121-webring --image <過去リリースのイメージ>
 ```
 
-### 手動デプロイ
-
-- GitHub の Actions タブ → Deploy → Run workflow (workflow_dispatch)
-- ローカル: `fly deploy -c fly.toml` (prod) / `fly deploy -c fly.dev.toml` (dev)
+または問題のコミットを revert する PR をマージする。
 
 ## 3. バージョニング
 
@@ -73,8 +61,7 @@ npm version patch   # or minor / major (package.json 更新 + コミット + タ
 git push origin main --tags
 ```
 
-- `npm version` は `v0.2.0` 形式のタグを作るため、そのまま push すれば prod デプロイが走る
-- タグ push 時は `deploy-dev` がスキップされる (正しい挙動)
+- タグはバージョンの記録用。デプロイは main への push で行われる
 
 ## 4. CI (test.yml)
 
@@ -94,9 +81,9 @@ GitHub Actions (repo level):
 
 | シークレット/変数 | 用途 |
 |---|---|
-| `FLY_API_TOKEN` | Fly デプロイ用 API トークン (org スコープ、1年有効) |
-| `E2E_DEV_PDS_URL` (vars) | dev PDS の URL、e2e ジョブの有効化スイッチ |
-| `E2E_BASE_URL` (vars) | e2e のベース URL (dev アプリ) |
+| `FLY_API_TOKEN` | Fly デプロイ用 API トークン (org スコープ、1年有効)。PR ごとに `check-fly-token` で有効性を確認 |
+| `E2E_DEV_PDS_URL` (vars) | dev PDS の URL。e2e ジョブと PR Screenshots の有効化スイッチ。dev 環境廃止後は未設定にする |
+| `E2E_BASE_URL` (vars) | e2e のベース URL (旧 dev アプリ) |
 
 Fly secrets はアプリごとに設定済み。変更は `fly secrets set -a <app> KEY=VALUE`。
 

@@ -1,28 +1,40 @@
 name: Deploy
 
+# 本番 (asadaame5121-webring) のみの1ライン構成。
+# - main への push (= PR のマージ) で本番へデプロイ
+# - PR では、デプロイせずに FLY_API_TOKEN が本番アプリへアクセスできるかだけ確認
+
 on:
   push:
     branches: [main]
-    tags: ["v*"]
     paths-ignore:
       - "docs/**"
       - "README.md"
       - ".github/workflows/test.yml"
+  pull_request:
   workflow_dispatch:
 
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
-  deploy-dev:
-    if: github.ref == 'refs/heads/main'
+  check-fly-token:
+    # フォークからの PR には secrets が渡らないため、同一リポジトリの PR のみ
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --remote-only -c fly.dev.toml
+      # 読み取りのみ。トークンが失効・権限不足ならここで失敗する
+      - run: flyctl status -c fly.toml
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
   deploy-prod:
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

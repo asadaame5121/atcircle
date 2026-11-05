@@ -38,6 +38,28 @@ describe("Rings Route", () => {
         expect(text).toContain("Member 1");
     });
 
+    it("renders companion view", async () => {
+        const env = {
+            DB: createMockDB({
+                first: { id: 1, title: "Test Ring", uri: "at://test" },
+                all: [
+                    {
+                        id: 1,
+                        title: "Member 1",
+                        url: "https://site1.com",
+                        member_uri: "at://member1",
+                    },
+                ],
+            }),
+        };
+        const app = wrapApp(ringsApp);
+        const res = await app.request("/companion?ring=at://test", {}, env);
+        expect(res.status).toBe(200);
+        const text = await res.text();
+        expect(text).toContain("Test Ring");
+        expect(text).toContain("Companion");
+    });
+
     it("exports OPML", async () => {
         const env = {
             DB: createMockDB({

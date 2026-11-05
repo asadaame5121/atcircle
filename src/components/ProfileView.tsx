@@ -1,4 +1,5 @@
 import { html } from "hono/html";
+import { safeHref } from "../lib/html.js";
 
 interface ProfileViewProps {
     handle: string;
@@ -54,10 +55,10 @@ export const ProfileView = ({
                         <div class="card bg-base-100 border border-base-300 shadow-sm transition-hover hover:shadow-md">
                             <div class="card-body p-5">
                                 <h3 class="font-bold text-lg leading-tight mb-1">${s.title}</h3>
-                                <a href="${s.url}" target="_blank" class="link link-primary text-sm truncate mb-3 break-all">${s.url}</a>
+                                <a href="${safeHref(s.url)}" target="_blank" rel="noopener noreferrer" class="link link-primary text-sm truncate mb-3 break-all">${s.url}</a>
                                 <p class="text-sm opacity-70 mb-4">${s.description || ""}</p>
                                 <div class="card-actions justify-end">
-                                    <a href="${s.url}" target="_blank" class="btn btn-xs btn-outline rounded-full">Visit Site</a>
+                                    <a href="${safeHref(s.url)}" target="_blank" rel="noopener noreferrer" class="btn btn-xs btn-outline rounded-full">Visit Site</a>
                                 </div>
                             </div>
                         </div>

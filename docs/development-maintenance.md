@@ -52,8 +52,8 @@ Hono アプリケーション
 ### セットアップ
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 既定の URL は `http://localhost:8080`、ローカル DB は `dev.db` です。起動時に
@@ -67,21 +67,21 @@ npm run dev
 
 | コマンド | 内容 |
 | --- | --- |
-| `npm run dev` | Vite 開発サーバー |
-| `npm run build` | Tailwind CSS とアプリを `dist/` へビルド |
-| `npm start` | ビルド済み Node サーバーを起動 |
-| `npm test` | `src` 配下の Vitest テスト |
-| `npm run test:e2e` | Playwright E2E テスト |
-| `npm run lint` | `src` を Biome で検査 |
-| `npm run format` | `src` を Biome で整形・自動修正 |
+| `pnpm dev` | Vite 開発サーバー |
+| `pnpm build` | Tailwind CSS とアプリを `dist/` へビルド |
+| `pnpm start` | ビルド済み Node サーバーを起動 |
+| `pnpm test` | `src` 配下の Vitest テスト |
+| `pnpm run test:e2e` | Playwright E2E テスト |
+| `pnpm lint` | `src` を Biome で検査 |
+| `pnpm format` | `src` を Biome で整形・自動修正 |
 
 変更の種類に応じた最小確認は次のとおりです。
 
 - 文言・文書のみ: リンク、見出し、コード例を目視確認
-- UI・ルート: `npm test` と関係する Playwright テスト
-- サービス・DB: `npm test`、必要に応じて `npm run test:e2e`
-- リリース前: `npm run lint`、`npm test`、`npm run build`,
-  `npm run test:e2e`
+- UI・ルート: `pnpm test` と関係する Playwright テスト
+- サービス・DB: `pnpm test`、必要に応じて `pnpm run test:e2e`
+- リリース前: `pnpm lint`、`pnpm test`、`pnpm build`,
+  `pnpm run test:e2e`
 
 ## 環境変数
 
@@ -95,7 +95,7 @@ npm run dev
 | `PUBLIC_URL` | `http://localhost:${PORT}` | OAuth、ウィジェット、公開URLの基準。本番は HTTPS 必須 |
 | `BSKY_SERVICE_URL` | `https://bsky.social` | ATProto サービス URL |
 | `PLC_DIRECTORY_URL` | `https://plc.directory` | DID PLC ディレクトリ |
-| `SECRET_KEY` | 開発用固定値 | JWT 署名鍵。本番では十分に長いランダム値を必ず設定 |
+| `SECRET_KEY` | 開発用固定値 | JWT 署名鍵、および `oauth_states` 暗号鍵の導出元。本番では十分に長いランダム値を必ず設定。変更すると全ユーザーが再ログインになる |
 | `CLIENT_NAME` | `AT CIRCLE` | OAuth クライアント表示名 |
 | `NODE_ENV` | `development` | 本番は `production` |
 | `OAUTH_PRIVATE_KEY` | 一時鍵 | 秘密 JWK JSON または Base64。本番では永続鍵を必ず設定 |
@@ -120,7 +120,7 @@ npm run dev
 | `users` | DID、ハンドル |
 | `sites` | ユーザーのサイトと RSS |
 | `antenna_items` | RSS から取得した記事 |
-| `oauth_states` | OAuth state とセッション |
+| `oauth_states` | OAuth state とセッション（AES-256-GCM で暗号化して保存。未完了の state は1時間で掃除） |
 | `rings` | リングのローカルインデックスと表示設定 |
 | `join_requests` | 承認待ち申請 |
 | `memberships` | 参加状態とウィジェット確認結果 |
@@ -198,7 +198,7 @@ Vite の設定により `src` 配下の `*.test.ts` / `*.test.tsx` を対象と�
 `tests/` の Playwright テストは除外します。
 
 ```bash
-npm test
+pnpm test
 ```
 
 ### Playwright
@@ -206,8 +206,8 @@ npm test
 Playwright は Chromium を使い、既定で開発サーバーをポート8080に起動します。
 
 ```bash
-npx playwright install chromium
-npm run test:e2e
+pnpm exec playwright install chromium
+pnpm run test:e2e
 ```
 
 失敗時は `playwright-report/` と `test-results/` を確認します。固定文言に依存する
@@ -219,8 +219,8 @@ npm run test:e2e
 ### ローカルで本番ビルドを確認
 
 ```bash
-npm run build
-npm start
+pnpm build
+pnpm start
 ```
 
 `Dockerfile` は Node 24 slim の二段階ビルドです。実行コンテナは非 root の
@@ -277,8 +277,16 @@ SQLite だけに保存しないでください。通常は Turso など外部の
   利用後は直ちに無効化・ローテーションします。
 - 本番では `NODE_ENV=production` を必須とし、デバッグログインを無効にします。
 - RSS、サイトメタデータ、ウィジェット確認は外部 URL へサーバーからアクセス
-  します。タイムアウト、許可するアドレス、リダイレクト、レスポンスサイズを
-  変更するときは SSRF とリソース枯渇の観点で確認します。
+  します。必ず `src/lib/safe-fetch.ts` の `safeFetch` を使ってください。
+  http(s) の標準ポートのみ許可し、プライベート・ループバック・リンクローカル
+  アドレスを接続時に拒否し、リダイレクトは各ホップを再検証します（タイムアウト
+  10秒、最大 2MB）。設定を変えるときは SSRF とリソース枯渇の観点で確認します。
+- 他ユーザーのレコードや RSS 由来の値（タイトル、URL）は信頼できない入力です。
+  SSR では `hono/html` の自動エスケープに加えて、`href`/`src` には
+  `src/lib/html.ts` の `safeHref` を使い、http(s) 以外の URL を出力しません。
+  クライアント側で `innerHTML` を組み立てる場合はエスケープしてください。
+- レート制限のクライアント IP は `Fly-Client-IP` を優先します。
+  `X-Forwarded-For` の先頭はクライアントが偽装できるため使いません。
 - CSP や CORP/COOP を変更するときは、通常画面の保護と外部サイトへ埋め込む
   ウィジェットの互換性を両方確認します。
 

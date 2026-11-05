@@ -1,4 +1,5 @@
 import { html } from "hono/html";
+import { safeHref } from "../../lib/html.js";
 
 export const LegacySiteSection = (props: {
     site: any;
@@ -13,7 +14,7 @@ export const LegacySiteSection = (props: {
                 <h2 class="card-title text-xl font-bold mb-4">${t("dashboard.legacy_site")}</h2>
             <div class="space-y-2">
                 <p><span class="font-semibold">${t("dashboard.site_title")}:</span> ${site.title}</p>
-                <p><span class="font-semibold">${t("dashboard.site_url")}:</span> <a href="${site.url}" target="_blank" class="link link-primary">${site.url}</a></p>
+                <p><span class="font-semibold">${t("dashboard.site_url")}:</span> <a href="${safeHref(site.url)}" target="_blank" rel="noopener noreferrer" class="link link-primary">${site.url}</a></p>
                 ${site.rss_url ? html`<p><span class="font-semibold">RSS:</span> ${site.rss_url}</p>` : ""}
                 <p><span class="font-semibold">${t("dashboard.status")}:</span> 
                     <span class="badge ${site.is_active ? "badge-success" : "badge-ghost"}">${site.is_active ? t("dashboard.status_active") : t("dashboard.status_inactive")}</span>

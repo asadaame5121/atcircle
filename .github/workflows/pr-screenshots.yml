@@ -11,14 +11,17 @@ permissions:
 
 jobs:
   screenshots:
+    # 撮影対象は旧 dev 環境。dev 廃止後は vars.E2E_DEV_PDS_URL を未設定にしてスキップする
+    if: vars.E2E_DEV_PDS_URL != ''
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
-      - run: npm ci
-      - run: npx playwright install --with-deps chromium
+          node-version: 24.22.1
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
       - run: node scripts/pr-screenshots.mjs
         env:
           E2E_DEV_PDS_URL: ${{ vars.E2E_DEV_PDS_URL }}
