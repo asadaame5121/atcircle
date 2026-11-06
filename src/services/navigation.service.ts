@@ -1,27 +1,20 @@
-// import type { SqliteDatabaseInterface } from "../types/db.js";
+import { getApprovedMembers } from "./ring-members.js";
 
 export class NavigationService {
     constructor(private db: D1Database) {}
 
     async getRandomSite(ringUri?: string): Promise<string | null> {
-        let query = "SELECT url FROM sites WHERE is_active = 1";
-        const params: any[] = [];
-
         if (ringUri) {
-            query = `
-                SELECT s.url 
-                FROM sites s
-                JOIN memberships m ON s.id = m.site_id
-                WHERE m.ring_uri = ? AND s.is_active = 1 AND m.status = 'approved'
-            `;
-            params.push(ringUri);
+            const members = await this.getMembers(ringUri);
+            if (members.length === 0) return null;
+            return members[Math.floor(Math.random() * members.length)].url;
         }
 
-        query += " ORDER BY RANDOM() LIMIT 1";
-
+        // リング指定なし: 全サイトから (DB のキャッシュ)
         const site = await this.db
-            .prepare(query)
-            .bind(...params)
+            .prepare(
+                "SELECT url FROM sites WHERE is_active = 1 ORDER BY RANDOM() LIMIT 1",
+            )
             .first<{ url: string }>();
         return site?.url || null;
     }
@@ -54,17 +47,9 @@ export class NavigationService {
         return members[prevIndex].url;
     }
 
+    /** 承認済みメンバー (参加順)。PDS が正本で、取れなければ DB のキャッシュ */
     private async getMembers(ringUri: string): Promise<{ url: string }[]> {
-        const res = await this.db
-            .prepare(`
-            SELECT s.url
-            FROM sites s
-            JOIN memberships m ON s.id = m.site_id
-            WHERE m.ring_uri = ? AND s.is_active = 1 AND m.status = 'approved'
-            ORDER BY m.created_at ASC
-        `)
-            .bind(ringUri)
-            .all<{ url: string }>();
-        return res.results;
+        const { members } = await getApprovedMembers(this.db, ringUri);
+        return members;
     }
 }

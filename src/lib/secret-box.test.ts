@@ -21,7 +21,10 @@ describe("secret box", () => {
 
     it("rejects tampered values and wrong keys", () => {
         const sealed = box.seal("secret");
-        const tampered = `${sealed.slice(0, -2)}AA`;
+        // 中ほどの 1 文字を必ず別の文字に変える。末尾の文字は base64url の
+        // 未使用ビットを含み、変えてもデコード結果が同じことがあるので避ける
+        const i = Math.floor(sealed.length / 2);
+        const tampered = `${sealed.slice(0, i)}${sealed[i] === "A" ? "B" : "A"}${sealed.slice(i + 1)}`;
         expect(() => box.open(tampered)).toThrow();
         expect(() => createSecretBox("other").open(sealed)).toThrow();
     });

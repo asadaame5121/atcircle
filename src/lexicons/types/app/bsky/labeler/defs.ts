@@ -1,5 +1,5 @@
-import { validate as _validate } from "../../../../lexicons";
-import { is$typed as _is$typed } from "../../../../util";
+import { validate as _validate } from "../../../../lexicons.js";
+import { is$typed as _is$typed } from "../../../../util.js";
 import type * as ComAtprotoLabelDefs from "../../../com/atproto/label/defs.js";
 import type * as ComAtprotoModerationDefs from "../../../com/atproto/moderation/defs.js";
 import type * as AppBskyActorDefs from "../actor/defs.js";

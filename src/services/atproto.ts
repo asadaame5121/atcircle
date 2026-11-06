@@ -27,7 +27,10 @@ const NSID = {
     REQUEST: ids.NetAsadaame5121AtCircleRequest,
     BLOCK: ids.NetAsadaame5121AtCircleBlock,
     BANNER: ids.NetAsadaame5121AtCircleBanner,
+    DECISION: ids.NetAsadaame5121AtCircleDecision,
 };
+
+export type DecisionStatus = "approved" | "suspended" | "removed";
 
 export const AtProtoService = {
     // -------------------------------------------------------------------------
@@ -82,22 +85,47 @@ export const AtProtoService = {
     async updateRing(
         agent: Agent,
         uri: string,
-        title: string,
-        description: string,
-        status: "open" | "closed",
-        acceptancePolicy: "automatic" | "manual",
-        adminDid: `did:${string}:${string}`,
+        fields: {
+            title: string;
+            description: string;
+            status: "open" | "closed";
+            acceptancePolicy: "automatic" | "manual";
+            admin: `did:${string}:${string}`;
+            /** null で削除 */
+            slug?: string | null;
+            /** null で削除 */
+            bannerUrl?: string | null;
+        },
     ) {
         const { rkey } = new AtUri(uri);
+
+        // 作成日時など、フォームで扱わない項目は既存レコードから引き継ぐ
+        let existing: Partial<RingRecord> = {};
+        try {
+            const res = await agent.api.com.atproto.repo.getRecord({
+                repo: agent.assertDid,
+                collection: NSID.RING,
+                rkey,
+            });
+            existing = (res.data.value ?? {}) as Partial<RingRecord>;
+        } catch {
+            // 取得できなければ新規扱い
+        }
+
         const record: RingRecord = {
+            ...existing,
             $type: NSID.RING,
-            title,
-            description,
-            status,
-            acceptancePolicy,
-            admin: adminDid,
-            createdAt: new Date().toISOString(), // Should ideally preserve original
+            title: fields.title,
+            description: fields.description,
+            status: fields.status,
+            acceptancePolicy: fields.acceptancePolicy,
+            admin: fields.admin,
+            createdAt: existing.createdAt || new Date().toISOString(),
         };
+        if (fields.slug) record.slug = fields.slug;
+        else delete record.slug;
+        if (fields.bannerUrl) record.bannerUrl = fields.bannerUrl;
+        else delete record.bannerUrl;
 
         await agent.api.com.atproto.repo.putRecord({
             repo: agent.assertDid,
@@ -187,12 +215,21 @@ export const AtProtoService = {
         });
     },
 
+    /**
+     * 参加をやめる。自動承認リングでは member、要承認リングでは request
+     * レコードで参加しているので、URI のコレクションに合わせて消す。
+     */
     async leaveRing(agent: Agent, memberRecordUri: string) {
-        const { rkey } = new AtUri(memberRecordUri);
-        const net = new NetNS(agent);
-
-        await net.asadaame5121.atCircle.member.delete({
+        const { hostname, collection, rkey } = new AtUri(memberRecordUri);
+        if (hostname !== agent.assertDid) {
+            throw new Error("Not your membership record");
+        }
+        if (collection !== NSID.MEMBER && collection !== NSID.REQUEST) {
+            throw new Error(`Not a membership record: ${collection}`);
+        }
+        await agent.api.com.atproto.repo.deleteRecord({
             repo: agent.assertDid,
+            collection,
             rkey,
         });
     },
@@ -318,6 +355,63 @@ export const AtProtoService = {
             { repo: agent.assertDid },
             record,
         );
+    },
+
+    /**
+     * 参加 (member / request レコード) に対する管理者の判断を記録する。
+     * 同じ対象に複数あるときは新しいものが有効 (resolveMemberships 参照)。
+     */
+    async putDecision(
+        agent: Agent,
+        ringUri: string,
+        subject: { uri: string; cid: string },
+        status: DecisionStatus,
+    ) {
+        const res = await agent.api.com.atproto.repo.createRecord({
+            repo: agent.assertDid,
+            collection: NSID.DECISION,
+            record: {
+                $type: NSID.DECISION,
+                ring: { uri: ringUri },
+                subject: { uri: subject.uri, cid: subject.cid },
+                status,
+                createdAt: new Date().toISOString(),
+            },
+        });
+        return res.data.uri;
+    },
+
+    /** 対象への自分の decision をすべて取り消す (保留に戻す)。消した件数を返す。 */
+    async deleteDecisions(agent: Agent, ringUri: string, subjectUri: string) {
+        let removed = 0;
+        let cursor: string | undefined;
+        do {
+            const res = await agent.api.com.atproto.repo.listRecords({
+                repo: agent.assertDid,
+                collection: NSID.DECISION,
+                limit: 100,
+                cursor,
+            });
+            for (const rec of res.data.records) {
+                const value = rec.value as {
+                    ring?: { uri?: string };
+                    subject?: { uri?: string };
+                };
+                if (
+                    value.ring?.uri === ringUri &&
+                    value.subject?.uri === subjectUri
+                ) {
+                    await agent.api.com.atproto.repo.deleteRecord({
+                        repo: agent.assertDid,
+                        collection: NSID.DECISION,
+                        rkey: new AtUri(rec.uri).rkey,
+                    });
+                    removed++;
+                }
+            }
+            cursor = res.data.cursor;
+        } while (cursor);
+        return removed;
     },
 
     // -------------------------------------------------------------------------

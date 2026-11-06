@@ -1,5 +1,5 @@
-import { validate as _validate } from "../../../../lexicons";
-import { is$typed as _is$typed, type $Typed } from "../../../../util";
+import { validate as _validate } from "../../../../lexicons.js";
+import { is$typed as _is$typed, type $Typed } from "../../../../util.js";
 
 const is$typed = _is$typed,
     validate = _validate;
@@ -34,8 +34,8 @@ export function validateMain<V>(v: V) {
 }
 
 export {
-    type Main as Record,
     isMain as isRecord,
+    type Main as Record,
     validateMain as validateRecord,
 };
 

@@ -3,6 +3,7 @@ import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { PUBLIC_URL } from "../../config.js";
 import { logger as pinoLogger } from "../../lib/logger.js";
+import { RingRepository } from "../../repositories/ring.repository.js";
 import {
     createRingSchema,
     joinRingSchema,
@@ -10,7 +11,10 @@ import {
     ringUpdateSchema,
 } from "../../schemas/index.js";
 import { AtProtoService } from "../../services/atproto.js";
+import { MembershipActions } from "../../services/membership-actions.js";
 import { restoreAgent } from "../../services/oauth.js";
+import { isOwnedBy } from "../../services/ring.service.js";
+import { ringIndex } from "../../services/ring-index.js";
 import type { AppVariables, Bindings } from "../../types/bindings.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
@@ -32,11 +36,13 @@ app.post("/create", zValidator("form", createRingSchema), async (c) => {
         );
 
         // 1. Save to local DB
-        await c.env.DB.prepare(
-            "INSERT INTO rings (uri, owner_did, admin_did, title, description, acceptance_policy, status) VALUES (?, ?, ?, ?, ?, 'automatic', 'open')",
-        )
-            .bind(ringUri, did, did, title, description)
-            .run();
+        await new RingRepository(c.env.DB).upsertFromRecord(ringUri, {
+            title,
+            description,
+            admin: did,
+            status: "open",
+            acceptancePolicy: "automatic",
+        });
 
         // 2. UX Improvement: Auto-join my own site
         const mySite = (await c.env.DB.prepare(
@@ -114,18 +120,10 @@ app.post("/join", zValidator("form", joinRingSchema), async (c) => {
             const ringData = await AtProtoService.getRing(agent, ringUri);
             acceptancePolicy = ringData.value.acceptancePolicy || "automatic";
 
-            await c.env.DB.prepare(
-                "INSERT OR REPLACE INTO rings (uri, owner_did, title, description, acceptance_policy, status) VALUES (?, ?, ?, ?, ?, ?)",
-            )
-                .bind(
-                    ringUri,
-                    new AtUri(ringUri).hostname,
-                    ringData.value.title,
-                    ringData.value.description || null,
-                    acceptancePolicy,
-                    ringData.value.status || "open",
-                )
-                .run();
+            await new RingRepository(c.env.DB).upsertFromRecord(
+                ringUri,
+                ringData.value,
+            );
         } catch (ringError) {
             pinoLogger.error({
                 msg: "Failed to fetch ring metadata during join",
@@ -183,6 +181,7 @@ app.post("/join", zValidator("form", joinRingSchema), async (c) => {
             }
         }
 
+        ringIndex.invalidate(ringUri);
         return c.redirect(`/dashboard?msg=joined&policy=${acceptancePolicy}`);
     } catch (e: any) {
         pinoLogger.error({
@@ -208,14 +207,31 @@ app.post("/leave", zValidator("form", ringActionSchema), async (c) => {
     const did = payload.sub;
     const { uri: memberUri } = c.req.valid("form");
 
+    // 参加レコードは本人のリポジトリにある。他人の参加は消させない
+    if (!isOwnedBy(memberUri, did)) {
+        return c.text("Unauthorized or membership not found", 403);
+    }
+
     try {
         const agent = await restoreAgent(c.env.DB, PUBLIC_URL, did);
         if (!agent) return c.redirect("/login");
 
         await AtProtoService.leaveRing(agent, memberUri);
 
+        const row = await c.env.DB.prepare(
+            "SELECT ring_uri FROM memberships WHERE member_uri = ? UNION SELECT ring_uri FROM join_requests WHERE atproto_uri = ?",
+        )
+            .bind(memberUri, memberUri)
+            .first<{ ring_uri: string }>();
+        if (row?.ring_uri) ringIndex.invalidate(row.ring_uri);
+
         // Remove from local DB
         await c.env.DB.prepare("DELETE FROM memberships WHERE member_uri = ?")
+            .bind(memberUri)
+            .run();
+        await c.env.DB.prepare(
+            "UPDATE join_requests SET status = 'withdrawn' WHERE atproto_uri = ?",
+        )
             .bind(memberUri)
             .run();
 
@@ -248,26 +264,69 @@ app.post("/update", zValidator("form", ringUpdateSchema), async (c) => {
         return c.text("Unauthorized or ring not found", 403);
     }
 
+    const ringRepo = new RingRepository(c.env.DB);
+    if (slug && (await ringRepo.isSlugTaken(slug, uri))) {
+        return c.redirect("/dashboard?msg=slug_taken");
+    }
+
     try {
         const agent = await restoreAgent(c.env.DB, PUBLIC_URL, did);
         if (!agent) return c.redirect("/login");
 
-        // 1. Update Repository (ATProto)
-        await AtProtoService.updateRing(
-            agent,
-            uri,
-            title,
-            description || "",
-            status,
-            acceptance,
-            adminDid as `did:${string}:${string}`,
-        );
+        // 自動承認 → 要承認に切り替えると、承認の decision がない既存メンバーは
+        // 保留扱いになる。切り替え前の一覧を取っておき、承認を記録する。
+        const before = await ringIndex.getMemberships(uri).catch(() => null);
 
-        // 2. Update AppView (Indexer)
+        // 1. Update Repository (ATProto)
+        await AtProtoService.updateRing(agent, uri, {
+            title,
+            description: description || "",
+            status,
+            acceptancePolicy: acceptance,
+            admin: adminDid as `did:${string}:${string}`,
+            slug,
+            bannerUrl: bannerUrl || null,
+        });
+
+        ringIndex.invalidate(uri);
+
+        if (
+            acceptance === "manual" &&
+            before &&
+            before.ring.value.acceptancePolicy !== "manual"
+        ) {
+            for (const m of before.memberships) {
+                if (m.status !== "approved" || m.kind !== "member") continue;
+                await MembershipActions.decide(
+                    agent,
+                    uri,
+                    m.subjectUri,
+                    "approved",
+                ).catch((e) =>
+                    pinoLogger.error({
+                        msg: "Failed to keep member approved on policy switch",
+                        subject: m.subjectUri,
+                        error: e,
+                    }),
+                );
+            }
+        }
+
+        // 2. キャッシュ (DB) も同じ内容にする。空欄は削除を意味するので
+        //    upsert ではなく値をそのまま書く。
         await c.env.DB.prepare(
-            "UPDATE rings SET acceptance_policy = ?, status = ?, admin_did = ?, slug = ?, banner_url = ? WHERE uri = ?",
+            "UPDATE rings SET title = ?, description = ?, acceptance_policy = ?, status = ?, admin_did = ?, slug = ?, banner_url = ? WHERE uri = ?",
         )
-            .bind(acceptance, status, adminDid, slug, bannerUrl || null, uri)
+            .bind(
+                title,
+                description || null,
+                acceptance,
+                status,
+                adminDid,
+                slug,
+                bannerUrl || null,
+                uri,
+            )
             .run();
     } catch (e) {
         pinoLogger.error({ msg: "Error updating circle", error: e });

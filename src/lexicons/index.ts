@@ -14,6 +14,7 @@ import type * as AppBskyFeedThreadgate from "./types/app/bsky/feed/threadgate.js
 import type * as AppBskyGraphGetFollowers from "./types/app/bsky/graph/getFollowers.js";
 import type * as NetAsadaame5121AtCircleBanner from "./types/net/asadaame5121/at-circle/banner.js";
 import type * as NetAsadaame5121AtCircleBlock from "./types/net/asadaame5121/at-circle/block.js";
+import type * as NetAsadaame5121AtCircleDecision from "./types/net/asadaame5121/at-circle/decision.js";
 import type * as NetAsadaame5121AtCircleMember from "./types/net/asadaame5121/at-circle/member.js";
 import type * as NetAsadaame5121AtCircleRequest from "./types/net/asadaame5121/at-circle/request.js";
 import type * as NetAsadaame5121AtCircleRing from "./types/net/asadaame5121/at-circle/ring.js";
@@ -41,6 +42,7 @@ export * as ComAtprotoModerationDefs from "./types/com/atproto/moderation/defs.j
 export * as ComAtprotoRepoStrongRef from "./types/com/atproto/repo/strongRef.js";
 export * as NetAsadaame5121AtCircleBanner from "./types/net/asadaame5121/at-circle/banner.js";
 export * as NetAsadaame5121AtCircleBlock from "./types/net/asadaame5121/at-circle/block.js";
+export * as NetAsadaame5121AtCircleDecision from "./types/net/asadaame5121/at-circle/decision.js";
 export * as NetAsadaame5121AtCircleDefs from "./types/net/asadaame5121/at-circle/defs.js";
 export * as NetAsadaame5121AtCircleMember from "./types/net/asadaame5121/at-circle/member.js";
 export * as NetAsadaame5121AtCircleRequest from "./types/net/asadaame5121/at-circle/request.js";
@@ -558,6 +560,7 @@ export class NetAsadaame5121AtCircleNS {
     _client: XrpcClient;
     banner: NetAsadaame5121AtCircleBannerRecord;
     block: NetAsadaame5121AtCircleBlockRecord;
+    decision: NetAsadaame5121AtCircleDecisionRecord;
     member: NetAsadaame5121AtCircleMemberRecord;
     request: NetAsadaame5121AtCircleRequestRecord;
     ring: NetAsadaame5121AtCircleRingRecord;
@@ -566,6 +569,7 @@ export class NetAsadaame5121AtCircleNS {
         this._client = client;
         this.banner = new NetAsadaame5121AtCircleBannerRecord(client);
         this.block = new NetAsadaame5121AtCircleBlockRecord(client);
+        this.decision = new NetAsadaame5121AtCircleDecisionRecord(client);
         this.member = new NetAsadaame5121AtCircleMemberRecord(client);
         this.request = new NetAsadaame5121AtCircleRequestRecord(client);
         this.ring = new NetAsadaame5121AtCircleRingRecord(client);
@@ -733,6 +737,92 @@ export class NetAsadaame5121AtCircleBlockRecord {
             "com.atproto.repo.deleteRecord",
             undefined,
             { collection: "net.asadaame5121.at-circle.block", ...params },
+            { headers },
+        );
+    }
+}
+
+export class NetAsadaame5121AtCircleDecisionRecord {
+    _client: XrpcClient;
+
+    constructor(client: XrpcClient) {
+        this._client = client;
+    }
+
+    async list(
+        params: OmitKey<ComAtprotoRepoListRecords.QueryParams, "collection">,
+    ): Promise<{
+        cursor?: string;
+        records: {
+            uri: string;
+            value: NetAsadaame5121AtCircleDecision.Record;
+        }[];
+    }> {
+        const res = await this._client.call("com.atproto.repo.listRecords", {
+            collection: "net.asadaame5121.at-circle.decision",
+            ...params,
+        });
+        return res.data;
+    }
+
+    async get(
+        params: OmitKey<ComAtprotoRepoGetRecord.QueryParams, "collection">,
+    ): Promise<{
+        uri: string;
+        cid: string;
+        value: NetAsadaame5121AtCircleDecision.Record;
+    }> {
+        const res = await this._client.call("com.atproto.repo.getRecord", {
+            collection: "net.asadaame5121.at-circle.decision",
+            ...params,
+        });
+        return res.data;
+    }
+
+    async create(
+        params: OmitKey<
+            ComAtprotoRepoCreateRecord.InputSchema,
+            "collection" | "record"
+        >,
+        record: Un$Typed<NetAsadaame5121AtCircleDecision.Record>,
+        headers?: Record<string, string>,
+    ): Promise<{ uri: string; cid: string }> {
+        const collection = "net.asadaame5121.at-circle.decision";
+        const res = await this._client.call(
+            "com.atproto.repo.createRecord",
+            undefined,
+            { collection, ...params, record: { ...record, $type: collection } },
+            { encoding: "application/json", headers },
+        );
+        return res.data;
+    }
+
+    async put(
+        params: OmitKey<
+            ComAtprotoRepoPutRecord.InputSchema,
+            "collection" | "record"
+        >,
+        record: Un$Typed<NetAsadaame5121AtCircleDecision.Record>,
+        headers?: Record<string, string>,
+    ): Promise<{ uri: string; cid: string }> {
+        const collection = "net.asadaame5121.at-circle.decision";
+        const res = await this._client.call(
+            "com.atproto.repo.putRecord",
+            undefined,
+            { collection, ...params, record: { ...record, $type: collection } },
+            { encoding: "application/json", headers },
+        );
+        return res.data;
+    }
+
+    async delete(
+        params: OmitKey<ComAtprotoRepoDeleteRecord.InputSchema, "collection">,
+        headers?: Record<string, string>,
+    ): Promise<void> {
+        await this._client.call(
+            "com.atproto.repo.deleteRecord",
+            undefined,
+            { collection: "net.asadaame5121.at-circle.decision", ...params },
             { headers },
         );
     }

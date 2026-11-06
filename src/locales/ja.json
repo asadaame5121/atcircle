@@ -175,7 +175,8 @@
         "updates_desc": "機能追加や使い方はこちらを確認してください（外部サイト）",
         "no_rings_desc": "まだ参加しているリングがありません。\n既存のリングを探してみませんか？",
         "copy_uri": "URIをコピー",
-        "uri_copied": "URIをコピーしました"
+        "uri_copied": "URIをコピーしました",
+        "msg_slug_taken": "その短縮URL（スラッグ）はほかのウェブリングで使われています。"
     },
     "ring_ops": {
         "create_title": "新しいウェブリングを作成",

@@ -7,6 +7,8 @@ import type { Site } from "../types/db.js";
 import { AtProtoService } from "./atproto.js";
 import { fetchAndDiscoverMetadata } from "./discovery.js";
 import { restoreAgent } from "./oauth.js";
+import { collectPendingRequests } from "./pending-requests.js";
+import { isOwnedBy } from "./ring.service.js";
 
 export interface RegistrationData {
     type: "registration";
@@ -52,8 +54,8 @@ export class DashboardService {
         const [
             myRings,
             myMemberships,
-            joinRequests,
-            pendingMemberships,
+            dbJoinRequests,
+            dbPendingMemberships,
             blocks,
             localRings,
             localMemberships,
@@ -82,7 +84,7 @@ export class DashboardService {
                 slug: r.value.slug || "",
                 adminDid: r.value.admin || did,
                 acceptancePolicy: r.value.acceptancePolicy || "automatic",
-                bannerUrl: r.value.banner_url || "", // This is the banner on the ring record (if any)
+                bannerUrl: r.value.bannerUrl || "", // リングレコードの外部バナー URL
                 pendingCount: 0,
             });
         }
@@ -202,25 +204,14 @@ export class DashboardService {
                             const ownerDid = new AtUri(uri).hostname;
                             ring.adminDid = ringData.value.admin || ownerDid;
                             if (ring.adminDid === did) ring.isAdmin = true;
-                            ring.bannerUrl =
-                                (ringData.value as any).banner_url || "";
+                            ring.bannerUrl = ringData.value.bannerUrl || "";
                         }
 
                         // Also update rings table locally if missing
-                        await this.db
-                            .prepare(
-                                "INSERT OR IGNORE INTO rings (uri, owner_did, admin_did, title, description, acceptance_policy, status) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                            )
-                            .bind(
-                                uri,
-                                new AtUri(uri).hostname,
-                                ringData.value.admin || new AtUri(uri).hostname,
-                                ringData.value.title,
-                                ringData.value.description || null,
-                                ringData.value.acceptancePolicy || "automatic",
-                                ringData.value.status || "open",
-                            )
-                            .run();
+                        await new RingRepository(this.db).upsertFromRecord(
+                            uri,
+                            ringData.value,
+                        );
                     } catch (e) {
                         console.error(`Failed to fetch missing ring ${uri}`, e);
                     }
@@ -276,19 +267,22 @@ export class DashboardService {
             }
         }
 
+        // 承認待ち: 管理しているリングは PDS から (取れなければ DB のキャッシュ)
+        const managedRings = Array.from(ringMap.values())
+            .filter((r) => r.isAdmin || isOwnedBy(r.uri, did))
+            .map((r) => ({ uri: r.uri, title: r.title }));
+        const pending = await collectPendingRequests(
+            managedRings,
+            dbJoinRequests,
+            dbPendingMemberships,
+        );
+        const joinRequests = pending.joinRequests;
+        const pendingMemberships = pending.pendingMemberships;
+
         // Update pending counts
-        for (const jr of joinRequests) {
-            const ring = ringMap.get(jr.ring_uri);
+        for (const item of [...joinRequests, ...pendingMemberships]) {
+            const ring = ringMap.get(item.ring_uri);
             if (ring) ring.pendingCount = (ring.pendingCount || 0) + 1;
-        }
-        for (const pm of pendingMemberships) {
-            const localRing = localRings.find(
-                (r: any) => r.title === pm.ring_title,
-            );
-            if (localRing) {
-                const ring = ringMap.get(localRing.uri);
-                if (ring) ring.pendingCount = (ring.pendingCount || 0) + 1;
-            }
         }
 
         return {

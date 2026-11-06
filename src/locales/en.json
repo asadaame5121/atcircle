@@ -167,7 +167,8 @@
         "yes_delete_account": "Yes, Delete Account",
         "no_rings_desc": "You haven't joined any webrings yet.\nFind an existing ring to join!",
         "copy_uri": "Copy URI",
-        "uri_copied": "URI copied to clipboard!"
+        "uri_copied": "URI copied to clipboard!",
+        "msg_slug_taken": "That short URL (slug) is already used by another webring."
     },
     "ring_ops": {
         "create_title": "Create a New Webring",

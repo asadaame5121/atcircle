@@ -29,3 +29,13 @@ export const OAUTH_PRIVATE_KEY = process.env.OAUTH_PRIVATE_KEY;
 export const ADMIN_DID = process.env.ADMIN_DID;
 export const TURSO_DATABASE_URL = process.env.TURSO_DATABASE_URL;
 export const TURSO_AUTH_TOKEN = process.env.TURSO_AUTH_TOKEN;
+
+// Public ATProto indexes used instead of a local database:
+// - Slingshot: cached record reads (com.atproto.repo.getRecord) for any repo
+// - Constellation: backlink index (which records point at a ring)
+export const SLINGSHOT_URL = (
+    process.env.SLINGSHOT_URL || "https://slingshot.microcosm.blue"
+).replace(/\/$/, "");
+export const CONSTELLATION_URL = (
+    process.env.CONSTELLATION_URL || "https://constellation.microcosm.blue"
+).replace(/\/$/, "");
