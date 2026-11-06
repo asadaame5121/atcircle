@@ -1,9 +1,28 @@
+import { AtUri } from "@atproto/api";
 import { BSKY_SERVICE_URL, PUBLIC_URL } from "../config.js";
 import { logger as pinoLogger } from "../lib/logger.js";
 import { RingRepository } from "../repositories/ring.repository.js";
 // import type { SqliteDatabaseInterface } from "../types/db.js";
 import { AtProtoService } from "./atproto.js";
 import { restoreAgent } from "./oauth.js";
+
+/**
+ * AT URI のリポジトリ所有者 (DID) が did と一致するか。
+ * リング・メンバーのレコードはそれぞれ作成者のリポジトリにしか存在しないため、
+ * URI の DID で所有者を判定できる (DB の owner_did に依存しない)。
+ */
+export const isOwnedBy = (uri: string | undefined, did: string): boolean => {
+    if (!uri) return false;
+    try {
+        return new AtUri(uri).hostname === did;
+    } catch {
+        return false;
+    }
+};
+
+/** バナーを変更できるか: メンバー指定なら自分のメンバー、なければ自分のリング。 */
+const canEditBanner = (did: string, ringUri: string, memberUri?: string) =>
+    memberUri ? isOwnedBy(memberUri, did) : isOwnedBy(ringUri, did);
 
 export class RingService {
     private ringRepo: RingRepository;
@@ -24,6 +43,10 @@ export class RingService {
             ringUri,
             memberUri,
         });
+
+        if (!canEditBanner(did, ringUri, memberUri)) {
+            return { success: false, error: "Unauthorized" };
+        }
 
         const agent = await restoreAgent(this.db as any, PUBLIC_URL, did);
         if (!agent) {
@@ -55,8 +78,6 @@ export class RingService {
                     bannerUrl,
                 );
             } else {
-                // Default to ring banner if no memberUri is provided (fallback or admin action)
-                // We'll verify admin status in the route
                 await this.ringRepo.updateBannerUrl(ringUri, bannerUrl);
             }
 
@@ -73,20 +94,17 @@ export class RingService {
         bannerUrl: string | null,
         memberUri?: string,
     ) {
+        if (!canEditBanner(did, ringUri, memberUri)) {
+            return { success: false, error: "Unauthorized" };
+        }
+
         try {
             if (memberUri) {
-                // If memberUri is provided, we just update the membership banner
-                // (Ownership is checked implicitly by did in member-finding logic if needed, but here we trust the memberUri for now as it's from the user's request)
                 await this.ringRepo.updateMembershipBannerUrl(
                     memberUri,
                     bannerUrl,
                 );
                 return { success: true };
-            }
-
-            const ownerDid = await this.ringRepo.getOwnerDid(ringUri);
-            if (!ownerDid || ownerDid !== did) {
-                return { success: false, error: "Unauthorized" };
             }
 
             await this.ringRepo.updateBannerUrl(ringUri, bannerUrl);
