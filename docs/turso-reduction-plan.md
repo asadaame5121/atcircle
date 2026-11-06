@@ -39,6 +39,9 @@ ATProto（各ユーザーの PDS）を唯一の正本とし、Turso は「消え
 - メンバー管理の権限判定（現在は DB の `admin_did`）を、リングレコードの
   `admin` を読む形に変える（公開 `getRecord` の結果を短時間キャッシュ）。
 - `rings` テーブルを、PDS から再構築できるキャッシュにする。
+- 既存の不具合: 同期処理（`/dashboard/sync`、管理者の全体同期）が
+  `INSERT OR REPLACE` で行を丸ごと置き換えるため、`slug` と `banner_url` が消える。
+  上の2つを PDS に移せば自然に解消するが、それまでは `ON CONFLICT DO UPDATE` に直す。
 
 ### フェーズ 2: 承認結果を PDS に載せる
 
