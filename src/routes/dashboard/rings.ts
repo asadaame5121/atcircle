@@ -242,6 +242,12 @@ app.post("/update", zValidator("form", ringUpdateSchema), async (c) => {
     } = c.req.valid("form");
     const slug = rawSlug?.trim().toLowerCase() || null;
 
+    // リングレコードは所有者のリポジトリにしか存在しない。URI の DID が
+    // ログイン中の DID と一致しない限り更新させない (admin_did の乗っ取り防止)。
+    if (new AtUri(uri).hostname !== did) {
+        return c.text("Unauthorized or ring not found", 403);
+    }
+
     try {
         const agent = await restoreAgent(c.env.DB, PUBLIC_URL, did);
         if (!agent) return c.redirect("/login");

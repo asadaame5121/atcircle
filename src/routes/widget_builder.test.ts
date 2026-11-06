@@ -57,7 +57,8 @@ describe("Widget Builder Route", () => {
                 first: {
                     id: 1,
                     site_id: 1,
-                    ring_uri: "at://test",
+                    ring_uri:
+                        "at://did:plc:test/net.asadaame5121.at-circle.ring/3abc",
                     owner_did: "did:plc:test",
                 }, // mock membership
             }),
@@ -72,7 +73,8 @@ describe("Widget Builder Route", () => {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    ring_uri: "at://test",
+                    ring_uri:
+                        "at://did:plc:test/net.asadaame5121.at-circle.ring/3abc",
                     banner_url: "https://custom.com/banner.png",
                 }),
             },
