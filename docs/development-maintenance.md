@@ -95,6 +95,8 @@ pnpm dev
 | `PUBLIC_URL` | `http://localhost:${PORT}` | OAuth、ウィジェット、公開URLの基準。本番は HTTPS 必須 |
 | `BSKY_SERVICE_URL` | `https://bsky.social` | ATProto サービス URL |
 | `PLC_DIRECTORY_URL` | `https://plc.directory` | DID PLC ディレクトリ |
+| `SLINGSHOT_URL` | `https://slingshot.microcosm.blue` | 公開レコードの読み取り (getRecord の中継) |
+| `CONSTELLATION_URL` | `https://constellation.microcosm.blue` | バックリンク索引 (リングを参照するレコードの一覧) |
 | `SECRET_KEY` | 開発用固定値 | JWT 署名鍵、および `oauth_states` 暗号鍵の導出元。本番では十分に長いランダム値を必ず設定。変更すると全ユーザーが再ログインになる |
 | `CLIENT_NAME` | `AT CIRCLE` | OAuth クライアント表示名 |
 | `NODE_ENV` | `development` | 本番は `production` |
@@ -167,7 +169,7 @@ ATProto 側とローカル DB の更新は単一トランザクションでは�
 Lexicon を変更するときは次をまとめて扱います。
 
 1. `lexicons/` の独自 JSON を更新する。
-2. 生成 TypeScript と `docs/lexicons.md` を再生成する。
+2. `pnpm lex:gen` で生成 TypeScript と `docs/lexicons.md` を再生成する。
 3. OAuth scope、`src/services/atproto.ts`、テストを更新する。
 4. 旧レコードを読めるか、移行が必要かを判断する。
 
