@@ -1,6 +1,13 @@
 import { html } from "hono/html";
 import { safeHref } from "../../lib/html.js";
 
+/** PDS 由来の申請は ring_uri + subject_uri、DB の申請は request_id で送る */
+const requestTargetFields = (jr: any) =>
+    jr.subject_uri
+        ? html`<input type="hidden" name="ring_uri" value="${jr.ring_uri}" />
+               <input type="hidden" name="subject_uri" value="${jr.subject_uri}" />`
+        : html`<input type="hidden" name="request_id" value="${jr.id}" />`;
+
 export const ModerationSection = (props: {
     joinRequests: any[];
     pendingMemberships: any[];
@@ -34,11 +41,11 @@ export const ModerationSection = (props: {
                         </div>
                         <div class="flex flex-col gap-2">
                             <form action="/dashboard/ring/request/approve" method="POST">
-                                <input type="hidden" name="request_id" value="${jr.id}" />
+                                ${requestTargetFields(jr)}
                                 <button type="submit" class="btn btn-success btn-sm w-full">${t("dashboard.approve")}</button>
                             </form>
                             <form action="/dashboard/ring/request/reject" method="POST">
-                                <input type="hidden" name="request_id" value="${jr.id}" />
+                                ${requestTargetFields(jr)}
                                 <button type="submit" class="btn btn-error btn-xs btn-outline w-full">${t("dashboard.reject")}</button>
                             </form>
                         </div>

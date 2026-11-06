@@ -1,4 +1,6 @@
 import { Hono } from "hono";
+import { findRing, refreshRingCache } from "../services/ring-cache.js";
+import { getApprovedMembers } from "../services/ring-members.js";
 import type { AppVariables, Bindings } from "../types/bindings.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
@@ -10,32 +12,20 @@ app.get("/rings/:uri", async (c) => {
 
     const decodedUri = decodeURIComponent(rawUri);
 
-    // Fetch ring info by URI or slug
-    let ring = await c.env.DB.prepare("SELECT * FROM rings WHERE uri = ?")
-        .bind(decodedUri)
-        .first<any>();
-
-    if (!ring) {
-        ring = await c.env.DB.prepare("SELECT * FROM rings WHERE slug = ?")
-            .bind(decodedUri)
-            .first<any>();
-    }
-
+    // Fetch ring info by URI or slug (DB はキャッシュ。なければ PDS から取り込む)
+    let ring = decodedUri.startsWith("at://")
+        ? await findRing(c.env.DB, { uri: decodedUri })
+        : await findRing(c.env.DB, { slug: decodedUri });
     if (!ring) return c.json({ error: "Ring not found" }, 404);
 
-    // Fetch members
-    const members = await c.env.DB.prepare(`
-        SELECT s.id, s.title, s.url, s.rss_url, s.description, m.member_uri
-        FROM sites s
-        JOIN memberships m ON s.id = m.site_id
-        WHERE m.ring_uri = ? AND s.is_active = 1 AND m.status = 'approved'
-        GROUP BY s.id
-        ORDER BY m.created_at ASC
-    `)
-        .bind(ring.uri)
-        .all<any>();
+    // メンバーは PDS (Constellation) から。取れなければ DB のキャッシュ
+    const { members, ring: pdsRing } = await getApprovedMembers(
+        c.env.DB,
+        ring.uri,
+    );
+    if (pdsRing) ring = await refreshRingCache(c.env.DB, ring, pdsRing);
 
-    const memberList = (members.results || []).map((m) => ({
+    const memberList = members.map((m) => ({
         uri: m.member_uri || `member-${m.id}`,
         url: m.url,
         title: m.title,

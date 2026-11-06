@@ -275,4 +275,32 @@ describe("resolveMemberships", () => {
             "did:plc:c",
         ]);
     });
+
+    it("所有者・admin 自身の参加は要承認リングでも承認済み (自分で承認する必要はない)", () => {
+        const own = member(OWNER);
+        const adminReq = request(ADMIN);
+        const result = resolveMemberships(
+            input({
+                ring: { admin: ADMIN, acceptancePolicy: "manual" },
+                members: [own],
+                requests: [adminReq],
+            }),
+        );
+        expect(statusOf(result)).toEqual({
+            [OWNER]: "approved",
+            [ADMIN]: "approved",
+        });
+    });
+
+    it("所有者自身の参加でも、明示的な suspended / removed は尊重する", () => {
+        const own = member(OWNER);
+        const result = resolveMemberships(
+            input({
+                ring: { admin: OWNER, acceptancePolicy: "manual" },
+                members: [own],
+                decisions: [decision(OWNER, own, "suspended")],
+            }),
+        );
+        expect(statusOf(result)).toEqual({ [OWNER]: "suspended" });
+    });
 });

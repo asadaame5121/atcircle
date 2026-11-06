@@ -159,12 +159,16 @@ export function resolveMemberships(
 
         const decided = latest.get(rec.uri)?.status;
         if (decided === "removed") return;
+        // 所有者・admin 自身の参加は承認不要
+        const undecided: MembershipStatus = trusted.has(did)
+            ? "approved"
+            : kind === "member"
+              ? defaultForMember
+              : "pending";
         const status: MembershipStatus =
             decided === "approved" || decided === "suspended"
                 ? decided
-                : kind === "member"
-                  ? defaultForMember
-                  : "pending";
+                : undecided;
 
         candidates.push({
             subjectUri: rec.uri,

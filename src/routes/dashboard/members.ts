@@ -14,6 +14,7 @@ import { MembershipActions } from "../../services/membership-actions.js";
 import { restoreAgent } from "../../services/oauth.js";
 import { canManageRing } from "../../services/ring-access.js";
 import { ringIndex } from "../../services/ring-index.js";
+import { getAllMemberships } from "../../services/ring-members.js";
 import type { AppVariables, Bindings } from "../../types/bindings.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
@@ -33,20 +34,8 @@ app.get("/list", zValidator("query", memberQuerySchema), async (c) => {
         return c.json({ success: false, error: "Unauthorized" }, 403);
     }
 
-    // 2. Fetch members from local DB
-    const members = (await c.env.DB.prepare(`
-        SELECT m.id, m.member_uri, s.url, s.title, s.user_did, m.status, 
-               m.widget_installed, m.last_verified_at, m.created_at
-        FROM memberships m
-        JOIN sites s ON m.site_id = s.id
-        WHERE m.ring_uri = ?
-        GROUP BY s.id
-        ORDER BY m.created_at DESC
-    `)
-        .bind(ringUri)
-        .all()) as any;
-
-    const memberList = members.results || [];
+    // 2. メンバー (保留・停止を含む)。PDS が正本で、取れなければ DB のキャッシュ
+    const memberList: any[] = await getAllMemberships(c.env.DB, ringUri);
 
     // 3. Enrich with profile data (using public API to avoid ScopeMissingError)
     if (memberList.length > 0) {
@@ -246,14 +235,10 @@ app.post("/verify", zValidator("form", memberActionSchema), async (c) => {
             return c.json({ success: false, error: "Unauthorized" }, 403);
         }
 
-        // 2. Get member site URL
-        const memberSite = (await c.env.DB.prepare(`
-            SELECT s.url FROM sites s
-            JOIN memberships m ON s.id = m.site_id
-            WHERE m.ring_uri = ? AND s.user_did = ?
-        `)
-            .bind(ringUri, memberDid)
-            .first()) as { url: string } | null;
+        // 2. Get member site URL (PDS が正本、なければ DB のキャッシュ)
+        const memberSite = (await getAllMemberships(c.env.DB, ringUri)).find(
+            (m) => m.user_did === memberDid,
+        );
 
         if (!memberSite) {
             return c.json(

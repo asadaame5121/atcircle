@@ -7,6 +7,8 @@ import type { Site } from "../types/db.js";
 import { AtProtoService } from "./atproto.js";
 import { fetchAndDiscoverMetadata } from "./discovery.js";
 import { restoreAgent } from "./oauth.js";
+import { collectPendingRequests } from "./pending-requests.js";
+import { isOwnedBy } from "./ring.service.js";
 
 export interface RegistrationData {
     type: "registration";
@@ -52,8 +54,8 @@ export class DashboardService {
         const [
             myRings,
             myMemberships,
-            joinRequests,
-            pendingMemberships,
+            dbJoinRequests,
+            dbPendingMemberships,
             blocks,
             localRings,
             localMemberships,
@@ -265,19 +267,22 @@ export class DashboardService {
             }
         }
 
+        // 承認待ち: 管理しているリングは PDS から (取れなければ DB のキャッシュ)
+        const managedRings = Array.from(ringMap.values())
+            .filter((r) => r.isAdmin || isOwnedBy(r.uri, did))
+            .map((r) => ({ uri: r.uri, title: r.title }));
+        const pending = await collectPendingRequests(
+            managedRings,
+            dbJoinRequests,
+            dbPendingMemberships,
+        );
+        const joinRequests = pending.joinRequests;
+        const pendingMemberships = pending.pendingMemberships;
+
         // Update pending counts
-        for (const jr of joinRequests) {
-            const ring = ringMap.get(jr.ring_uri);
+        for (const item of [...joinRequests, ...pendingMemberships]) {
+            const ring = ringMap.get(item.ring_uri);
             if (ring) ring.pendingCount = (ring.pendingCount || 0) + 1;
-        }
-        for (const pm of pendingMemberships) {
-            const localRing = localRings.find(
-                (r: any) => r.title === pm.ring_title,
-            );
-            if (localRing) {
-                const ring = ringMap.get(localRing.uri);
-                if (ring) ring.pendingCount = (ring.pendingCount || 0) + 1;
-            }
         }
 
         return {

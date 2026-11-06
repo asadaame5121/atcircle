@@ -149,7 +149,7 @@ export class RingRepository {
     async findPendingMembershipsByAdmin(did: string): Promise<any[]> {
         const res = await this.db
             .prepare(`
-            SELECT m.member_uri, s.title as site_title, s.url as site_url, r.title as ring_title 
+            SELECT m.member_uri, m.ring_uri, s.title as site_title, s.url as site_url, r.title as ring_title 
             FROM memberships m 
             JOIN sites s ON m.site_id = s.id 
             JOIN rings r ON m.ring_uri = r.uri 

@@ -59,7 +59,15 @@ export class PublicRecords {
         this.constellationUrl = options.constellationUrl ?? CONSTELLATION_URL;
         this.plcUrl = options.plcUrl ?? PLC_DIRECTORY_URL;
         this.fetchFn =
-            options.fetch ?? ((input, init) => globalThis.fetch(input, init));
+            options.fetch ??
+            (process.env.VITEST
+                ? // 単体テストから外部の公開インデックスへ出ていかないようにする。
+                  // 必要なテストは fetch を渡すかスパイで差し替える。
+                  () =>
+                      Promise.reject(
+                          new Error("Network access is disabled in tests"),
+                      )
+                : (input, init) => globalThis.fetch(input, init));
         this.recordTtlMs = options.recordTtlMs ?? 60_000;
         this.backlinkTtlMs = options.backlinkTtlMs ?? 30_000;
         this.timeoutMs = options.timeoutMs ?? 8_000;

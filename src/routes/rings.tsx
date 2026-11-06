@@ -4,11 +4,12 @@ import { Layout } from "../components/Layout.js";
 import { RingDetailView } from "../components/RingDetailView.js";
 import { RingListView } from "../components/RingListView.js";
 import { toNavigationMembers } from "../lib/navigation-session.js";
-import { MemberRepository } from "../repositories/member.repository.js";
 import { RingRepository } from "../repositories/ring.repository.js";
 import { ringQuerySchema } from "../schemas/index.js";
 import { AtProtoService } from "../services/atproto.js";
 import { generateOpml } from "../services/opml.js";
+import { findRing, refreshRingCache } from "../services/ring-cache.js";
+import { getApprovedMembers } from "../services/ring-members.js";
 import type { AppVariables, Bindings } from "../types/bindings.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
@@ -56,20 +57,15 @@ app.get("/view", zValidator("query", ringQuerySchema), async (c) => {
     const t = c.get("t");
     const lang = c.get("lang");
 
-    const ringRepo = new RingRepository(c.env.DB);
-    const memberRepo = new MemberRepository(c.env.DB);
-
-    let ring: any = null;
-    if (rawRingUri) {
-        ring = await ringRepo.findByUri(rawRingUri);
-    } else if (slug) {
-        ring = await ringRepo.findBySlug(slug);
-    }
-
+    let ring = await findRing(c.env.DB, { uri: rawRingUri, slug });
     if (!ring) return c.redirect("/rings");
 
     const ringUri = ring.uri;
-    const members = await memberRepo.findApprovedMembersByRing(ringUri);
+    const { members, ring: pdsRing } = await getApprovedMembers(
+        c.env.DB,
+        ringUri,
+    );
+    if (pdsRing) ring = await refreshRingCache(c.env.DB, ring, pdsRing);
 
     return c.html(
         Layout({
@@ -98,20 +94,15 @@ app.get("/companion", zValidator("query", ringQuerySchema), async (c) => {
     const t = c.get("t");
     const lang = c.get("lang") || "ja";
 
-    const ringRepo = new RingRepository(c.env.DB);
-    const memberRepo = new MemberRepository(c.env.DB);
-
-    let ring: any = null;
-    if (rawRingUri) {
-        ring = await ringRepo.findByUri(rawRingUri);
-    } else if (slug) {
-        ring = await ringRepo.findBySlug(slug);
-    }
-
+    let ring = await findRing(c.env.DB, { uri: rawRingUri, slug });
     if (!ring) return c.redirect("/rings");
 
     const ringUri = ring.uri;
-    const rawMembers = await memberRepo.findApprovedMembersByRing(ringUri);
+    const { members: rawMembers, ring: pdsRing } = await getApprovedMembers(
+        c.env.DB,
+        ringUri,
+    );
+    if (pdsRing) ring = await refreshRingCache(c.env.DB, ring, pdsRing);
     const members = toNavigationMembers(rawMembers);
 
     const { CompanionView } = await import("../components/CompanionView.js");
@@ -132,11 +123,9 @@ app.get("/opml", zValidator("query", ringQuerySchema), async (c) => {
     const { ring: ringUri } = c.req.valid("query");
     if (!ringUri) return c.text("Missing ring URI", 400);
 
-    const ringRepo = new RingRepository(c.env.DB);
-    const memberRepo = new MemberRepository(c.env.DB);
-
-    const ring = await ringRepo.findByUri(ringUri);
-    const members = await memberRepo.findMembersForOpml(ringUri);
+    const ring = await findRing(c.env.DB, { uri: ringUri });
+    const { members: approved } = await getApprovedMembers(c.env.DB, ringUri);
+    const members = approved.filter((m) => !!m.rss_url);
 
     const opml = generateOpml({
         title: ring ? `${ring.title} Members` : "AT CIRCLE Members",
