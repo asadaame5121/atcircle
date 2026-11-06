@@ -11,8 +11,10 @@ import {
     ringUpdateSchema,
 } from "../../schemas/index.js";
 import { AtProtoService } from "../../services/atproto.js";
+import { MembershipActions } from "../../services/membership-actions.js";
 import { restoreAgent } from "../../services/oauth.js";
-import { publicRecords } from "../../services/public-records.js";
+import { isOwnedBy } from "../../services/ring.service.js";
+import { ringIndex } from "../../services/ring-index.js";
 import type { AppVariables, Bindings } from "../../types/bindings.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
@@ -179,6 +181,7 @@ app.post("/join", zValidator("form", joinRingSchema), async (c) => {
             }
         }
 
+        ringIndex.invalidate(ringUri);
         return c.redirect(`/dashboard?msg=joined&policy=${acceptancePolicy}`);
     } catch (e: any) {
         pinoLogger.error({
@@ -204,14 +207,31 @@ app.post("/leave", zValidator("form", ringActionSchema), async (c) => {
     const did = payload.sub;
     const { uri: memberUri } = c.req.valid("form");
 
+    // 参加レコードは本人のリポジトリにある。他人の参加は消させない
+    if (!isOwnedBy(memberUri, did)) {
+        return c.text("Unauthorized or membership not found", 403);
+    }
+
     try {
         const agent = await restoreAgent(c.env.DB, PUBLIC_URL, did);
         if (!agent) return c.redirect("/login");
 
         await AtProtoService.leaveRing(agent, memberUri);
 
+        const row = await c.env.DB.prepare(
+            "SELECT ring_uri FROM memberships WHERE member_uri = ? UNION SELECT ring_uri FROM join_requests WHERE atproto_uri = ?",
+        )
+            .bind(memberUri, memberUri)
+            .first<{ ring_uri: string }>();
+        if (row?.ring_uri) ringIndex.invalidate(row.ring_uri);
+
         // Remove from local DB
         await c.env.DB.prepare("DELETE FROM memberships WHERE member_uri = ?")
+            .bind(memberUri)
+            .run();
+        await c.env.DB.prepare(
+            "UPDATE join_requests SET status = 'withdrawn' WHERE atproto_uri = ?",
+        )
             .bind(memberUri)
             .run();
 
@@ -253,6 +273,10 @@ app.post("/update", zValidator("form", ringUpdateSchema), async (c) => {
         const agent = await restoreAgent(c.env.DB, PUBLIC_URL, did);
         if (!agent) return c.redirect("/login");
 
+        // 自動承認 → 要承認に切り替えると、承認の decision がない既存メンバーは
+        // 保留扱いになる。切り替え前の一覧を取っておき、承認を記録する。
+        const before = await ringIndex.getMemberships(uri).catch(() => null);
+
         // 1. Update Repository (ATProto)
         await AtProtoService.updateRing(agent, uri, {
             title,
@@ -264,7 +288,29 @@ app.post("/update", zValidator("form", ringUpdateSchema), async (c) => {
             bannerUrl: bannerUrl || null,
         });
 
-        publicRecords.invalidate(uri);
+        ringIndex.invalidate(uri);
+
+        if (
+            acceptance === "manual" &&
+            before &&
+            before.ring.value.acceptancePolicy !== "manual"
+        ) {
+            for (const m of before.memberships) {
+                if (m.status !== "approved" || m.kind !== "member") continue;
+                await MembershipActions.decide(
+                    agent,
+                    uri,
+                    m.subjectUri,
+                    "approved",
+                ).catch((e) =>
+                    pinoLogger.error({
+                        msg: "Failed to keep member approved on policy switch",
+                        subject: m.subjectUri,
+                        error: e,
+                    }),
+                );
+            }
+        }
 
         // 2. キャッシュ (DB) も同じ内容にする。空欄は削除を意味するので
         //    upsert ではなく値をそのまま書く。

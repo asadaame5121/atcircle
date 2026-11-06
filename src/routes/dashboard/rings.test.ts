@@ -110,3 +110,51 @@ describe("POST /dashboard/ring/update", () => {
         expect(AtProtoService.updateRing).not.toHaveBeenCalled();
     });
 });
+
+describe("POST /dashboard/ring/leave", () => {
+    beforeEach(() => {
+        vi.restoreAllMocks();
+        vi.spyOn(oauth, "restoreAgent").mockResolvedValue({} as any);
+        vi.spyOn(AtProtoService, "leaveRing").mockResolvedValue(undefined);
+    });
+
+    const leave = async (did: string, uri: string) => {
+        const token = await createMockAuthToken(did, "user.test");
+        const db = createMockDB({ first: null, all: [] });
+        const res = await wrapApp(dashboardApp).request(
+            "/ring/leave",
+            {
+                method: "POST",
+                headers: {
+                    Cookie: `session=${token}`,
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: new URLSearchParams({ uri }),
+            },
+            { DB: db },
+        );
+        const deletes = (db.prepare as any).mock.calls
+            .map((c: any[]) => c[0] as string)
+            .filter((q: string) => /DELETE/i.test(q));
+        return { res, deletes };
+    };
+
+    it("他人の参加は取り消せない", async () => {
+        const { res, deletes } = await leave(
+            "did:plc:mallory",
+            "at://did:plc:alice/net.asadaame5121.at-circle.member/1",
+        );
+        expect(res.status).toBe(403);
+        expect(AtProtoService.leaveRing).not.toHaveBeenCalled();
+        expect(deletes).toHaveLength(0);
+    });
+
+    it("自分の参加は取り消せる", async () => {
+        const { res } = await leave(
+            "did:plc:alice",
+            "at://did:plc:alice/net.asadaame5121.at-circle.request/1",
+        );
+        expect(res.status).toBe(302);
+        expect(AtProtoService.leaveRing).toHaveBeenCalledOnce();
+    });
+});

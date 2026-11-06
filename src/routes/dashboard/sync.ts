@@ -3,6 +3,7 @@ import { PUBLIC_URL } from "../../config.js";
 import { logger as pinoLogger } from "../../lib/logger.js";
 import { RingRepository } from "../../repositories/ring.repository.js";
 import { AtProtoService } from "../../services/atproto.js";
+import { MembershipActions } from "../../services/membership-actions.js";
 import { restoreAgent } from "../../services/oauth.js";
 import type { AppVariables, Bindings } from "../../types/bindings.js";
 
@@ -89,6 +90,26 @@ app.post("/", async (c) => {
                     .bind(ringUri, mySite.id, m.uri)
                     .run();
             }
+        }
+
+        // 移行: DB にだけある承認・停止を decision として PDS に記録する
+        try {
+            const written = await MembershipActions.backfillDecisions(
+                c.env.DB,
+                agent,
+                rings.map((r) => r.uri),
+            );
+            if (written > 0) {
+                pinoLogger.info({
+                    msg: "[Sync] Backfilled decisions",
+                    written,
+                });
+            }
+        } catch (e) {
+            pinoLogger.error({
+                msg: "[Sync] Decision backfill failed",
+                error: e,
+            });
         }
 
         // 3. Sync Blocks
