@@ -91,6 +91,57 @@
 ```
 ---
 
+## net.asadaame5121.at-circle.decision
+
+```json
+{
+  "lexicon": 1,
+  "id": "net.asadaame5121.at-circle.decision",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "A circle administrator's decision about one membership (a member or request record). Only decisions written by the circle owner or the circle's admin are honoured.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": [
+          "ring",
+          "subject",
+          "status",
+          "createdAt"
+        ],
+        "properties": {
+          "ring": {
+            "type": "ref",
+            "ref": "net.asadaame5121.at-circle.defs#ringRef"
+          },
+          "subject": {
+            "type": "ref",
+            "ref": "com.atproto.repo.strongRef",
+            "description": "The member or request record this decision applies to"
+          },
+          "status": {
+            "type": "string",
+            "knownValues": [
+              "approved",
+              "suspended",
+              "removed"
+            ],
+            "maxLength": 100,
+            "description": "approved: listed in the circle. suspended: temporarily hidden. removed: kicked (the member may join again with a new record)."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime"
+          }
+        }
+      }
+    }
+  }
+}
+```
+---
+
 ## net.asadaame5121.at-circle.defs
 
 ```json
@@ -292,6 +343,17 @@
             ],
             "maxLength": 100,
             "description": "How new members are accepted"
+          },
+          "slug": {
+            "type": "string",
+            "maxLength": 32,
+            "description": "Short URL slug for the circle (lowercase a-z, 0-9 and '-', 3-32 chars)"
+          },
+          "bannerUrl": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 2000,
+            "description": "External banner image URL (http or https)"
           },
           "createdAt": {
             "type": "string",

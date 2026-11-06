@@ -1,5 +1,5 @@
-import { validate as _validate } from "../../../../lexicons";
-import { is$typed as _is$typed, type $Typed } from "../../../../util";
+import { validate as _validate } from "../../../../lexicons.js";
+import { is$typed as _is$typed, type $Typed } from "../../../../util.js";
 import type * as AppBskyEmbedExternal from "./external.js";
 import type * as AppBskyEmbedImages from "./images.js";
 import type * as AppBskyEmbedRecord from "./record.js";

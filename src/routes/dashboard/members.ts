@@ -11,6 +11,7 @@ import {
 import { AtProtoService } from "../../services/atproto.js";
 import { verifyWidget } from "../../services/discovery.js";
 import { restoreAgent } from "../../services/oauth.js";
+import { canManageRing } from "../../services/ring-access.js";
 import type { AppVariables, Bindings } from "../../types/bindings.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
@@ -22,13 +23,9 @@ app.get("/list", zValidator("query", memberQuerySchema), async (c) => {
     const { ring_uri: ringUri } = c.req.valid("query");
 
     // 1. Ownership check
-    const ring = (await c.env.DB.prepare(
-        "SELECT * FROM rings WHERE uri = ? AND (owner_did = ? OR admin_did = ?)",
-    )
-        .bind(ringUri, did, did)
-        .first()) as any;
-
-    if (!ring) return c.json({ success: false, error: "Unauthorized" }, 403);
+    if (!(await canManageRing(did, ringUri))) {
+        return c.json({ success: false, error: "Unauthorized" }, 403);
+    }
 
     // 2. Fetch members from local DB
     const members = (await c.env.DB.prepare(`
@@ -84,13 +81,7 @@ app.post("/kick", zValidator("form", memberActionSchema), async (c) => {
 
     try {
         // 1. Ownership check
-        const ring = (await c.env.DB.prepare(
-            "SELECT * FROM rings WHERE uri = ? AND (owner_did = ? OR admin_did = ?)",
-        )
-            .bind(ringUri, did, did)
-            .first()) as any;
-
-        if (!ring) {
+        if (!(await canManageRing(did, ringUri))) {
             return c.json({ success: false, error: "Unauthorized" }, 403);
         }
 
@@ -130,12 +121,7 @@ app.post("/block", zValidator("form", blockActionSchema), async (c) => {
         }
 
         // 1. Ownership check
-        const ring = (await c.env.DB.prepare(
-            "SELECT * FROM rings WHERE uri = ? AND (owner_did = ? OR admin_did = ?)",
-        )
-            .bind(ringUri, did, did)
-            .first()) as any;
-        if (!ring) {
+        if (!(await canManageRing(did, ringUri))) {
             return c.json({ success: false, error: "Unauthorized" }, 403);
         }
 
@@ -176,13 +162,7 @@ app.post("/update", zValidator("form", memberUpdateSchema), async (c) => {
 
     try {
         // 1. Ownership check
-        const ring = (await c.env.DB.prepare(
-            "SELECT * FROM rings WHERE uri = ? AND (owner_did = ? OR admin_did = ?)",
-        )
-            .bind(ringUri, did, did)
-            .first()) as any;
-
-        if (!ring) {
+        if (!(await canManageRing(did, ringUri))) {
             return c.json({ success: false, error: "Unauthorized" }, 403);
         }
 
@@ -210,13 +190,7 @@ app.post("/verify", zValidator("form", memberActionSchema), async (c) => {
 
     try {
         // 1. Ownership check
-        const ring = (await c.env.DB.prepare(
-            "SELECT * FROM rings WHERE uri = ? AND (owner_did = ? OR admin_did = ?)",
-        )
-            .bind(ringUri, did, did)
-            .first()) as any;
-
-        if (!ring) {
+        if (!(await canManageRing(did, ringUri))) {
             return c.json({ success: false, error: "Unauthorized" }, 403);
         }
 

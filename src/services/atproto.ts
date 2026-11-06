@@ -82,22 +82,47 @@ export const AtProtoService = {
     async updateRing(
         agent: Agent,
         uri: string,
-        title: string,
-        description: string,
-        status: "open" | "closed",
-        acceptancePolicy: "automatic" | "manual",
-        adminDid: `did:${string}:${string}`,
+        fields: {
+            title: string;
+            description: string;
+            status: "open" | "closed";
+            acceptancePolicy: "automatic" | "manual";
+            admin: `did:${string}:${string}`;
+            /** null で削除 */
+            slug?: string | null;
+            /** null で削除 */
+            bannerUrl?: string | null;
+        },
     ) {
         const { rkey } = new AtUri(uri);
+
+        // 作成日時など、フォームで扱わない項目は既存レコードから引き継ぐ
+        let existing: Partial<RingRecord> = {};
+        try {
+            const res = await agent.api.com.atproto.repo.getRecord({
+                repo: agent.assertDid,
+                collection: NSID.RING,
+                rkey,
+            });
+            existing = (res.data.value ?? {}) as Partial<RingRecord>;
+        } catch {
+            // 取得できなければ新規扱い
+        }
+
         const record: RingRecord = {
+            ...existing,
             $type: NSID.RING,
-            title,
-            description,
-            status,
-            acceptancePolicy,
-            admin: adminDid,
-            createdAt: new Date().toISOString(), // Should ideally preserve original
+            title: fields.title,
+            description: fields.description,
+            status: fields.status,
+            acceptancePolicy: fields.acceptancePolicy,
+            admin: fields.admin,
+            createdAt: existing.createdAt || new Date().toISOString(),
         };
+        if (fields.slug) record.slug = fields.slug;
+        else delete record.slug;
+        if (fields.bannerUrl) record.bannerUrl = fields.bannerUrl;
+        else delete record.bannerUrl;
 
         await agent.api.com.atproto.repo.putRecord({
             repo: agent.assertDid,

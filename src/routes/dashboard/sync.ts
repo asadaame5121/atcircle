@@ -1,7 +1,7 @@
-import { AtUri } from "@atproto/api";
 import { Hono } from "hono";
 import { PUBLIC_URL } from "../../config.js";
 import { logger as pinoLogger } from "../../lib/logger.js";
+import { RingRepository } from "../../repositories/ring.repository.js";
 import { AtProtoService } from "../../services/atproto.js";
 import { restoreAgent } from "../../services/oauth.js";
 import type { AppVariables, Bindings } from "../../types/bindings.js";
@@ -22,24 +22,7 @@ app.post("/", async (c) => {
         // 1. Sync Rings
         const rings = await AtProtoService.listRings(agent, did);
         for (const r of rings) {
-            await c.env.DB.prepare(
-                "INSERT OR REPLACE INTO rings (uri, owner_did, admin_did, title, description, acceptance_policy, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            )
-                .bind(
-                    r.uri,
-                    did,
-                    r.value.admin || did,
-                    r.value.title,
-                    r.value.description || null,
-                    r.value.acceptancePolicy || "automatic",
-                    r.value.status || "open",
-                    r.value.createdAt
-                        ? Math.floor(
-                              new Date(r.value.createdAt).getTime() / 1000,
-                          )
-                        : Math.floor(Date.now() / 1000),
-                )
-                .run();
+            await new RingRepository(c.env.DB).upsertFromRecord(r.uri, r.value);
         }
 
         // 2. Sync Memberships
@@ -81,28 +64,10 @@ app.post("/", async (c) => {
                             agent,
                             ringUri,
                         );
-                        const ownerDid = new AtUri(ringUri).hostname;
-
-                        await c.env.DB.prepare(
-                            "INSERT OR REPLACE INTO rings (uri, owner_did, admin_did, title, description, acceptance_policy, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                        )
-                            .bind(
-                                ringUri,
-                                ownerDid,
-                                ringData.value.admin || ownerDid,
-                                ringData.value.title,
-                                ringData.value.description || null,
-                                ringData.value.acceptancePolicy || "automatic",
-                                ringData.value.status || "open",
-                                ringData.value.createdAt
-                                    ? Math.floor(
-                                          new Date(
-                                              ringData.value.createdAt,
-                                          ).getTime() / 1000,
-                                      )
-                                    : Math.floor(Date.now() / 1000),
-                            )
-                            .run();
+                        await new RingRepository(c.env.DB).upsertFromRecord(
+                            ringUri,
+                            ringData.value,
+                        );
                         pinoLogger.info({
                             msg: "[Sync] Fetched missing ring",
                             ringUri,

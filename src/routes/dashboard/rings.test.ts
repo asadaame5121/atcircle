@@ -23,9 +23,13 @@ const updateForm = (uri: string, adminDid: string) =>
         banner_url: "",
     });
 
-const postUpdate = async (did: string, body: URLSearchParams) => {
+const postUpdate = async (
+    did: string,
+    body: URLSearchParams,
+    first: unknown = null,
+) => {
     const token = await createMockAuthToken(did, "user.test");
-    const db = createMockDB({ first: null, all: [] });
+    const db = createMockDB({ first, all: [] });
     const app = wrapApp(dashboardApp);
     const res = await app.request(
         "/ring/update",
@@ -92,6 +96,17 @@ describe("POST /dashboard/ring/update", () => {
             updateForm(OWN_RING, "<script>"),
         );
         expect(res.status).toBe(400);
+        expect(AtProtoService.updateRing).not.toHaveBeenCalled();
+    });
+
+    it("他のリングが使っている slug は PDS に書く前に拒否する", async () => {
+        const body = updateForm(OWN_RING, "did:plc:owner");
+        body.set("slug", "taken");
+        // isSlugTaken の問い合わせにヒットさせる
+        const { res } = await postUpdate("did:plc:owner", body, { 1: 1 });
+
+        expect(res.status).toBe(302);
+        expect(res.headers.get("Location")).toContain("msg=slug_taken");
         expect(AtProtoService.updateRing).not.toHaveBeenCalled();
     });
 });

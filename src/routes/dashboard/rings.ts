@@ -3,6 +3,7 @@ import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { PUBLIC_URL } from "../../config.js";
 import { logger as pinoLogger } from "../../lib/logger.js";
+import { RingRepository } from "../../repositories/ring.repository.js";
 import {
     createRingSchema,
     joinRingSchema,
@@ -11,6 +12,7 @@ import {
 } from "../../schemas/index.js";
 import { AtProtoService } from "../../services/atproto.js";
 import { restoreAgent } from "../../services/oauth.js";
+import { publicRecords } from "../../services/public-records.js";
 import type { AppVariables, Bindings } from "../../types/bindings.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
@@ -32,11 +34,13 @@ app.post("/create", zValidator("form", createRingSchema), async (c) => {
         );
 
         // 1. Save to local DB
-        await c.env.DB.prepare(
-            "INSERT INTO rings (uri, owner_did, admin_did, title, description, acceptance_policy, status) VALUES (?, ?, ?, ?, ?, 'automatic', 'open')",
-        )
-            .bind(ringUri, did, did, title, description)
-            .run();
+        await new RingRepository(c.env.DB).upsertFromRecord(ringUri, {
+            title,
+            description,
+            admin: did,
+            status: "open",
+            acceptancePolicy: "automatic",
+        });
 
         // 2. UX Improvement: Auto-join my own site
         const mySite = (await c.env.DB.prepare(
@@ -114,18 +118,10 @@ app.post("/join", zValidator("form", joinRingSchema), async (c) => {
             const ringData = await AtProtoService.getRing(agent, ringUri);
             acceptancePolicy = ringData.value.acceptancePolicy || "automatic";
 
-            await c.env.DB.prepare(
-                "INSERT OR REPLACE INTO rings (uri, owner_did, title, description, acceptance_policy, status) VALUES (?, ?, ?, ?, ?, ?)",
-            )
-                .bind(
-                    ringUri,
-                    new AtUri(ringUri).hostname,
-                    ringData.value.title,
-                    ringData.value.description || null,
-                    acceptancePolicy,
-                    ringData.value.status || "open",
-                )
-                .run();
+            await new RingRepository(c.env.DB).upsertFromRecord(
+                ringUri,
+                ringData.value,
+            );
         } catch (ringError) {
             pinoLogger.error({
                 msg: "Failed to fetch ring metadata during join",
@@ -248,26 +244,43 @@ app.post("/update", zValidator("form", ringUpdateSchema), async (c) => {
         return c.text("Unauthorized or ring not found", 403);
     }
 
+    const ringRepo = new RingRepository(c.env.DB);
+    if (slug && (await ringRepo.isSlugTaken(slug, uri))) {
+        return c.redirect("/dashboard?msg=slug_taken");
+    }
+
     try {
         const agent = await restoreAgent(c.env.DB, PUBLIC_URL, did);
         if (!agent) return c.redirect("/login");
 
         // 1. Update Repository (ATProto)
-        await AtProtoService.updateRing(
-            agent,
-            uri,
+        await AtProtoService.updateRing(agent, uri, {
             title,
-            description || "",
+            description: description || "",
             status,
-            acceptance,
-            adminDid as `did:${string}:${string}`,
-        );
+            acceptancePolicy: acceptance,
+            admin: adminDid as `did:${string}:${string}`,
+            slug,
+            bannerUrl: bannerUrl || null,
+        });
 
-        // 2. Update AppView (Indexer)
+        publicRecords.invalidate(uri);
+
+        // 2. キャッシュ (DB) も同じ内容にする。空欄は削除を意味するので
+        //    upsert ではなく値をそのまま書く。
         await c.env.DB.prepare(
-            "UPDATE rings SET acceptance_policy = ?, status = ?, admin_did = ?, slug = ?, banner_url = ? WHERE uri = ?",
+            "UPDATE rings SET title = ?, description = ?, acceptance_policy = ?, status = ?, admin_did = ?, slug = ?, banner_url = ? WHERE uri = ?",
         )
-            .bind(acceptance, status, adminDid, slug, bannerUrl || null, uri)
+            .bind(
+                title,
+                description || null,
+                acceptance,
+                status,
+                adminDid,
+                slug,
+                bannerUrl || null,
+                uri,
+            )
             .run();
     } catch (e) {
         pinoLogger.error({ msg: "Error updating circle", error: e });

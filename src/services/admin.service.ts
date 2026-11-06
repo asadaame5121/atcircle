@@ -1,6 +1,6 @@
-import { AtUri } from "@atproto/api";
 import { PUBLIC_URL } from "../config.js";
 import { logger as pinoLogger } from "../lib/logger.js";
+import { RingRepository } from "../repositories/ring.repository.js";
 import type { Bindings } from "../types/bindings.js";
 import { AtProtoService } from "./atproto.js";
 import { restoreAgent } from "./oauth.js";
@@ -58,25 +58,7 @@ export const AdminService = {
         try {
             const rings = await AtProtoService.listRings(agent, did);
             for (const r of rings) {
-                await db
-                    .prepare(
-                        "INSERT OR REPLACE INTO rings (uri, owner_did, admin_did, title, description, acceptance_policy, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                    )
-                    .bind(
-                        r.uri,
-                        did,
-                        r.value.admin || did,
-                        r.value.title,
-                        r.value.description || null,
-                        r.value.acceptancePolicy || "automatic",
-                        r.value.status || "open",
-                        r.value.createdAt
-                            ? Math.floor(
-                                  new Date(r.value.createdAt).getTime() / 1000,
-                              )
-                            : Math.floor(Date.now() / 1000),
-                    )
-                    .run();
+                await new RingRepository(db).upsertFromRecord(r.uri, r.value);
             }
         } catch (e) {
             pinoLogger.error({
@@ -125,29 +107,10 @@ export const AdminService = {
                                 agent,
                                 ringUri,
                             );
-                            const ownerDid = new AtUri(ringUri).hostname;
-                            await db
-                                .prepare(
-                                    "INSERT OR REPLACE INTO rings (uri, owner_did, admin_did, title, description, acceptance_policy, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                                )
-                                .bind(
-                                    ringUri,
-                                    ownerDid,
-                                    ringData.value.admin || ownerDid,
-                                    ringData.value.title,
-                                    ringData.value.description || null,
-                                    ringData.value.acceptancePolicy ||
-                                        "automatic",
-                                    ringData.value.status || "open",
-                                    ringData.value.createdAt
-                                        ? Math.floor(
-                                              new Date(
-                                                  ringData.value.createdAt,
-                                              ).getTime() / 1000,
-                                          )
-                                        : Math.floor(Date.now() / 1000),
-                                )
-                                .run();
+                            await new RingRepository(db).upsertFromRecord(
+                                ringUri,
+                                ringData.value,
+                            );
                         } catch (e) {
                             pinoLogger.error({
                                 msg: "[AdminService] Failed to fetch missing ring during sync",

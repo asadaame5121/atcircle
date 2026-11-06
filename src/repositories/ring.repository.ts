@@ -1,4 +1,17 @@
+import { AtUri } from "@atproto/api";
 import type { Ring } from "../types/db.js";
+
+/** キャッシュに取り込むリングレコードの項目 (PDS が正本) */
+export interface RingRecordFields {
+    title: string;
+    description?: string;
+    admin?: string;
+    status?: string;
+    acceptancePolicy?: string;
+    slug?: string;
+    bannerUrl?: string;
+    createdAt?: string;
+}
 
 export class RingRepository {
     constructor(private db: D1Database) {}
@@ -160,6 +173,64 @@ export class RingRepository {
             .bind(did)
             .all();
         return res.results;
+    }
+
+    /**
+     * リングレコード (PDS) の内容でキャッシュ行を作成・更新する。
+     *
+     * INSERT OR REPLACE は行を丸ごと置き換えるため使わない。レコードに
+     * slug / bannerUrl がなければ既存の値を保つ。他のリングが使っている
+     * slug は取らない (先着優先)。
+     */
+    async upsertFromRecord(uri: string, record: RingRecordFields) {
+        const ownerDid = new AtUri(uri).hostname;
+        const slug =
+            record.slug && !(await this.isSlugTaken(record.slug, uri))
+                ? record.slug
+                : null;
+        const createdAt = record.createdAt
+            ? Math.floor(Date.parse(record.createdAt) / 1000)
+            : null;
+
+        await this.db
+            .prepare(`
+            INSERT INTO rings (uri, owner_did, admin_did, title, description,
+                acceptance_policy, status, slug, banner_url, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE(?, strftime('%s', 'now')))
+            ON CONFLICT(uri) DO UPDATE SET
+                owner_did = excluded.owner_did,
+                admin_did = excluded.admin_did,
+                title = excluded.title,
+                description = excluded.description,
+                acceptance_policy = excluded.acceptance_policy,
+                status = excluded.status,
+                slug = COALESCE(excluded.slug, rings.slug),
+                banner_url = COALESCE(excluded.banner_url, rings.banner_url),
+                created_at = COALESCE(?, rings.created_at)
+        `)
+            .bind(
+                uri,
+                ownerDid,
+                record.admin || ownerDid,
+                record.title,
+                record.description || null,
+                record.acceptancePolicy || "automatic",
+                record.status || "open",
+                slug,
+                record.bannerUrl || null,
+                createdAt,
+                createdAt,
+            )
+            .run();
+    }
+
+    /** 他のリングがすでに slug を使っているか */
+    async isSlugTaken(slug: string, exceptUri: string): Promise<boolean> {
+        const hit = await this.db
+            .prepare("SELECT 1 FROM rings WHERE slug = ? AND uri != ? LIMIT 1")
+            .bind(slug, exceptUri)
+            .first();
+        return !!hit;
     }
 
     async saveRing(
