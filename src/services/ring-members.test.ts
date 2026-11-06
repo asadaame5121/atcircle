@@ -75,6 +75,27 @@ describe("getApprovedMembers", () => {
     });
 });
 
+describe("移行期間の扱い", () => {
+    beforeEach(() => vi.restoreAllMocks());
+
+    it("PDS では保留でも、DB で承認済みの同じレコードは承認済みとして扱う", async () => {
+        const pendingOnPds = membership("did:plc:legacy", "pending");
+        vi.spyOn(ringIndex, "getMemberships").mockResolvedValue({
+            ring: { uri: RING, cid: "c", value: { title: "R" } },
+            memberships: [pendingOnPds, membership("did:plc:new", "pending")],
+        } as any);
+        const db = createMockDB({
+            all: (query: string) =>
+                /status = 'approved'/.test(query)
+                    ? [{ member_uri: pendingOnPds.subjectUri }]
+                    : [],
+        });
+
+        const { members } = await getApprovedMembers(db, RING);
+        expect(members.map((m) => m.user_did)).toEqual(["did:plc:legacy"]);
+    });
+});
+
 describe("getAllMemberships (管理画面用)", () => {
     beforeEach(() => vi.restoreAllMocks());
 

@@ -72,6 +72,36 @@ async function siteExtras(
     return extras;
 }
 
+/**
+ * 移行期間の扱い: decision がまだ PDS にない (所有者が同期していない) ため
+ * PDS 上は保留でも、DB で承認済みの同じ参加レコードは承認済みとして扱う。
+ * 所有者が同期すると decision が書かれ、この補正は不要になる。
+ */
+async function applyLegacyApprovals(
+    db: D1Database,
+    ringUri: string,
+    memberships: ResolvedMembership[],
+): Promise<ResolvedMembership[]> {
+    if (!memberships.some((m) => m.status === "pending")) return memberships;
+    let approved: Set<string>;
+    try {
+        const res = await db
+            .prepare(
+                "SELECT member_uri FROM memberships WHERE ring_uri = ? AND status = 'approved'",
+            )
+            .bind(ringUri)
+            .all<{ member_uri: string }>();
+        approved = new Set((res.results ?? []).map((r) => r.member_uri));
+    } catch {
+        return memberships;
+    }
+    return memberships.map((m) =>
+        m.status === "pending" && approved.has(m.subjectUri)
+            ? { ...m, status: "approved" }
+            : m,
+    );
+}
+
 async function fromPds(
     db: D1Database,
     ringUri: string,
@@ -79,7 +109,12 @@ async function fromPds(
 ): Promise<{ rows: MemberRow[]; ring: RingValue | null }> {
     const view = await ringIndex.getMemberships(ringUri);
     if (!view) return { rows: [], ring: null };
-    const selected = view.memberships.filter(filter);
+    const memberships = await applyLegacyApprovals(
+        db,
+        ringUri,
+        view.memberships,
+    );
+    const selected = memberships.filter(filter);
     const extras = await siteExtras(
         db,
         ringUri,
