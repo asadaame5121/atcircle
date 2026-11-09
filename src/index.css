@@ -116,20 +116,23 @@ html[data-theme="light"] {
 /* 素のリンクだけを90年代風の色にする（既存の daisyUI 部品の色は変えない） */
 .rt-nav a,
 .rt-footer a,
-.rt-main a:not([class]) {
+.rt-main a:not([class]),
+.rt-ring-name {
     color: #0000ee;
     text-decoration: underline;
 }
 
 .rt-nav a:visited,
 .rt-footer a:visited,
-.rt-main a:not([class]):visited {
+.rt-main a:not([class]):visited,
+.rt-ring-name:visited {
     color: #551a8b;
 }
 
 .rt-nav a:hover,
 .rt-footer a:hover,
-.rt-main a:not([class]):hover {
+.rt-main a:not([class]):hover,
+.rt-ring-name:hover {
     color: #ee0000;
 }
 
@@ -419,4 +422,69 @@ html[data-theme="light"] {
     display: grid;
     gap: 8px;
     margin-top: 16px;
+}
+
+/* ---- リング一覧（トップ・リングを探す） ---- */
+
+.rt-home-rings {
+    margin-top: 24px;
+}
+
+.rt-ring-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.rt-ring-row {
+    padding: 10px 12px;
+    border-top: 1px dashed #8899cc;
+}
+
+.rt-ring-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 10px;
+}
+
+.rt-ring-name {
+    font-weight: bold;
+    overflow-wrap: anywhere;
+}
+
+.rt-ring-meta {
+    font-size: 13px;
+    color: #444444;
+}
+
+.rt-ring-desc {
+    display: block;
+    margin-top: 2px;
+    padding-left: 22px;
+    font-size: 14px;
+    color: #333333;
+    overflow-wrap: anywhere;
+}
+
+.rt-tag {
+    font-size: 12px;
+    padding: 0 4px;
+    border: 1px solid currentColor;
+}
+
+.rt-tag-auto {
+    color: #006400;
+}
+
+.rt-tag-manual {
+    color: #a65200;
+}
+
+.rt-box-foot {
+    margin: 0;
+    padding: 8px 12px;
+    text-align: right;
+    border-top: 1px dashed #8899cc;
+    font-size: 14px;
 }

@@ -1,12 +1,14 @@
 import { html } from "hono/html";
 import { LoginForm } from "./LoginForm.js";
+import { RingRow, type RingRowData } from "./RingRow.js";
 
 interface HomeViewProps {
+    previewRings: RingRowData[];
     t: (key: string, options?: any) => string;
 }
 
-/** 未ログインのトップ：見出し・3ステップ・ログインフォームだけの1画面 */
-export const HomeView = ({ t }: HomeViewProps) => {
+/** 未ログインのトップ：見出し・3ステップ・ログインフォームと、公開中のリング */
+export const HomeView = ({ previewRings, t }: HomeViewProps) => {
     return html`
         <h1 class="rt-h1">${t("home.headline_1")}<br>${t("home.headline_2")}</h1>
         <div class="rt-home">
@@ -20,5 +22,18 @@ export const HomeView = ({ t }: HomeViewProps) => {
                 ${LoginForm({ t })}
             </section>
         </div>
+        ${
+            previewRings.length > 0
+                ? html`
+        <section class="rt-box rt-home-rings" aria-labelledby="preview-rings-title">
+            <h2 id="preview-rings-title" class="rt-box-title">${t("home.preview_title")}</h2>
+            <ul class="rt-ring-list">
+                ${previewRings.map((ring) => RingRow({ ring, t }))}
+            </ul>
+            <p class="rt-box-foot"><a href="/rings">${t("home.preview_more")}</a></p>
+        </section>
+        `
+                : ""
+        }
     `;
 };

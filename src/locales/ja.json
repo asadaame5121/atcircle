@@ -49,7 +49,9 @@
         "steps_label": "3ステップ",
         "step_login": "ログイン",
         "step_join": "リングに入る",
-        "step_widget": "ウィジェットを貼る"
+        "step_widget": "ウィジェットを貼る",
+        "preview_title": "公開中のリング",
+        "preview_more": "すべてのリングを見る ≫"
     },
     "auth": {
         "login_title": "AT CIRCLEに参加する",
@@ -216,7 +218,9 @@
         "visit_site": "サイトを開く ↗",
         "prev_member": "前へ",
         "next_member": "次へ",
-        "random_member": "ランダム"
+        "random_member": "ランダム",
+        "policy_auto": "自動",
+        "policy_manual": "承認制"
     },
     "companion": {
         "title": "Companion Navigation",

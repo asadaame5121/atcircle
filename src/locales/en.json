@@ -38,7 +38,9 @@
         "steps_label": "3 steps",
         "step_login": "Log in",
         "step_join": "Join a ring",
-        "step_widget": "Paste the widget"
+        "step_widget": "Paste the widget",
+        "preview_title": "Public rings",
+        "preview_more": "See all rings ≫"
     },
     "auth": {
         "login_title": "Join AT CIRCLE",
@@ -270,7 +272,9 @@
         "visit_site": "Visit Site ↗",
         "prev_member": "Prev",
         "next_member": "Next",
-        "random_member": "Random"
+        "random_member": "Random",
+        "policy_auto": "Auto",
+        "policy_manual": "Approval"
     },
     "companion": {
         "title": "Companion Navigation",
