@@ -1,6 +1,13 @@
 import { html } from "hono/html";
 import { PUBLIC_URL } from "../config.js";
 
+export type NavKey = "rings" | "antenna" | "dashboard" | "help";
+
+const SA_BADGE_LINK =
+    "https://www.simpleanalytics.com?utm_source=at-circle.asadaame5121.net&utm_content=badge";
+const SA_BADGE_IMG =
+    "https://simpleanalyticsbadges.com/at-circle.asadaame5121.net?background=transparent&text=677779&logo=677779&border=677779&radius=3&border-width=1&counter=false";
+
 export const Layout = (props: {
     title: string;
     children: any;
@@ -8,11 +15,44 @@ export const Layout = (props: {
     t?: (key: string) => string;
     isDebug?: boolean;
     ogImage?: string;
+    /** ナビで現在地として示すページ */
+    current?: NavKey;
+    /** 未ログインのトップ用。ナビを「ログインせずにリングを見る」だけにする */
+    guest?: boolean;
 }) => {
+    const t = (key: string, fallback: string) =>
+        props.t ? props.t(key) : fallback;
     const description = props.t ? props.t("seo.description") : "";
     const keywords = props.t ? props.t("seo.keywords") : "";
     const ogImage = props.ogImage || "/assets/ogp.png";
     const favicon = "/assets/favicon.png";
+
+    const navItems: { key: NavKey; href: string; label: string }[] = [
+        {
+            key: "rings",
+            href: "/rings",
+            label: t("common.find_rings", "Find Rings"),
+        },
+        {
+            key: "antenna",
+            href: "/antenna",
+            label: t("common.antenna", "Antenna"),
+        },
+        {
+            key: "dashboard",
+            href: "/dashboard",
+            label: t("common.dashboard", "Dashboard"),
+        },
+        { key: "help", href: "/help", label: t("common.help", "Help") },
+    ];
+
+    const nav = props.guest
+        ? html`<a href="/rings">[ ${t("common.browse_without_login", "Browse rings without logging in")} ]</a>`
+        : navItems.map((item) =>
+              item.key === props.current
+                  ? html`<a href="${item.href}" aria-current="page">[ ${item.label} ]</a>`
+                  : html`<a href="${item.href}">[ ${item.label} ]</a>`,
+          );
 
     return html`
   <!DOCTYPE html>
@@ -23,14 +63,14 @@ export const Layout = (props: {
     <title>${props.title}</title>
     <meta name="description" content="${description}">
     <meta name="keywords" content="${keywords}">
-    
+
     <!-- OGP -->
     <meta property="og:title" content="${props.title}">
     <meta property="og:description" content="${description}">
     <meta property="og:type" content="website">
     <meta property="og:url" content="${PUBLIC_URL}">
     <meta property="og:image" content="${ogImage}">
-    
+
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="${props.title}">
@@ -39,140 +79,43 @@ export const Layout = (props: {
 
     <link rel="icon" type="image/png" href="${favicon}">
     <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Kosugi+Maru&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
     <link href="/assets/index.css" rel="stylesheet" />
-    <style>
-      .hidden, [hidden] {
-        display: none !important;
-      }
-      html[data-theme="light"] {
-        --p: 0.46 0.12 250;
-        --pc: 0.98 0.01 250;
-      }
-
-
-      /* Custom overrides for responsive layout */
-      body { 
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        overflow-x: hidden;
-        }
-      .container { 
-        width: 100% !important; 
-        max-width: 1200px !important; 
-        margin-left: auto; 
-        margin-right: auto; 
-        padding-left: 0.75rem !important; 
-        padding-right: 0.75rem !important; 
-      }
-
-      *, *::before, *::after { box-sizing: border-box; }
-      .navbar-desktop { display: flex !important; }
-      .navbar-mobile { display: none !important; }
-
-      @media (max-width: 639px) {
-        .navbar-desktop { display: none !important; }
-        .navbar-mobile { display: flex !important; }
-        .navbar-mobile .dropdown-content {
-          width: 13rem;
-          max-width: calc(100vw - 2rem);
-        }
-      }
-    </style>
   </head>
-  <body class="bg-base-200 min-h-screen">
-    <div class="container mx-auto p-4">
+  <body class="rt-body">
+    <div class="rt-frame">
       ${
           props.isDebug
-              ? html`
-      <div class="alert alert-warning py-1 px-3 mb-2 rounded-lg text-xs font-bold flex justify-center gap-2">
-        <i class="fa-solid fa-bug"></i> DEBUG MODE (Virtual Login)
-      </div>
-      `
+              ? html`<div class="rt-debug" role="status">DEBUG MODE (Virtual Login)</div>`
               : ""
 }
-        <header class="navbar bg-base-100/90 backdrop-blur sticky top-0 z-30 shadow-sm rounded-box mb-4">
-          <div class="navbar-start min-w-0">
-            <a href="/" class="flex items-center gap-1 btn btn-ghost px-1 min-w-0 max-w-full">
-              <img src="${favicon}" alt="AT CIRCLE Logo" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg shadow-sm shrink-0" />
-              <span class="text-lg sm:text-xl text-primary font-black italic tracking-tighter truncate min-w-0">${props.t ? props.t("common.brand") : "AT CIRCLE"}</span>
-            </a>
-          </div>
-          <div class="navbar-end navbar-desktop gap-1">
-            <a href="/rings" class="btn btn-ghost btn-sm font-medium">${props.t ? props.t("common.rings") : "Rings"}</a>
-            <a href="/antenna" class="btn btn-ghost btn-sm font-medium">${props.t ? props.t("common.antenna") : "Antenna"}</a>
-            <a href="/dashboard" class="btn btn-ghost btn-sm font-medium">${props.t ? props.t("common.dashboard") : "Dashboard"}</a>
-            <a href="/help" class="btn btn-ghost btn-sm font-normal opacity-80 hover:opacity-100">
-              <i class="fa-solid fa-circle-question mr-1"></i>
-              ${props.t ? props.t("common.help") : "Help"}
-            </a>
-            <a href="https://github.com/asadaame5121/atcircle" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-circle btn-sm" aria-label="GitHub">
-              <i class="fa-brands fa-github text-lg"></i>
-            </a>
-          </div>
-          <div class="navbar-end navbar-mobile">
-            <details class="dropdown dropdown-end">
-              <summary class="btn btn-ghost btn-sm" aria-label="${props.t ? props.t("common.menu") : "Menu"}">
-                <i class="fa-solid fa-bars text-lg"></i>
-              </summary>
-              <ul class="menu dropdown-content z-[1] p-2 shadow bg-base-100 rounded-box w-52 mt-2">
-                <li><a href="/rings"><i class="fa-solid fa-circle-nodes w-4"></i>${props.t ? props.t("common.rings") : "Rings"}</a></li>
-                <li><a href="/antenna"><i class="fa-solid fa-tower-broadcast w-4"></i>${props.t ? props.t("common.antenna") : "Antenna"}</a></li>
-                <li><a href="/dashboard"><i class="fa-solid fa-gauge w-4"></i>${props.t ? props.t("common.dashboard") : "Dashboard"}</a></li>
-                <li><a href="/help"><i class="fa-solid fa-circle-question w-4"></i>${props.t ? props.t("common.help") : "Help"}</a></li>
-                <li><a href="/changelog"><i class="fa-solid fa-clock-rotate-left w-4"></i>${props.t ? props.t("common.changelog") : "Changelog"}</a></li>
-                <li><a href="https://github.com/asadaame5121/atcircle" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-github w-4"></i>GitHub</a></li>
-              </ul>
-            </details>
-          </div>
-        </header>
+      <header class="rt-header">
+        <a href="/" class="rt-logo rt-logo-main">${t("common.brand", "AT CIRCLE")}</a>
+        <div class="rt-logo rt-tagline">～ ATProto WebRing ～</div>
+      </header>
+      <nav aria-label="${t("common.main_nav", "Main")}" class="rt-nav">${nav}</nav>
+      <main class="rt-main">
       ${props.children}
-      <footer class="footer p-10 bg-base-100 text-base-content rounded-box shadow-lg mt-12 grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
-        <nav>
-          <h6 class="footer-title">${props.t ? props.t("common.brand") : "Navigation"}</h6> 
-          <a href="/rings" class="link link-hover">${props.t ? props.t("common.rings") : "Rings"}</a>
-          <a href="/antenna" class="link link-hover">${props.t ? props.t("common.antenna") : "Antenna"}</a>
-          <a href="/dashboard" class="link link-hover">${props.t ? props.t("common.dashboard") : "Dashboard"}</a>
-        </nav>
-        <nav>
-          <h6 class="footer-title">${props.t ? props.t("help.title") : "Help & Docs"}</h6> 
-          <a href="/help" class="link link-hover">${props.t ? props.t("common.help") : "Help & Guide"}</a>
-          <a href="/changelog" class="link link-hover">${props.t ? props.t("common.changelog") : "Changelog"}</a>
-          <a href="https://github.com/asadaame5121/atcircle/tree/main/docs" target="_blank" rel="noopener noreferrer" class="link link-hover flex items-center gap-1">
-            ${props.t ? props.t("common.documentation") : "Documentation"} <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-60"></i>
-          </a>
-        </nav>
-        <nav>
-          <h6 class="footer-title">${props.t ? props.t("common.legal") : "Legal"}</h6> 
-          <a href="/terms" class="link link-hover">${props.t ? props.t("common.terms") : "Terms of Use"}</a>
-          <a href="/privacy" class="link link-hover">${props.t ? props.t("common.privacy") : "Privacy Policy"}</a>
-        </nav>
-        <nav>
-          <h6 class="footer-title">${props.t ? props.t("common.share") : "Share"}</h6>
-          <div class="flex gap-4">
-            <a href="https://bsky.app/intent/compose?text=${encodeURIComponent(`${props.t ? props.t("seo.description") : ""} ${PUBLIC_URL}`)}" class="btn btn-ghost btn-circle btn-sm" target="_blank" rel="noopener noreferrer" title="${props.t ? props.t("common.share_on_bluesky") : "Bluesky"}" aria-label="${props.t ? props.t("common.share_on_bluesky") : "Bluesky"}">
-              <i class="fa-brands fa-bluesky text-lg"></i>
-            </a>
-            <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(props.t ? props.t("seo.description") : "")}&url=${encodeURIComponent(PUBLIC_URL)}" class="btn btn-ghost btn-circle btn-sm" target="_blank" rel="noopener noreferrer" title="${props.t ? props.t("common.share_on_twitter") : "Twitter"}" aria-label="${props.t ? props.t("common.share_on_twitter") : "Twitter"}">
-              <i class="fa-brands fa-x-twitter text-lg"></i>
-            </a>
-            <a href="https://github.com/asadaame5121/atcircle" class="btn btn-ghost btn-circle btn-sm" target="_blank" rel="noopener noreferrer" title="GitHub" aria-label="GitHub">
-              <i class="fa-brands fa-github text-lg"></i>
-            </a>
-            <a href="https://www.buymeacoffee.com/asadaame5121" class="btn btn-ghost btn-circle btn-sm" target="_blank" rel="noopener noreferrer" title="${props.t ? props.t("common.buy_me_a_coffee") : "Buy me a coffee"}" aria-label="${props.t ? props.t("common.buy_me_a_coffee") : "Buy me a coffee"}">
-              <i class="fa-solid fa-mug-hot text-lg"></i>
-            </a>
-          </div>
-        </nav>
-        <aside class="col-span-full border-t border-base-300 pt-6 w-full">
-          <p class="font-bold text-primary">${props.t ? props.t("common.brand") : "ATcircle"}</p>
-          <p class="text-xs opacity-60">${props.t ? props.t("common.footer_desc") : "Webring system for personal sites"}</p>
-          <p class="mt-2">
-            <a href="https://bsky.app/profile/asadaame5121.bsky.social" class="link link-primary text-xs" target="_blank" rel="noopener noreferrer">
-               ${props.t ? props.t("common.contact") : "Contact (Bluesky)"}
-            </a>
-          </p>
-        </aside>
+      </main>
+      <footer class="rt-footer">
+        <div class="rt-footer-badges">
+          <a href="${SA_BADGE_LINK}" referrerpolicy="origin" target="_blank" rel="noopener"><img src="${SA_BADGE_IMG}" alt="Simple Analytics" width="210" height="50" loading="lazy" referrerpolicy="no-referrer" crossorigin="anonymous" class="rt-sa-badge" /></a>
+        </div>
+        <div class="rt-footer-links">
+          <a href="/terms">${t("common.terms", "Terms of Use")}</a> ｜
+          <a href="/privacy">${t("common.privacy", "Privacy Policy")}</a> ｜
+          <a href="/changelog">${t("common.changelog", "Changelog")}</a> ｜
+          <a href="https://github.com/asadaame5121/atcircle" target="_blank" rel="noopener noreferrer">GitHub</a> ｜
+          <a href="https://bsky.app/profile/asadaame5121.bsky.social" target="_blank" rel="noopener noreferrer">${t("common.contact", "Contact (Bluesky)")}</a>
+        </div>
+        <div class="rt-footer-links">
+          <a href="https://bsky.app/intent/compose?text=${encodeURIComponent(`${description} ${PUBLIC_URL}`)}" target="_blank" rel="noopener noreferrer">${t("common.share_on_bluesky", "Share on Bluesky")}</a> ｜
+          <a href="https://www.buymeacoffee.com/asadaame5121" target="_blank" rel="noopener noreferrer">${t("common.buy_me_a_coffee", "Buy me a coffee")}</a>
+        </div>
       </footer>
     </div>
     <script async src="https://scripts.simpleanalyticscdn.com/latest.js"></script>

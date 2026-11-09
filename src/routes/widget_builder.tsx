@@ -34,6 +34,7 @@ app.get("/", async (c) => {
         Layout({
             title: t("widget_builder.title", { ring: data.ringTitle }),
             t,
+            current: "dashboard",
             lang,
             children: WidgetBuilder({
                 ringUri,

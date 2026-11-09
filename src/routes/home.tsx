@@ -46,6 +46,7 @@ app.get("/", async (c) => {
             title: `${t("common.brand")} - ${t("common.home")}`,
             t,
             lang,
+            guest: true,
             children: HomeView({ previewRings, ownerLabels, t }),
         }),
     );

@@ -41,6 +41,7 @@ app.get("/", async (c) => {
         Layout({
             title: t("rings.explore_title"),
             t,
+            current: "rings",
             lang,
             children: RingListView({ rings, ownerLabels, t }),
         }),
@@ -71,6 +72,7 @@ app.get("/view", zValidator("query", ringQuerySchema), async (c) => {
         Layout({
             title: `${ring.title} - Site List`,
             t,
+            current: "rings",
             lang,
             ogImage: ring.banner_url || undefined,
             children: RingDetailView({

@@ -27,7 +27,10 @@
         "github": "GitHub",
         "back_to_dashboard": "Back to Dashboard",
         "menu": "Menu",
-        "buy_me_a_coffee": "Buy me a coffee"
+        "buy_me_a_coffee": "Buy me a coffee",
+        "find_rings": "Find Rings",
+        "browse_without_login": "Browse rings without logging in",
+        "main_nav": "Main"
     },
     "home": {
         "welcome": "Welcome to AT CIRCLE",

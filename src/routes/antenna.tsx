@@ -33,6 +33,7 @@ app.get("/", zValidator("query", ringQuerySchema), async (c) => {
             Layout({
                 title: title,
                 t,
+                current: "antenna",
                 lang,
                 children: AntennaView({
                     items,

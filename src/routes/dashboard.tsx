@@ -53,6 +53,7 @@ app.get("/", async (c) => {
             Layout({
                 title: t("dashboard.register_title"),
                 t,
+                current: "dashboard",
                 lang,
                 isDebug,
                 children: RegistrationForm({
@@ -70,6 +71,7 @@ app.get("/", async (c) => {
         Layout({
             title: t("dashboard.title"),
             t,
+            current: "dashboard",
             lang,
             isDebug,
             children: DashboardView({

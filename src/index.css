@@ -2,5 +2,275 @@
 
 .hidden,
 [hidden] {
-    display: none;
+    /* biome-ignore lint/complexity/noImportantStyles: 旧Layoutのインラインstyleから移設。daisyUI部品のdisplay指定より優先させる */
+    display: none !important;
+}
+
+/* daisyUI の主色（旧Layoutのインラインstyleから移設） */
+html[data-theme="light"] {
+    --p: 0.46 0.12 250;
+    --pc: 0.98 0.01 250;
+}
+
+/* ===== 90年代後半風デザイン（rt- = retro） ===== */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+.rt-body {
+    margin: 0;
+    min-height: 100vh;
+    padding: 24px 12px 48px;
+    overflow-x: hidden;
+    color: #000000;
+    font-family: "Kosugi Maru", sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    background-color: #ddeeff;
+    background-image:
+        radial-gradient(#b9d3ee 1.5px, transparent 1.5px),
+        radial-gradient(#b9d3ee 1.5px, transparent 1.5px);
+    background-size: 20px 20px;
+    background-position:
+        0 0,
+        10px 10px;
+}
+
+.rt-frame {
+    max-width: 760px;
+    margin: 0 auto;
+    background: #ffffff;
+    border: 4px ridge #8899cc;
+}
+
+.rt-logo {
+    font-family: "DotGothic16", monospace;
+}
+
+.rt-debug {
+    padding: 2px 8px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: bold;
+    background: #ffff66;
+    border-bottom: 1px solid #000000;
+}
+
+.rt-header {
+    padding: 20px 16px 12px;
+    text-align: center;
+    background: #000080;
+    color: #ffffff;
+}
+
+.rt-logo-main {
+    display: inline-block;
+    font-size: 40px;
+    line-height: 1.1;
+    letter-spacing: 0.08em;
+    color: #ffff66;
+    text-decoration: none;
+    text-shadow: 3px 3px 0 #ff3399;
+}
+
+.rt-logo-main:hover,
+.rt-logo-main:visited {
+    color: #ffff66;
+}
+
+.rt-tagline {
+    margin-top: 6px;
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    color: #aaccff;
+}
+
+.rt-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px 12px;
+    padding: 10px 12px;
+    background: #eeeeee;
+    border-bottom: 2px groove #ffffff;
+    font-size: 15px;
+}
+
+.rt-nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+}
+
+.rt-nav a[aria-current="page"] {
+    font-weight: bold;
+}
+
+.rt-main {
+    padding: 20px 16px 8px;
+}
+
+/* 素のリンクだけを90年代風の色にする（既存の daisyUI 部品の色は変えない） */
+.rt-nav a,
+.rt-footer a,
+.rt-main a:not([class]) {
+    color: #0000ee;
+    text-decoration: underline;
+}
+
+.rt-nav a:visited,
+.rt-footer a:visited,
+.rt-main a:not([class]):visited {
+    color: #551a8b;
+}
+
+.rt-nav a:hover,
+.rt-footer a:hover,
+.rt-main a:not([class]):hover {
+    color: #ee0000;
+}
+
+.rt-body a:focus-visible,
+.rt-body button:focus-visible,
+.rt-body input:focus-visible,
+.rt-body select:focus-visible,
+.rt-body textarea:focus-visible,
+.rt-body summary:focus-visible {
+    outline: 2px dotted #000000;
+    outline-offset: 2px;
+}
+
+.rt-footer {
+    margin-top: 20px;
+    padding: 12px 16px 16px;
+    text-align: center;
+    border-top: 2px groove #ffffff;
+    background: #eeeeee;
+    font-size: 14px;
+}
+
+.rt-footer-badges {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.rt-sa-badge {
+    display: block;
+    width: 105px;
+    height: auto;
+}
+
+.rt-footer-links {
+    font-size: 12px;
+    color: #444444;
+}
+
+/* ---- 共通部品（各画面で使う） ---- */
+
+.rt-h1 {
+    margin: 0 0 16px;
+    font-size: 26px;
+    line-height: 1.4;
+    font-weight: normal;
+    text-align: center;
+    color: #000080;
+}
+
+.rt-bevel {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0 16px;
+    color: #000000;
+    text-decoration: none;
+    font: inherit;
+    cursor: pointer;
+    background: #c0c0c0;
+    border: 2px solid;
+    border-color: #ffffff #808080 #808080 #ffffff;
+    box-shadow: 1px 1px 0 #000000;
+}
+
+.rt-bevel:active,
+.rt-bevel[aria-current="page"],
+.rt-bevel[aria-pressed="true"] {
+    border-color: #808080 #ffffff #ffffff #808080;
+    box-shadow: inset 1px 1px 0 #000000;
+}
+
+.rt-bevel:visited,
+.rt-bevel:hover {
+    color: #000000;
+}
+
+.rt-go {
+    background: #ffff66;
+    font-weight: bold;
+}
+
+.rt-sunken {
+    background: #ffffff;
+    border: 2px solid;
+    border-color: #808080 #ffffff #ffffff #808080;
+    box-shadow: inset 1px 1px 0 #000000;
+}
+
+.rt-box {
+    border: 2px solid #000080;
+}
+
+.rt-box-title {
+    margin: 0;
+    padding: 4px 10px;
+    background: #000080;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: normal;
+}
+
+.rt-panel {
+    padding: 12px;
+    background: #ffffee;
+    border: 2px solid #000080;
+}
+
+/* 流れる文字（「リングを探す」の1か所のみで使う） */
+.rt-marquee {
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.rt-marquee > span {
+    display: inline-block;
+    padding-left: 100%;
+    animation: rt-marquee 22s linear infinite;
+}
+
+.rt-marquee:hover > span,
+.rt-marquee:focus-within > span {
+    animation-play-state: paused;
+}
+
+@keyframes rt-marquee {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-100%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rt-marquee > span {
+        animation: none;
+        padding-left: 0;
+    }
 }

@@ -38,7 +38,10 @@
         "github": "GitHub",
         "back_to_dashboard": "ダッシュボードに戻る",
         "menu": "メニュー",
-        "buy_me_a_coffee": "コーヒーをごちそうする"
+        "buy_me_a_coffee": "コーヒーをごちそうする",
+        "find_rings": "リングを探す",
+        "browse_without_login": "ログインせずにリングを見る",
+        "main_nav": "メイン"
     },
     "home": {
         "welcome": "AT CIRCLEへようこそ",
