@@ -274,3 +274,149 @@ html[data-theme="light"] {
         padding-left: 0;
     }
 }
+
+.rt-block {
+    display: flex;
+    width: 100%;
+}
+
+.rt-center {
+    text-align: center;
+}
+
+.rt-narrow {
+    max-width: 420px;
+    margin: 0 auto;
+}
+
+.rt-note {
+    margin: 12px 0 0;
+    font-size: 12px;
+    color: #444444;
+}
+
+.rt-mark {
+    color: #cc0066;
+}
+
+/* ---- トップ（ログイン） ---- */
+
+.rt-home {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.rt-steps {
+    flex: 999 1 280px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.rt-step {
+    padding: 10px 12px;
+    border-top: 1px dashed #8899cc;
+}
+
+.rt-step-now {
+    background: #ffff99;
+}
+
+.rt-home-login {
+    flex: 1 1 280px;
+    min-width: 0;
+}
+
+.rt-label {
+    display: block;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.rt-combobox {
+    position: relative;
+}
+
+.rt-input {
+    display: block;
+    width: 100%;
+    height: 44px;
+    padding: 0 8px;
+    margin: 2px 0 12px;
+    font: inherit;
+    font-size: 16px;
+    color: #000000;
+}
+
+.rt-listbox {
+    position: absolute;
+    z-index: 10;
+    top: 48px;
+    left: 0;
+    right: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    background: #ffffff;
+    border: 2px solid #000080;
+    box-shadow: 2px 2px 0 #000000;
+}
+
+.rt-suggestion {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 48px;
+    padding: 4px 8px;
+    border: none;
+    border-bottom: 1px dashed #8899cc;
+    font: inherit;
+    text-align: left;
+    color: #000000;
+    cursor: pointer;
+    background: #ffffff;
+}
+
+.rt-suggestion:hover,
+.rt-suggestion[aria-selected="true"] {
+    background: #ffff99;
+}
+
+.rt-suggestion-icon {
+    flex: none;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    object-fit: cover;
+    background: #000080;
+    color: #ffff66;
+}
+
+.rt-suggestion-text {
+    min-width: 0;
+    line-height: 1.3;
+}
+
+.rt-suggestion-text > b {
+    display: block;
+    font-size: 14px;
+}
+
+.rt-suggestion-text > span {
+    display: block;
+    font-size: 13px;
+    color: #333333;
+    overflow-wrap: anywhere;
+}
+
+.rt-debug-logins {
+    display: grid;
+    gap: 8px;
+    margin-top: 16px;
+}

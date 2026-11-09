@@ -9,8 +9,6 @@ test("should login successfully with bypass", async ({ page }) => {
     await expect(page).toHaveURL("/dashboard");
     const bodyText = await page.innerText("body");
     // Usually dashboard shows handle or "Logout"
-    // Expect body NOT to contain "Login with Bluesky" if we are logged in?
-    // Actually the login page has "Login with Bluesky".
-    // Dashbaord should NOT have it (or definitely has "Create Ring")
-    await expect(page.getByText("Login with Bluesky")).not.toBeVisible();
+    // ログイン済みならログインフォームは出ない
+    await expect(page.getByRole("button", { name: "Log in ≫" })).not.toBeVisible();
 });

@@ -17,39 +17,27 @@ describe("Home Route", () => {
         expect(res.status).toBe(200);
         const text = await res.text();
         expect(text).toContain("AT CIRCLE");
-        expect(text).toContain("/login");
+        expect(text).toContain('action="/auth/login"');
         expect(text).toContain("/rings");
     });
 
-    it("shows public ring preview when rings exist", async () => {
-        const env = {
-            DB: createMockDB({
-                all: [
-                    {
-                        id: 1,
-                        title: "Preview Ring",
-                        uri: "at://test",
-                        owner_did: "did:plc:test",
-                        member_count: 3,
-                    },
-                ],
-            }),
-        };
+    it("見出し・3ステップ・ログインフォームだけの1画面にする", async () => {
+        const env = { DB: createMockDB() };
         const app = wrapApp(homeApp);
-        const res = await app.request("/", {}, env);
-        expect(res.status).toBe(200);
+        const res = await app.request(
+            "/",
+            { headers: { "Accept-Language": "ja" } },
+            env,
+        );
         const text = await res.text();
-        expect(text).toContain("Preview Ring");
-        expect(text).toContain("/rings/view?ring=at%3A%2F%2Ftest");
-    });
-
-    it("hides ring preview section when there are no rings", async () => {
-        const env = { DB: createMockDB({ all: [] }) };
-        const app = wrapApp(homeApp);
-        const res = await app.request("/", {}, env);
-        expect(res.status).toBe(200);
-        const text = await res.text();
-        expect(text).not.toContain("preview_rings_title");
+        expect(text).toContain("個人サイトを、<br>仲間の輪につなげる");
+        expect(text).toContain("3ステップ");
+        expect(text).toContain("<b>STEP1</b> ログイン");
+        expect(text).toContain("<b>STEP2</b> リングに入る");
+        expect(text).toContain("<b>STEP3</b> ウィジェットを貼る");
+        expect(text).toContain('role="combobox"');
+        // 旧トップの説明セクションは出さない
+        expect(text).not.toContain("AT CIRCLE でできること");
     });
 
     it("redirects to dashboard for logged in users", async () => {

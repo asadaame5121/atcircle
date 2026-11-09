@@ -4,6 +4,7 @@ import { getCookie, setCookie } from "hono/cookie";
 import { html } from "hono/html";
 import { sign } from "hono/jwt";
 import { Layout } from "../components/Layout.js";
+import { LoginForm } from "../components/LoginForm.js";
 import {
     ADMIN_DID,
     DEV_AUTH_BYPASS,
@@ -46,18 +47,6 @@ const sanitizeNext = (next: string | undefined): string => {
     }
     return "/dashboard";
 };
-
-const escapeHtml = (value: string): string =>
-    value.replace(/[&<>"']/g, (ch) => {
-        const map: Record<string, string> = {
-            "&": "&amp;",
-            "<": "&lt;",
-            ">": "&gt;",
-            '"': "&quot;",
-            "'": "&#39;",
-        };
-        return map[ch];
-    });
 
 // Resolve a DID to its handle. Uses the configured identity resolver
 // (public AppView by default; the dev PDS in dev environments).
@@ -109,73 +98,31 @@ app.get("/login", (c) => {
             title: t("auth.login_title"),
             t,
             lang,
+            guest: true,
             children: html`
-                <div class="card w-96 bg-base-100 shadow-xl mx-auto mt-10">
-                    <div class="card-body">
-                        <h2 class="card-title justify-center text-2xl mb-4">
-                            ${t("auth.login_title")}
-                        </h2>
-                        <p class="text-center mb-4">${t(
-                            "auth.enter_handle",
-                        )}</p>
-                        <form action="/auth/login" method="POST">
-                            <input type="hidden" name="next" value="${escapeHtml(next)}" />
-                            <div class="form-control w-full max-w-xs mb-4">
-                                <label class="label">
-                                    <span class="label-text">${t(
-                                        "auth.enter_handle",
-                                    )}</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    name="handle"
-                                    required
-                                    placeholder="${t(
-                                        "auth.handle_placeholder",
-                                    )}"
-                                    class="input input-bordered w-full max-w-xs"
-                                />
+                <h1 class="rt-h1">${t("auth.login_title")}</h1>
+                <div class="rt-narrow">
+                    ${LoginForm({ t, next })}
+                    <p class="rt-note">${t("auth.permission_desc")}</p>
+                    ${
+                        IS_DEV && DEV_AUTH_BYPASS
+                            ? html`
+                            <div class="rt-debug-logins">
+                                <form action="/auth/debug" method="POST">
+                                    <input type="hidden" name="did" value="did:plc:mock-user" />
+                                    <input type="hidden" name="handle" value="debug-user.bsky.social" />
+                                    <button type="submit" class="rt-bevel rt-block">Login as Debug User</button>
+                                </form>
+                                <form action="/auth/debug" method="POST">
+                                    <input type="hidden" name="did" value="${ADMIN_DID}" />
+                                    <input type="hidden" name="handle" value="admin.bsky.social" />
+                                    <input type="hidden" name="role" value="admin" />
+                                    <button type="submit" class="rt-bevel rt-block">Login as Admin Debug User</button>
+                                </form>
                             </div>
-                            <div class="card-actions justify-center">
-                                <button type="submit" class="btn btn-primary w-full">
-                                    ${t("common.login")}
-                                </button>
-                            </div>
-                        </form>
-
-                        <div class="divider mt-6 opacity-30"></div>
-                        <div class="text-xs opacity-60 leading-relaxed text-center px-4">
-                            ${t("auth.permission_desc")}
-                        </div>
-
-                        ${
-                            IS_DEV && DEV_AUTH_BYPASS
-                                ? html`
-                                <div class="divider mt-6 text-xs opacity-50 uppercase tracking-widest">
-                                    Debug Info
-                                </div>
-                                <div class="space-y-2 mt-4">
-                                    <form action="/auth/debug" method="POST">
-                                        <input type="hidden" name="did" value="did:plc:mock-user" />
-                                        <input type="hidden" name="handle" value="debug-user.bsky.social" />
-                                        <button type="submit" class="btn btn-outline btn-accent btn-sm w-full">
-                                            Login as Debug User
-                                        </button>
-                                    </form>
-                                    <form action="/auth/debug" method="POST">
-                                        <input type="hidden" name="did" value="${ADMIN_DID}" />
-                                        <input type="hidden" name="handle" value="admin.bsky.social" />
-                                        <input type="hidden" name="role" value="admin" />
-                                        <button type="submit" class="btn btn-outline btn-warning btn-sm w-full">
-                                            Login as Admin Debug User
-                                        </button>
-                                    </form>
-                                </div>
-                            `
-                                : ""
-                        }
-                    </div>
-                </div>
+                        `
+                            : ""
+                    }
                 </div>
             `,
         }),
@@ -214,12 +161,10 @@ app.post(
                     t,
                     lang,
                     children: html`
-                    <div class="card" style="max-width: 400px; margin: 0 auto; text-align: center;">
-                        <h2 class="error">${t("common.brand")} Error</h2>
-                        <p>${
-                            t("error.auth_failed") || "Authentication failed"
-                        }</p>
-                        <a href="/login" class="btn">${t("auth.try_again")}</a>
+                    <h1 class="rt-h1">${t("auth.error_failed")}</h1>
+                    <div class="rt-narrow rt-center">
+                        <p>${t("error.auth_failed") || "Authentication failed"}</p>
+                        <a href="/login" class="rt-bevel rt-go">${t("auth.try_again")}</a>
                     </div>
                 `,
                 }),

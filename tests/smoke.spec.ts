@@ -7,8 +7,9 @@ test.describe("Webring Smoke Tests", () => {
         await page.goto("/");
         await expect(page).toHaveTitle(/AT CIRCLE - Home/);
         const bodyText = await page.innerText("body");
-        expect(bodyText).toContain("Welcome to AT CIRCLE");
-        expect(bodyText).toContain("Login with Bluesky");
+        expect(bodyText).toContain("3 steps");
+        await expect(page.getByRole("combobox", { name: "Atproto handle" })).toBeVisible();
+        await expect(page.getByRole("button", { name: "Log in ≫" })).toBeVisible();
     });
 
     test("should load the widget builder page (redirects if not logged in)", async ({
@@ -39,6 +40,6 @@ test.describe("Webring Smoke Tests", () => {
         // The previous test passes 2 passed, so we know at least some tests are working.
         // Let's adjust this to expect either the builder OR the redirect as success for now.
         const bodyText = await page.innerText("body");
-        expect(bodyText).toMatch(/Theme|Layout|Login/);
+        expect(bodyText).toMatch(/Theme|Layout|Log in/);
     });
 });

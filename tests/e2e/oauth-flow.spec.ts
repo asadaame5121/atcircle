@@ -25,9 +25,9 @@ if (e2eEnabled) {
             await oauthLogin(page, E2E_ACCOUNTS.alice);
             await page.goto("/logout");
             await expect(page).toHaveURL(new RegExp(`^${E2E_APP_ORIGIN}/?$`));
-            // Hero CTA is the primary login link on the refreshed home page
+            // トップはログインフォームを直接表示する
             await expect(
-                page.getByRole("link", { name: "Login with Bluesky" }).first(),
+                page.getByRole("button", { name: "Log in ≫" }),
             ).toBeVisible();
         });
     });
