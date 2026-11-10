@@ -135,8 +135,9 @@ app.post("/join", zValidator("form", joinRingSchema), async (c) => {
             .bind(ringUri, did, ringUri, did)
             .first();
 
+        const widgetUrl = `/dashboard/ring/widget?ring_uri=${encodeURIComponent(ringUri)}`;
         if (existing) {
-            return c.redirect("/dashboard?msg=already_joined_or_requested");
+            return c.redirect(widgetUrl);
         }
 
         // 0.5 サイト未登録なら、参加フォームに入力されたサイトを登録する
@@ -221,7 +222,10 @@ app.post("/join", zValidator("form", joinRingSchema), async (c) => {
         }
 
         ringIndex.invalidate(ringUri);
-        return c.redirect(`/dashboard?msg=joined&policy=${acceptancePolicy}`);
+        // 自動承認はそのままウィジェットへ、承認制は承認待ちの画面へ（同じURLで出し分ける）
+        return c.redirect(
+            `${widgetUrl}&${acceptancePolicy === "manual" ? "requested" : "joined"}=1`,
+        );
     } catch (e: any) {
         pinoLogger.error({
             msg: "Error joining ring",

@@ -33,6 +33,18 @@ export class WidgetService {
             member_uri: string;
         } | null;
 
+        // 承認制で未承認の間はコードを渡さない
+        let pending = false;
+        if (!membership) {
+            const request = await this.db
+                .prepare(
+                    "SELECT 1 FROM join_requests WHERE ring_uri = ? AND user_did = ? AND status = 'pending' LIMIT 1",
+                )
+                .bind(ringUri, did)
+                .first();
+            pending = !!request;
+        }
+
         let ringTitle = ring?.title;
         const bannerUrl = membership?.banner_url || ring?.banner_url || "";
         const memberUri = membership?.member_uri;
@@ -71,6 +83,7 @@ export class WidgetService {
             ringTitle: ringTitle || "Webring",
             bannerUrl,
             memberUri,
+            pending,
             baseUrl: PUBLIC_URL,
         };
     }

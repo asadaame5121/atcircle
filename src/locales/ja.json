@@ -289,7 +289,31 @@
         "field_banner_url_help": "外部の画像URL（https://...）を直接指定できます。指定するとアップロードされた画像より優先されます。",
         "field_list_url": "カスタムリンク先 (任意)",
         "field_list_url_help": "「一覧」ボタンの飛び先を、デフォルトのリング詳細ページ以外に変更したい場合に指定します。",
-        "btn_save_settings": "設定を保存"
+        "btn_save_settings": "設定を保存",
+        "page_heading": "ウィジェットを貼る",
+        "joined_flash": "「{{ring}}」に参加しました",
+        "code_label": "コード",
+        "format_label": "コードの種類",
+        "format_html": "HTML（おすすめ）",
+        "format_wc": "Web Components",
+        "copy": "コードをコピー",
+        "copied": "コピーしました",
+        "copied_hint": "サイトのフッターに貼って公開！",
+        "copy_failed": "コピーできませんでした。コードを選んでコピーしてください。",
+        "to_dashboard": "ダッシュボードへ ≫",
+        "advanced": "詳しい設定",
+        "advanced_note": "テーマ・透過・バナー・ラベルは Web Components 版で使えます。",
+        "saved": "保存しました",
+        "uploading": "アップロード中…",
+        "saving": "保存中…",
+        "pending_heading": "承認待ち",
+        "requested_flash": "「{{ring}}」に参加を申請しました",
+        "pending_steps_label": "申請の状況",
+        "pending_step_requested": "参加を申請",
+        "pending_step_review": "オーナーが確認中",
+        "pending_step_widget": "ウィジェットを貼る",
+        "pending_note": "承認されると、ダッシュボードからウィジェットを取得できます。",
+        "pending_site": "申請したサイト"
     },
     "widget_script": {
         "prev": "前へ",
@@ -410,7 +434,8 @@
         "step3": "STEP3 ウィジェット",
         "ticker_label": "新着",
         "ticker_new_ring": "新しいリング「{{title}}」ができました",
-        "ticker_new_join": "「{{title}}」に新しいサイトが参加"
+        "ticker_new_join": "「{{title}}」に新しいサイトが参加",
+        "step2_pending": "STEP2 承認待ち"
     },
     "create": {
         "page_title": "リングを立ち上げる",

@@ -339,3 +339,60 @@ describe("POST /dashboard/ring/create", () => {
         );
     });
 });
+
+describe("POST /dashboard/ring/join の行き先", () => {
+    const RING = "at://did:plc:owner/net.asadaame5121.at-circle.ring/3own";
+    const widgetUrl = `/dashboard/ring/widget?ring_uri=${encodeURIComponent(RING)}`;
+
+    const join = async (policy: string, existing = false) => {
+        vi.restoreAllMocks();
+        vi.spyOn(oauth, "restoreAgent").mockResolvedValue({} as any);
+        vi.spyOn(AtProtoService, "getRing").mockResolvedValue({
+            value: { title: "Ring", acceptancePolicy: policy },
+        } as any);
+        vi.spyOn(AtProtoService, "joinRing").mockResolvedValue("at://m/1");
+        vi.spyOn(AtProtoService, "createJoinRequest").mockResolvedValue(
+            "at://req/1",
+        );
+        const token = await createMockAuthToken("did:plc:me", "me.test");
+        const db = createMockDB({
+            first: (q: string) => {
+                if (q.includes("UNION ALL")) return existing ? { 1: 1 } : null;
+                if (q.includes("FROM sites")) return { id: 7 };
+                return null;
+            },
+            all: [],
+        });
+        return wrapApp(dashboardApp).request(
+            "/ring/join",
+            {
+                method: "POST",
+                headers: {
+                    Cookie: `session=${token}`,
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: new URLSearchParams({
+                    ring_uri: RING,
+                    url: "https://example.com",
+                    title: "Example",
+                }),
+            },
+            { DB: db },
+        );
+    };
+
+    it("自動承認ならウィジェット画面へ（参加直後の印つき）", async () => {
+        const res = await join("automatic");
+        expect(res.headers.get("Location")).toBe(`${widgetUrl}&joined=1`);
+    });
+
+    it("承認制なら承認待ちの画面へ（申請直後の印つき）", async () => {
+        const res = await join("manual");
+        expect(res.headers.get("Location")).toBe(`${widgetUrl}&requested=1`);
+    });
+
+    it("参加済み・申請中ならそのリングのウィジェット画面へ", async () => {
+        const res = await join("automatic", true);
+        expect(res.headers.get("Location")).toBe(widgetUrl);
+    });
+});

@@ -216,7 +216,31 @@
         "field_banner_url_help": "Directly specify an external image URL (https://...). This will take precedence over uploaded images.",
         "field_list_url": "Custom Link (Optional)",
         "field_list_url_help": "Specify if you want to change the 'List' button destination from the default ring page.",
-        "btn_save_settings": "Save Settings"
+        "btn_save_settings": "Save Settings",
+        "page_heading": "Paste the widget",
+        "joined_flash": "You joined “{{ring}}”",
+        "code_label": "Code",
+        "format_label": "Code type",
+        "format_html": "HTML (recommended)",
+        "format_wc": "Web Components",
+        "copy": "Copy code",
+        "copied": "Copied",
+        "copied_hint": "Paste it in your site's footer and publish!",
+        "copy_failed": "Couldn't copy. Please select the code and copy it.",
+        "to_dashboard": "To dashboard ≫",
+        "advanced": "Advanced settings",
+        "advanced_note": "Theme, transparency, banner and labels apply to the Web Components version.",
+        "saved": "Saved",
+        "uploading": "Uploading…",
+        "saving": "Saving…",
+        "pending_heading": "Waiting for approval",
+        "requested_flash": "You requested to join “{{ring}}”",
+        "pending_steps_label": "Request status",
+        "pending_step_requested": "Requested to join",
+        "pending_step_review": "Owner is reviewing",
+        "pending_step_widget": "Paste the widget",
+        "pending_note": "Once approved, you can get the widget from your dashboard.",
+        "pending_site": "Requested site"
     },
     "widget_script": {
         "prev": "Prev",
@@ -379,7 +403,8 @@
         "step3": "STEP3 Widget",
         "ticker_label": "What's new",
         "ticker_new_ring": "New ring “{{title}}” started",
-        "ticker_new_join": "A new site joined “{{title}}”"
+        "ticker_new_join": "A new site joined “{{title}}”",
+        "step2_pending": "STEP2 Waiting for approval"
     },
     "create": {
         "page_title": "Start a ring",
