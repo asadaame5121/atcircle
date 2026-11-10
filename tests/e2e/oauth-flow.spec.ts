@@ -6,19 +6,22 @@ if (e2eEnabled) {
         test("alice can log in via OAuth and reach the dashboard", async ({ page }) => {
             await oauthLogin(page, E2E_ACCOUNTS.alice);
             await expect(page).toHaveURL(/\/dashboard/);
-            await expect(page.getByText("Logout")).toBeVisible();
+            // ログアウトはダッシュボードでは「その他」の中にある
+            await expect(page.getByRole("button", { name: "Logout" })).toHaveCount(1);
         });
 
         test("bob can log in via OAuth and reach the dashboard", async ({ page }) => {
             await oauthLogin(page, E2E_ACCOUNTS.bob);
             await expect(page).toHaveURL(/\/dashboard/);
-            await expect(page.getByText("Logout")).toBeVisible();
+            // ログアウトはダッシュボードでは「その他」の中にある
+            await expect(page.getByRole("button", { name: "Logout" })).toHaveCount(1);
         });
 
         test("already-authorized account logs in without the grant page", async ({ page }) => {
             await oauthLogin(page, E2E_ACCOUNTS.alice);
             await expect(page).toHaveURL(/\/dashboard/);
-            await expect(page.getByText("Logout")).toBeVisible();
+            // ログアウトはダッシュボードでは「その他」の中にある
+            await expect(page.getByRole("button", { name: "Logout" })).toHaveCount(1);
         });
 
         test("logout returns to the home page", async ({ page }) => {

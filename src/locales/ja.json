@@ -164,7 +164,12 @@
         "no_rings_desc": "まだ参加しているリングがありません。\n既存のリングを探してみませんか？",
         "copy_uri": "URIをコピー",
         "uri_copied": "URIをコピーしました",
-        "msg_slug_taken": "その短縮URL（スラッグ）はほかのウェブリングで使われています。"
+        "msg_slug_taken": "その短縮URL（スラッグ）はほかのウェブリングで使われています。",
+        "msg_deleted": "ウェブリングを削除しました。",
+        "msg_registered": "サイトを登録しました！",
+        "msg_synced": "PDSから同期しました。",
+        "msg_unblocked": "ブロックを解除しました。",
+        "leave_warning": "AT CIRCLEから離脱すると、サイトとアカウントの情報は完全に削除されます。"
     },
     "ring_ops": {
         "create_title": "新しいウェブリングを作成",
@@ -448,5 +453,34 @@
         "submit": "作成する ≫",
         "preview": "プレビュー",
         "preview_desc_empty": "ここに説明が入ります。"
+    },
+    "dash": {
+        "title": "ダッシュボード",
+        "find": "リングを探す",
+        "create": "リングを立ち上げる",
+        "site_label": "あなたのサイト",
+        "active": "有効",
+        "inactive": "停止中",
+        "settings": "設定",
+        "rings_title": "参加中のリング",
+        "role_owner": "オーナー",
+        "role_member": "参加者",
+        "meta": "{{role}}・{{count}}人",
+        "pending_tag": "承認待ち",
+        "requests_link": "参加申請 {{count}}件",
+        "widget": "ウィジェット",
+        "menu_label": "{{ring}}のその他の操作",
+        "copy_uri": "URIをコピー",
+        "copy_invite": "招待リンクをコピー",
+        "manage": "メンバー管理",
+        "config": "リング設定",
+        "leave": "リングから離脱",
+        "withdraw": "申請を取り消す",
+        "confirm_withdraw": "参加の申請を取り消しますか？",
+        "empty": "まだリングに参加していません",
+        "requests_title": "参加申請",
+        "more": "その他",
+        "blocks_title": "ブロック中",
+        "unblock": "ブロック解除"
     }
 }

@@ -822,3 +822,370 @@ html[data-theme="light"] {
     margin: 0 0 8px;
     overflow-wrap: anywhere;
 }
+
+/* ---- ダッシュボード ---- */
+
+.rt-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.rt-small {
+    font-size: 14px;
+}
+
+.rt-dash-site {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 4px 12px;
+    margin-bottom: 20px;
+}
+
+.rt-dash-site-main {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 10px;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.rt-dash-site a:not(.rt-bevel),
+.rt-dash-ring a:not(.rt-bevel),
+.rt-mod a:not(.rt-bevel),
+.rt-more a:not(.rt-bevel),
+.rt-member a:not(.rt-bevel) {
+    color: #0000ee;
+}
+
+.rt-tag-off {
+    color: #666666;
+}
+
+.rt-dash-ring {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px 12px;
+    padding: 10px 12px;
+    border-top: 1px dashed #8899cc;
+}
+
+.rt-box-title + .rt-dash-ring {
+    border-top: none;
+}
+
+.rt-dash-ring-main {
+    flex: 999 1 260px;
+    min-width: 0;
+}
+
+.rt-dash-ring-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 10px;
+    margin: 0;
+    font-size: 16px;
+    overflow-wrap: anywhere;
+}
+
+.rt-dash-ring-title .rt-ring-meta {
+    font-weight: normal;
+}
+
+.rt-dash-ring-desc {
+    margin: 2px 0 0;
+    font-size: 14px;
+    color: #333333;
+    overflow-wrap: anywhere;
+}
+
+.rt-dash-ring-note {
+    margin: 6px 0 0;
+    font-size: 14px;
+}
+
+.rt-dash-ring-actions {
+    flex: 1 1 auto;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.rt-menu {
+    position: relative;
+}
+
+.rt-menu > summary {
+    list-style: none;
+}
+
+.rt-menu > summary::-webkit-details-marker {
+    display: none;
+}
+
+.rt-menu-btn {
+    width: 44px;
+    padding: 0;
+}
+
+.rt-menu-list {
+    position: absolute;
+    z-index: 10;
+    right: 0;
+    top: 48px;
+    width: 220px;
+    background: #ffffff;
+    border: 2px solid #000080;
+    box-shadow: 2px 2px 0 #000000;
+    font-size: 14px;
+}
+
+.rt-menu-list button {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    padding: 0 12px;
+    text-align: left;
+    font: inherit;
+    color: #000000;
+    background: #ffffff;
+    border: none;
+    cursor: pointer;
+}
+
+.rt-menu-list button:hover {
+    background: #ffff99;
+}
+
+.rt-menu-list form {
+    margin: 0;
+    border-top: 1px dashed #8899cc;
+}
+
+.rt-danger,
+.rt-menu-list .rt-danger {
+    color: #cc0000;
+}
+
+.rt-box-title-danger {
+    background: #cc0000;
+}
+
+.rt-did {
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 11px;
+    color: #666666;
+    overflow-wrap: anywhere;
+}
+
+.rt-more {
+    display: grid;
+    gap: 8px;
+}
+
+.rt-more p {
+    margin: 0;
+}
+
+.rt-mod {
+    margin-bottom: 20px;
+}
+
+.rt-mod-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 12px;
+    padding: 10px 12px;
+    border-top: 1px dashed #8899cc;
+}
+
+.rt-box-title + .rt-mod-row {
+    border-top: none;
+}
+
+.rt-mod-main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 999 1 240px;
+    overflow-wrap: anywhere;
+}
+
+.rt-mod-message {
+    flex-basis: 100%;
+    margin: 0;
+    font-size: 14px;
+}
+
+.rt-mod-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.rt-mod-actions form {
+    margin: 0;
+}
+
+/* ダイアログ */
+.rt-dialog {
+    margin: auto;
+    width: min(560px, calc(100vw - 24px));
+    max-height: calc(100vh - 24px);
+    padding: 0;
+    color: #000000;
+    background: #ffffff;
+    border: 4px ridge #8899cc;
+    box-shadow: 4px 4px 0 #000000;
+    font-family: "Kosugi Maru", sans-serif;
+}
+
+.rt-dialog-wide {
+    width: min(720px, calc(100vw - 24px));
+}
+
+.rt-dialog::backdrop {
+    background: rgb(0 0 64 / 0.4);
+}
+
+.rt-dialog-body {
+    padding: 12px 16px 16px;
+}
+
+.rt-dialog-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.rt-dialog-actions form {
+    margin: 0;
+}
+
+.rt-dialog-spacer {
+    flex: 1 1 auto;
+}
+
+.rt-mono {
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 14px;
+}
+
+.rt-prefix-input {
+    display: flex;
+    align-items: stretch;
+    gap: 4px;
+}
+
+.rt-prefix-input > span {
+    display: flex;
+    align-items: center;
+    height: 44px;
+    margin-top: 2px;
+    font-family: Consolas, "Courier New", monospace;
+}
+
+.rt-member-list {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.rt-member {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 12px;
+    padding: 10px 0;
+    border-top: 1px dashed #8899cc;
+}
+
+.rt-member-main {
+    display: flex;
+    gap: 8px;
+    min-width: 0;
+    flex: 999 1 260px;
+}
+
+.rt-member-avatar {
+    flex: none;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    object-fit: cover;
+    background: #000080;
+    color: #ffff66;
+}
+
+.rt-member-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+
+.rt-member-widget {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+}
+
+.rt-member-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.rt-member-actions .rt-input {
+    width: auto;
+    margin: 0;
+}
+
+.rt-link-btn {
+    min-height: 44px;
+    padding: 0 4px;
+    font: inherit;
+    font-size: 14px;
+    color: #0000ee;
+    text-decoration: underline;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.rt-error {
+    margin: 0;
+    padding: 12px;
+    color: #cc0000;
+    font-weight: bold;
+}
+
+.rt-narrow-wide {
+    max-width: 560px;
+}
+
+.rt-choice {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 4px 0;
+    cursor: pointer;
+    overflow-wrap: anywhere;
+}

@@ -30,7 +30,10 @@
         "buy_me_a_coffee": "Buy me a coffee",
         "find_rings": "Find Rings",
         "browse_without_login": "Browse rings without logging in",
-        "main_nav": "Main"
+        "main_nav": "Main",
+        "optional": "optional",
+        "upload": "Upload",
+        "create": "Create"
     },
     "home": {
         "headline_1": "Link your personal site",
@@ -156,7 +159,11 @@
         "no_rings_desc": "You haven't joined any webrings yet.\nFind an existing ring to join!",
         "copy_uri": "Copy URI",
         "uri_copied": "URI copied to clipboard!",
-        "msg_slug_taken": "That short URL (slug) is already used by another webring."
+        "msg_slug_taken": "That short URL (slug) is already used by another webring.",
+        "msg_deleted": "Webring deleted.",
+        "msg_registered": "Site registered!",
+        "msg_synced": "Synced from PDS.",
+        "msg_unblocked": "Unblocked."
     },
     "ring_ops": {
         "create_title": "Create a New Webring",
@@ -271,7 +278,13 @@
         "widget_installed": "Installed",
         "widget_not_installed": "Not Installed",
         "verify_now": "Verify Now",
-        "last_verified": "Last Verified: {{time}}"
+        "last_verified": "Last Verified: {{time}}",
+        "block": "Block",
+        "confirm_block": "Block {{name}}? They will be removed and cannot rejoin this ring.",
+        "block_success": "User blocked.",
+        "status_approved": "Approved",
+        "status_pending": "Pending",
+        "status_suspended": "Suspended"
     },
     "rings": {
         "explore_title": "Explore Webrings",
@@ -417,5 +430,34 @@
         "submit": "Create ≫",
         "preview": "Preview",
         "preview_desc_empty": "Your description goes here."
+    },
+    "dash": {
+        "title": "Dashboard",
+        "find": "Find rings",
+        "create": "Start a ring",
+        "site_label": "Your site",
+        "active": "Active",
+        "inactive": "Inactive",
+        "settings": "Settings",
+        "rings_title": "Your rings",
+        "role_owner": "Owner",
+        "role_member": "Member",
+        "meta": "{{role}} · {{count}} members",
+        "pending_tag": "Waiting for approval",
+        "requests_link": "{{count}} join requests",
+        "widget": "Widget",
+        "menu_label": "More actions for {{ring}}",
+        "copy_uri": "Copy URI",
+        "copy_invite": "Copy invite link",
+        "manage": "Manage members",
+        "config": "Ring settings",
+        "leave": "Leave ring",
+        "withdraw": "Withdraw request",
+        "confirm_withdraw": "Withdraw your join request?",
+        "empty": "You haven't joined any rings yet",
+        "requests_title": "Join requests",
+        "more": "More",
+        "blocks_title": "Blocked",
+        "unblock": "Unblock"
     }
 }

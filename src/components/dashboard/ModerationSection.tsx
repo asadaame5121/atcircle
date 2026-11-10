@@ -8,6 +8,23 @@ const requestTargetFields = (jr: any) =>
                <input type="hidden" name="subject_uri" value="${jr.subject_uri}" />`
         : html`<input type="hidden" name="request_id" value="${jr.id}" />`;
 
+const SiteLine = ({
+    title,
+    url,
+    ringTitle,
+}: {
+    title: string;
+    url: string;
+    ringTitle: string;
+}) => html`
+    <div class="rt-mod-main">
+        <span class="rt-ring-meta">${ringTitle}</span>
+        <b>${title}</b>
+        <a href="${safeHref(url, "#")}" target="_blank" rel="noopener noreferrer">${url}</a>
+    </div>
+`;
+
+/** オーナー向け：参加申請・承認待ちメンバー・ブロック中の一覧 */
 export const ModerationSection = (props: {
     joinRequests: any[];
     pendingMemberships: any[];
@@ -24,102 +41,78 @@ export const ModerationSection = (props: {
         return html``;
     }
 
+    const requestCount = joinRequests.length + pendingMemberships.length;
+
     return html`
-        <div class="divider">${t("dashboard.moderation") || "Moderation"}</div>
-        <div class="space-y-4 mb-8">
-            <!-- Join Requests (New Lexicon) -->
+        ${
+            requestCount > 0
+                ? html`
+        <section id="requests" class="rt-box rt-mod" aria-labelledby="requests-title">
+            <h2 id="requests-title" class="rt-box-title">${t("dash.requests_title")}（${requestCount}）</h2>
             ${joinRequests.map(
                 (jr: any) => html`
-                <div class="card bg-warning/5 border border-warning/20 shadow-sm">
-                    <div class="card-body p-4 flex-row justify-between items-center">
-                        <div>
-                            <div class="text-xs font-bold text-warning uppercase tracking-wider mb-1">${t("dashboard.join_request_for", { ring_title: jr.ring_title }) || `Join Request for ${jr.ring_title}`}</div>
-                            <div class="font-bold">${jr.site_title}</div>
-                            <div class="text-xs opacity-60 underline"><a href="${safeHref(jr.site_url)}" target="_blank" rel="noopener noreferrer">${jr.site_url}</a></div>
-                            ${jr.message ? html`<p class="text-sm mt-2 p-2 bg-base-100 rounded italic">"${jr.message}"</p>` : ""}
-                            <div class="text-[10px] opacity-40 mt-1">From: ${jr.user_did}</div>
-                        </div>
-                        <div class="flex flex-col gap-2">
-                            <form action="/dashboard/ring/request/approve" method="POST">
-                                ${requestTargetFields(jr)}
-                                <button type="submit" class="btn btn-success btn-sm w-full">${t("dashboard.approve")}</button>
-                            </form>
-                            <form action="/dashboard/ring/request/reject" method="POST">
-                                ${requestTargetFields(jr)}
-                                <button type="submit" class="btn btn-error btn-xs btn-outline w-full">${t("dashboard.reject")}</button>
-                            </form>
-                        </div>
+                <div class="rt-mod-row">
+                    ${SiteLine({ title: jr.site_title, url: jr.site_url, ringTitle: jr.ring_title })}
+                    ${jr.message ? html`<p class="rt-mod-message">「${jr.message}」</p>` : ""}
+                    <div class="rt-mod-actions">
+                        <form action="/dashboard/ring/request/approve" method="POST">
+                            ${requestTargetFields(jr)}
+                            <button type="submit" class="rt-bevel rt-go">${t("dashboard.approve")}</button>
+                        </form>
+                        <form action="/dashboard/ring/request/reject" method="POST">
+                            ${requestTargetFields(jr)}
+                            <button type="submit" class="rt-bevel">${t("dashboard.reject")}</button>
+                        </form>
                     </div>
                 </div>
             `,
             )}
-
-            <!-- Pending Memberships (Legacy/Direct) -->
             ${pendingMemberships.map(
                 (m: any) => html`
-                <div class="alert bg-base-200 border-warning/30 flex justify-between items-center py-3">
-                    <div class="flex flex-col gap-0.5">
-                        <div class="text-xs font-bold text-warning uppercase tracking-tighter">${t("dashboard.membership_approval_for", { ring_title: m.ring_title }) || `Pending Membership for ${m.ring_title}`}</div>
-                        <div class="font-medium">${m.site_title}</div>
-                        <div class="text-xs opacity-50 font-mono">${m.site_url}</div>
-                    </div>
-                    <div class="flex gap-2">
+                <div class="rt-mod-row">
+                    ${SiteLine({ title: m.site_title, url: m.site_url, ringTitle: m.ring_title })}
+                    <div class="rt-mod-actions">
                         <form action="/dashboard/ring/approve" method="POST">
                             <input type="hidden" name="member_uri" value="${m.member_uri}" />
-                            <button type="submit" class="btn btn-success btn-xs">${t("dashboard.approve")}</button>
+                            <button type="submit" class="rt-bevel rt-go">${t("dashboard.approve")}</button>
                         </form>
-                        <form action="/dashboard/ring/reject" method="POST" onsubmit="return confirm('${t("dashboard.confirm_reject")}')">
+                        <form action="/dashboard/ring/reject" method="POST" data-confirm="${t("dashboard.confirm_reject")}">
                             <input type="hidden" name="member_uri" value="${m.member_uri}" />
-                            <button type="submit" class="btn btn-ghost btn-xs text-error">${t("dashboard.reject")}</button>
+                            <button type="submit" class="rt-bevel">${t("dashboard.reject")}</button>
                         </form>
                     </div>
                 </div>
             `,
             )}
-
-            <!-- Block List -->
-            ${
-                blocks.length > 0
-                    ? html`
-                <div class="mt-8">
-                    <h4 class="text-sm font-bold opacity-50 mb-4 uppercase tracking-widest flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
-                        ${t("dashboard.block_list") || "Block List"}
-                    </h4>
-                    <div class="overflow-x-auto bg-base-200/50 rounded-lg">
-                        <table class="table table-xs w-full">
-                            <thead>
-                                <tr>
-                                    <th>User (DID/Handle)</th>
-                                    <th>Ring</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${blocks.map(
-                                    (b: any) => html`
-                                    <tr>
-                                        <td>
-                                            <div class="font-bold">${b.user_handle || "Unknown"}</div>
-                                            <div class="text-[10px] opacity-40 font-mono">${b.subject_did}</div>
-                                        </td>
-                                        <td class="text-xs">${b.ring_title}</td>
-                                        <td class="text-right">
-                                            <form action="/dashboard/ring/unblock" method="POST">
-                                                <input type="hidden" name="uri" value="${b.uri}" />
-                                                <button type="submit" class="btn btn-ghost btn-xs text-error">Unblock</button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                `,
-                                )}
-                            </tbody>
-                        </table>
+        </section>
+        `
+                : ""
+        }
+        ${
+            blocks.length > 0
+                ? html`
+        <details class="rt-box rt-advanced">
+            <summary class="rt-box-title">${t("dash.blocks_title")}（${blocks.length}）</summary>
+            ${blocks.map(
+                (b: any) => html`
+                <div class="rt-mod-row">
+                    <div class="rt-mod-main">
+                        <span class="rt-ring-meta">${b.ring_title}</span>
+                        <b>${b.user_handle || "Unknown"}</b>
+                        <span class="rt-did">${b.subject_did}</span>
+                    </div>
+                    <div class="rt-mod-actions">
+                        <form action="/dashboard/ring/unblock" method="POST">
+                            <input type="hidden" name="uri" value="${b.uri}" />
+                            <button type="submit" class="rt-bevel">${t("dash.unblock")}</button>
+                        </form>
                     </div>
                 </div>
-            `
-                    : ""
-            }
-        </div>
+            `,
+            )}
+        </details>
+        `
+                : ""
+        }
     `;
 };

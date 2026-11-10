@@ -37,6 +37,13 @@ app.route("/admin", adminApp);
 app.route("/", userApp);
 
 app.get("/", async (c) => {
+    // 旧来の参加用リンク（/dashboard?ring_uri=...）は「リングを探す」の参加欄へ
+    const legacyRingUri = c.req.query("ring_uri");
+    if (legacyRingUri) {
+        return c.redirect(
+            `/rings?select=${encodeURIComponent(legacyRingUri)}#join`,
+        );
+    }
     const payload = c.get("jwtPayload");
     const did = payload.sub;
     const isDebug = !!payload.isDebug;
@@ -82,6 +89,7 @@ app.get("/", async (c) => {
                 blocks: dashData.blocks,
                 did: dashData.did,
                 isAdmin,
+                msg: c.req.query("msg"),
                 t,
             }),
         }),
