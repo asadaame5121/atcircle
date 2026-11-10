@@ -1,4 +1,5 @@
-import { html } from "hono/html";
+import { html, raw } from "hono/html";
+import { jsonForScript } from "../../lib/html.js";
 
 export const RegistrationForm = (props: {
     discoveryStatus: string;
@@ -72,6 +73,10 @@ export const RegistrationForm = (props: {
                             : ""
                     }
 
+                    <!-- 選んだプロフィールのリンク (app.bsky.actor.link) -->
+                    <input type="hidden" name="link_uri" id="link_uri" value="${defaultSite.link?.uri || ""}" />
+                    <input type="hidden" name="link_cid" id="link_cid" value="${defaultSite.link?.cid || ""}" />
+
                     <div class="form-control w-full mb-4">
                         <label class="label" for="url">
                             <span class="label-text font-bold">${t("dashboard.site_url")}</span>
@@ -111,19 +116,23 @@ export const RegistrationForm = (props: {
         </div>
 
         <script>
-            const sites = ${JSON.stringify(detectedSites)};
+            const sites = ${raw(jsonForScript(detectedSites))};
             
             function selectSite(index) {
                 const site = sites[index];
                 document.getElementById('url').value = site.url || '';
                 document.getElementById('title').value = site.title || '';
                 document.getElementById('rss_url').value = site.rss || '';
+                document.getElementById('link_uri').value = site.link ? site.link.uri : '';
+                document.getElementById('link_cid').value = site.link ? site.link.cid : '';
             }
 
             function clearForm() {
                 document.getElementById('url').value = '';
                 document.getElementById('title').value = '';
                 document.getElementById('rss_url').value = '';
+                document.getElementById('link_uri').value = '';
+                document.getElementById('link_cid').value = '';
             }
         </script>
     `;

@@ -28,7 +28,21 @@ const NSID = {
     BLOCK: ids.NetAsadaame5121AtCircleBlock,
     BANNER: ids.NetAsadaame5121AtCircleBanner,
     DECISION: ids.NetAsadaame5121AtCircleDecision,
+    SITE: ids.NetAsadaame5121AtCircleSite,
 };
+
+export interface SiteFields {
+    url: string;
+    title: string;
+    description?: string | null;
+    rss?: string | null;
+    /** 元になった app.bsky.actor.link (プロフィールのリンク) */
+    link?: { uri: string; cid: string } | null;
+}
+
+export interface SiteRecordValue extends SiteFields {
+    createdAt?: string;
+}
 
 export type DecisionStatus = "approved" | "suspended" | "removed";
 
@@ -412,6 +426,86 @@ export const AtProtoService = {
             cursor = res.data.cursor;
         } while (cursor);
         return removed;
+    },
+
+    // -------------------------------------------------------------------------
+    // Site Operations
+    // -------------------------------------------------------------------------
+
+    /** 自分の site レコード (作成の古い順) */
+    async listSites(agent: Agent) {
+        const sites: AtpRecordView<SiteRecordValue>[] = [];
+        let cursor: string | undefined;
+        do {
+            const res = await agent.api.com.atproto.repo.listRecords({
+                repo: agent.assertDid,
+                collection: NSID.SITE,
+                limit: 100,
+                cursor,
+            });
+            for (const r of res.data.records) {
+                sites.push({
+                    uri: r.uri,
+                    cid: r.cid,
+                    value: r.value as unknown as SiteRecordValue,
+                });
+            }
+            cursor = res.data.cursor;
+        } while (cursor);
+        const time = (v: SiteRecordValue) => Date.parse(v.createdAt ?? "") || 0;
+        return sites.sort((a, b) => time(a.value) - time(b.value));
+    },
+
+    /**
+     * site レコードを作成 (uri なし) または更新 (uri あり) する。
+     * 更新時は作成日時と、指定がなければ link を既存レコードから引き継ぐ。
+     */
+    async putSite(agent: Agent, fields: SiteFields & { uri?: string }) {
+        const record: Record<string, unknown> = {
+            $type: NSID.SITE,
+            url: fields.url,
+            title: fields.title,
+        };
+        if (fields.description) record.description = fields.description;
+        if (fields.rss) record.rss = fields.rss;
+
+        if (!fields.uri) {
+            if (fields.link) record.link = fields.link;
+            record.createdAt = new Date().toISOString();
+            const res = await agent.api.com.atproto.repo.createRecord({
+                repo: agent.assertDid,
+                collection: NSID.SITE,
+                record,
+            });
+            return { uri: res.data.uri, cid: res.data.cid };
+        }
+
+        const { hostname, collection, rkey } = new AtUri(fields.uri);
+        if (hostname !== agent.assertDid || collection !== NSID.SITE) {
+            throw new Error("Not your site record");
+        }
+        let existing: SiteRecordValue = { url: "", title: "" };
+        try {
+            const res = await agent.api.com.atproto.repo.getRecord({
+                repo: agent.assertDid,
+                collection: NSID.SITE,
+                rkey,
+            });
+            existing = res.data.value as unknown as SiteRecordValue;
+        } catch {
+            // 読めなければ新しい作成日時で書き直す
+        }
+        const link = fields.link === undefined ? existing.link : fields.link;
+        if (link) record.link = link;
+        record.createdAt = existing.createdAt || new Date().toISOString();
+
+        const res = await agent.api.com.atproto.repo.putRecord({
+            repo: agent.assertDid,
+            collection: NSID.SITE,
+            rkey,
+            record,
+        });
+        return { uri: res.data.uri, cid: res.data.cid };
     },
 
     // -------------------------------------------------------------------------

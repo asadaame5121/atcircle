@@ -1,14 +1,15 @@
 import { AtUri } from "@atproto/api";
 import { IDENTITY_RESOLVER_URL, PUBLIC_URL } from "../config.js";
 import { RingRepository } from "../repositories/ring.repository.js";
-import { SiteRepository } from "../repositories/site.repository.js";
 // import type { Site, SqliteDatabaseInterface } from "../types/db.js";
 import type { Site } from "../types/db.js";
 import { AtProtoService } from "./atproto.js";
 import { fetchAndDiscoverMetadata } from "./discovery.js";
 import { restoreAgent } from "./oauth.js";
 import { collectPendingRequests } from "./pending-requests.js";
+import { discoverProfileLinks } from "./profile-links.js";
 import { isOwnedBy } from "./ring.service.js";
+import { SiteService } from "./site.service.js";
 
 export interface RegistrationData {
     type: "registration";
@@ -29,11 +30,9 @@ export interface DashboardViewData {
 
 export class DashboardService {
     private ringRepo: RingRepository;
-    private siteRepo: SiteRepository;
 
     constructor(private db: D1Database) {
         this.ringRepo = new RingRepository(db);
-        this.siteRepo = new SiteRepository(db);
     }
 
     async getDashboardData(
@@ -41,7 +40,11 @@ export class DashboardService {
     ): Promise<RegistrationData | DashboardViewData> {
         const agent = await restoreAgent(this.db, PUBLIC_URL, did);
 
-        const site = await this.siteRepo.findFirstByUserDid(did);
+        // サイト登録は PDS の site レコードが正本 (読めなければ DB のキャッシュ)
+        const site = await new SiteService(this.db).getMySite(
+            agent ?? null,
+            did,
+        );
 
         if (!site) {
             return {
@@ -297,46 +300,59 @@ export class DashboardService {
     }
 
     private async getDiscoveryData(did: string) {
-        const detectedSites: { url: string; title?: string; rss?: string }[] =
-            [];
+        // 1. Bluesky プロフィールのリンク (app.bsky.actor.link、表示順)
+        const candidates: {
+            url: string;
+            title?: string;
+            rss?: string;
+            link?: { uri: string; cid: string };
+        }[] = await discoverProfileLinks(did);
 
+        // 2. プロフィールの説明文に書かれた URL (予備)
         try {
             const profileRes = await fetch(
-                `${IDENTITY_RESOLVER_URL}/xrpc/app.bsky.actor.getProfile?actor=${did}`,
+                `${IDENTITY_RESOLVER_URL}/xrpc/app.bsky.actor.getProfile?actor=${encodeURIComponent(did)}`,
             );
             if (profileRes.ok) {
                 const profile = (await profileRes.json()) as {
                     description?: string;
                 };
-                const desc = profile.description || "";
-                const urls = Array.from(
-                    desc.matchAll(/https?:\/\/[^\s]+/g),
-                    (m) => m[0],
-                );
-
-                if (urls.length > 0) {
-                    for (const url of urls.slice(0, 3)) {
-                        try {
-                            const meta = await fetchAndDiscoverMetadata(url);
-                            if (meta) {
-                                detectedSites.push({
-                                    url: meta.url,
-                                    title: meta.title,
-                                    rss:
-                                        meta.feeds.length > 0
-                                            ? meta.feeds[0].url
-                                            : "",
-                                });
-                            } else {
-                                detectedSites.push({ url });
-                            }
-                        } catch {
-                            detectedSites.push({ url });
-                        }
-                    }
+                for (const m of (profile.description || "").matchAll(
+                    /https?:\/\/[^\s]+/g,
+                )) {
+                    candidates.push({ url: m[0] });
                 }
             }
         } catch {}
+
+        // 重複を除き、最大 5 件
+        const seen = new Set<string>();
+        const unique = candidates
+            .filter((c) => {
+                const key = c.url.replace(/\/$/, "");
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            })
+            .slice(0, 5);
+
+        // 先頭 3 件はサイトを読んでタイトルと RSS を補う
+        const detectedSites = await Promise.all(
+            unique.map(async (c, i) => {
+                if (i >= 3) return c;
+                try {
+                    const meta = await fetchAndDiscoverMetadata(c.url);
+                    if (!meta) return c;
+                    return {
+                        ...c,
+                        title: c.title || meta.title,
+                        rss: meta.feeds[0]?.url || "",
+                    };
+                } catch {
+                    return c;
+                }
+            }),
+        );
 
         return {
             discoveryStatus:

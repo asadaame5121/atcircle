@@ -237,4 +237,138 @@ describe("AtProtoService", () => {
             expect(deleteRecord).not.toHaveBeenCalled();
         });
     });
+
+    describe("site レコード", () => {
+        const SITE = "at://did:plc:me/net.asadaame5121.at-circle.site/3site";
+
+        const siteAgent = (existing?: unknown, records: unknown[] = []) => {
+            const repo = {
+                createRecord: vi.fn(async () => ({
+                    data: { uri: SITE, cid: "new-cid" },
+                })),
+                putRecord: vi.fn(async () => ({
+                    data: { uri: SITE, cid: "put-cid" },
+                })),
+                getRecord: vi.fn(async () => ({
+                    data: { uri: SITE, cid: "c", value: existing },
+                })),
+                listRecords: vi.fn(async () => ({
+                    data: { records, cursor: undefined },
+                })),
+            };
+            return {
+                agent: {
+                    assertDid: "did:plc:me",
+                    api: { com: { atproto: { repo } } },
+                } as any,
+                repo,
+            };
+        };
+
+        it("新規登録は自分のリポジトリに site を作る", async () => {
+            const { agent, repo } = siteAgent();
+            const ref = await AtProtoService.putSite(agent, {
+                url: "https://me.test/",
+                title: "Me",
+                description: "about",
+                rss: "https://me.test/feed",
+                link: {
+                    uri: "at://did:plc:me/app.bsky.actor.link/1",
+                    cid: "l",
+                },
+            });
+
+            expect(ref).toEqual({ uri: SITE, cid: "new-cid" });
+            const arg = repo.createRecord.mock.calls[0][0];
+            expect(arg).toMatchObject({
+                repo: "did:plc:me",
+                collection: "net.asadaame5121.at-circle.site",
+            });
+            expect(arg.record).toMatchObject({
+                $type: "net.asadaame5121.at-circle.site",
+                url: "https://me.test/",
+                title: "Me",
+                description: "about",
+                rss: "https://me.test/feed",
+                link: {
+                    uri: "at://did:plc:me/app.bsky.actor.link/1",
+                    cid: "l",
+                },
+            });
+        });
+
+        it("更新は同じ rkey に書き、作成日時とリンクを引き継ぎ、空欄は消す", async () => {
+            const { agent, repo } = siteAgent({
+                url: "https://old.test/",
+                title: "Old",
+                description: "old desc",
+                rss: "https://old.test/feed",
+                link: {
+                    uri: "at://did:plc:me/app.bsky.actor.link/1",
+                    cid: "l",
+                },
+                createdAt: "2026-01-01T00:00:00.000Z",
+            });
+
+            await AtProtoService.putSite(agent, {
+                uri: SITE,
+                url: "https://new.test/",
+                title: "New",
+                description: "",
+                rss: "",
+            });
+
+            expect(repo.createRecord).not.toHaveBeenCalled();
+            const arg = repo.putRecord.mock.calls[0][0];
+            expect(arg.rkey).toBe("3site");
+            expect(arg.record).toMatchObject({
+                url: "https://new.test/",
+                title: "New",
+                createdAt: "2026-01-01T00:00:00.000Z",
+                link: {
+                    uri: "at://did:plc:me/app.bsky.actor.link/1",
+                    cid: "l",
+                },
+            });
+            expect(arg.record).not.toHaveProperty("description");
+            expect(arg.record).not.toHaveProperty("rss");
+        });
+
+        it("他人の site は更新しない", async () => {
+            const { agent, repo } = siteAgent();
+            await expect(
+                AtProtoService.putSite(agent, {
+                    uri: "at://did:plc:other/net.asadaame5121.at-circle.site/1",
+                    url: "https://x.test/",
+                    title: "X",
+                }),
+            ).rejects.toThrow();
+            expect(repo.putRecord).not.toHaveBeenCalled();
+        });
+
+        it("listSites は自分の site を古い順に返す", async () => {
+            const { agent } = siteAgent(undefined, [
+                {
+                    uri: "at://did:plc:me/net.asadaame5121.at-circle.site/b",
+                    cid: "b",
+                    value: {
+                        url: "https://b.test/",
+                        title: "B",
+                        createdAt: "2026-02-01T00:00:00Z",
+                    },
+                },
+                {
+                    uri: "at://did:plc:me/net.asadaame5121.at-circle.site/a",
+                    cid: "a",
+                    value: {
+                        url: "https://a.test/",
+                        title: "A",
+                        createdAt: "2026-01-01T00:00:00Z",
+                    },
+                },
+            ]);
+            const sites = await AtProtoService.listSites(agent);
+            expect(sites.map((s) => s.value.title)).toEqual(["A", "B"]);
+        });
+    });
 });

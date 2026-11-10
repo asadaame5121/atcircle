@@ -2,25 +2,55 @@ import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { html } from "hono/html";
 import { Layout } from "../../components/Layout.js";
+import { PUBLIC_URL } from "../../config.js";
+import { logger as pinoLogger } from "../../lib/logger.js";
 import {
     siteRegistrationSchema,
     siteUpdateSchema,
 } from "../../schemas/index.js";
+import { restoreAgent } from "../../services/oauth.js";
+import { SiteService } from "../../services/site.service.js";
 import type { AppVariables, Bindings } from "../../types/bindings.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
+
+const PDS_WRITE_ERROR =
+    "PDS への書き込みに失敗しました。ログインし直してから再度お試しください。";
+
+/** フォームの link_uri / link_cid (選んだプロフィールのリンク)。本人のものだけ */
+const profileLinkRef = (
+    did: string,
+    linkUri?: string,
+    linkCid?: string,
+): { uri: string; cid: string } | null => {
+    if (!linkUri || !linkCid) return null;
+    return linkUri.startsWith(`at://${did}/app.bsky.actor.link/`)
+        ? { uri: linkUri, cid: linkCid }
+        : null;
+};
 
 // POST /dashboard/site
 app.post("/", zValidator("form", siteRegistrationSchema), async (c) => {
     const payload = c.get("jwtPayload");
     const did = payload.sub;
-    const { url, title, rss_url, description } = c.req.valid("form");
+    const { url, title, rss_url, description, link_uri, link_cid } =
+        c.req.valid("form");
 
-    await c.env.DB.prepare(
-        "INSERT OR REPLACE INTO sites (user_did, url, title, rss_url, description, is_active) VALUES (?, ?, ?, ?, ?, 1)",
-    )
-        .bind(did, url, title, rss_url || null, description || null)
-        .run();
+    const agent = await restoreAgent(c.env.DB, PUBLIC_URL, did);
+    if (!agent) return c.redirect("/login");
+
+    try {
+        await new SiteService(c.env.DB).saveMySite(agent, did, {
+            url,
+            title,
+            description: description || null,
+            rss: rss_url || null,
+            link: profileLinkRef(did, link_uri, link_cid),
+        });
+    } catch (e) {
+        pinoLogger.error({ msg: "Site registration failed (PDS)", error: e });
+        return c.text(PDS_WRITE_ERROR, 502);
+    }
 
     return c.redirect("/dashboard?msg=registered");
 });
@@ -33,11 +63,8 @@ app.get("/edit", async (c) => {
     const t = c.get("t");
     const lang = c.get("lang");
 
-    const site = (await c.env.DB.prepare(
-        "SELECT * FROM sites WHERE user_did = ?",
-    )
-        .bind(did)
-        .first()) as any;
+    const agent = await restoreAgent(c.env.DB, PUBLIC_URL, did);
+    const site = await new SiteService(c.env.DB).getMySite(agent ?? null, did);
 
     if (!site) return c.redirect("/dashboard");
 
@@ -117,11 +144,21 @@ app.post("/update", zValidator("form", siteUpdateSchema), async (c) => {
     const did = payload.sub;
     const { url, title, rss_url, description } = c.req.valid("form");
 
-    await c.env.DB.prepare(
-        "UPDATE sites SET url = ?, title = ?, rss_url = ?, description = ? WHERE user_did = ?",
-    )
-        .bind(url, title, rss_url || null, description || null, did)
-        .run();
+    const agent = await restoreAgent(c.env.DB, PUBLIC_URL, did);
+    if (!agent) return c.redirect("/login");
+
+    try {
+        // link は指定しない (既存レコードのものを引き継ぐ)
+        await new SiteService(c.env.DB).saveMySite(agent, did, {
+            url,
+            title,
+            description: description || null,
+            rss: rss_url || null,
+        });
+    } catch (e) {
+        pinoLogger.error({ msg: "Site update failed (PDS)", error: e });
+        return c.text(PDS_WRITE_ERROR, 502);
+    }
 
     return c.redirect("/dashboard?msg=updated");
 });

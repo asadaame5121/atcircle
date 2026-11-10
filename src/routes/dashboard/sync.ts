@@ -5,6 +5,7 @@ import { RingRepository } from "../../repositories/ring.repository.js";
 import { AtProtoService } from "../../services/atproto.js";
 import { MembershipActions } from "../../services/membership-actions.js";
 import { restoreAgent } from "../../services/oauth.js";
+import { SiteService } from "../../services/site.service.js";
 import type { AppVariables, Bindings } from "../../types/bindings.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
@@ -90,6 +91,19 @@ app.post("/", async (c) => {
                     .bind(ringUri, mySite.id, m.uri)
                     .run();
             }
+        }
+
+        // 移行: DB にだけあるサイト登録を site レコードとして PDS に記録する
+        try {
+            const result = await new SiteService(c.env.DB).migrateSite(
+                agent,
+                did,
+            );
+            if (result !== "none") {
+                pinoLogger.info({ msg: "[Sync] Site migrated", result });
+            }
+        } catch (e) {
+            pinoLogger.error({ msg: "[Sync] Site migration failed", error: e });
         }
 
         // 移行: DB にだけある承認・停止を decision として PDS に記録する
