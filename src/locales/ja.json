@@ -411,5 +411,17 @@
         "ticker_label": "新着",
         "ticker_new_ring": "新しいリング「{{title}}」ができました",
         "ticker_new_join": "「{{title}}」に新しいサイトが参加"
+    },
+    "create": {
+        "page_title": "リングを立ち上げる",
+        "form_label": "リングの内容",
+        "ring_name": "リング名",
+        "ring_name_placeholder": "例：手作りWebの会",
+        "description": "説明",
+        "description_placeholder": "どんなサイトが集まるリング？",
+        "policy_legend": "参加の受け付け方",
+        "submit": "作成する ≫",
+        "preview": "プレビュー",
+        "preview_desc_empty": "ここに説明が入ります。"
     }
 }

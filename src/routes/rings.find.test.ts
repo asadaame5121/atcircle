@@ -171,3 +171,41 @@ describe("GET /rings（リングを探す）", () => {
         expect(html).not.toContain('class="rt-marquee"');
     });
 });
+
+describe("GET /rings/new（リングを立ち上げる）", () => {
+    it("未ログインならログインへ回す", async () => {
+        const { res } = await get("/new");
+        expect(res.status).toBe(302);
+        expect(res.headers.get("Location")).toBe(
+            `/login?next=${encodeURIComponent("/rings/new")}`,
+        );
+    });
+
+    it("ログイン中は作成フォームとプレビューを出す", async () => {
+        const { res, html } = await get("/new", {
+            login: true,
+            site: { url: "https://asadaame5121.net", title: "DropGarden" },
+        });
+        expect(res.status).toBe(200);
+        expect(html).toContain('aria-label="進み具合"');
+        expect(html).toContain("■ リングに入る ■");
+        expect(html).toMatch(
+            /<a href="\/rings\/new"[^>]*aria-current="page"[^>]*>立ち上げる<\/a>/,
+        );
+        expect(html).toContain('action="/dashboard/ring/create"');
+        expect(html).toMatch(/<input id="ring-name" name="title"[^>]*required/);
+        expect(html).toContain('name="description"');
+        expect(html).toMatch(
+            /<input type="radio" name="acceptance_policy" value="automatic" checked/,
+        );
+        expect(html).toContain('name="acceptance_policy" value="manual"');
+        expect(html).toContain(
+            'name="url" type="url" required value="https://asadaame5121.net"',
+        );
+        expect(html).toContain(
+            'name="site_title" type="text" required value="DropGarden"',
+        );
+        expect(html).toContain("作成する ≫");
+        expect(html).toContain('aria-label="プレビュー"');
+    });
+});

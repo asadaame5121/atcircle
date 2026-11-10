@@ -380,5 +380,17 @@
         "ticker_label": "What's new",
         "ticker_new_ring": "New ring “{{title}}” started",
         "ticker_new_join": "A new site joined “{{title}}”"
+    },
+    "create": {
+        "page_title": "Start a ring",
+        "form_label": "Ring details",
+        "ring_name": "Ring name",
+        "ring_name_placeholder": "e.g. Handmade Web Club",
+        "description": "Description",
+        "description_placeholder": "What kind of sites gather here?",
+        "policy_legend": "How to accept members",
+        "submit": "Create ≫",
+        "preview": "Preview",
+        "preview_desc_empty": "Your description goes here."
     }
 }

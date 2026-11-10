@@ -1,5 +1,6 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
+import { CreateView } from "../components/CreateView.js";
 import { FindView, RecentTicker } from "../components/FindView.js";
 import { Layout } from "../components/Layout.js";
 import { RingDetailView } from "../components/RingDetailView.js";
@@ -11,6 +12,7 @@ import { ringQuerySchema } from "../schemas/index.js";
 import {
     filterRings,
     getJoinContext,
+    getMySite,
     getRecentActivity,
     type JoinContext,
     type RecentActivity,
@@ -71,6 +73,33 @@ app.get("/", async (c) => {
                 join,
                 t,
             }),
+        }),
+    );
+});
+
+// リングを立ち上げる（要ログイン）
+app.get("/new", async (c) => {
+    const session = await getOptionalSession(c);
+    if (!session) {
+        return c.redirect(`/login?next=${encodeURIComponent("/rings/new")}`);
+    }
+    const t = c.get("t");
+    const lang = c.get("lang");
+
+    let site: JoinContext["site"] = null;
+    try {
+        site = await getMySite(c.env.DB, session.sub);
+    } catch (e) {
+        pinoLogger.error({ msg: "Site load failed", error: e });
+    }
+
+    return c.html(
+        Layout({
+            title: t("create.page_title"),
+            t,
+            current: "rings",
+            lang,
+            children: CreateView({ site, t }),
         }),
     );
 });

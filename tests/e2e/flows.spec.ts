@@ -41,23 +41,16 @@ if (e2eEnabled) {
 
     test("alice creates a ring", async ({ page }) => {
         await oauthLogin(page, E2E_ACCOUNTS.alice);
-        await page.goto("/dashboard");
-        await page.getByRole("button", { name: /create webring/i }).click();
-        const modal = page.locator("#create_ring_modal[open]");
-        await modal.waitFor();
-        await modal.locator('input[name="title"]').fill(RING_TITLE);
-        await modal.locator('textarea[name="description"]').fill(
+        await page.goto("/rings/new");
+        await page.locator('input[name="title"]').fill(RING_TITLE);
+        await page.locator('textarea[name="description"]').fill(
             "E2E test ring",
         );
-        await modal.locator('button[type="submit"]').click();
-        await expect(page).toHaveURL(/msg=created/);
-
-        const card = page.locator(".card", { hasText: RING_TITLE });
-        await card.waitFor();
-        // The ring URI is now hidden behind the "Copy URI" button (data-uri)
-        const copyBtn = card.locator('button[data-uri^="at://"]').first();
-        await copyBtn.waitFor();
-        ringUri = (await copyBtn.getAttribute("data-uri")) || "";
+        await page.getByRole("button", { name: /create/i }).click();
+        // 作成するとそのままウィジェットの画面へ進む
+        await expect(page).toHaveURL(/\/dashboard\/ring\/widget\?ring_uri=/);
+        ringUri =
+            new URL(page.url()).searchParams.get("ring_uri") || "";
         expect(ringUri).toMatch(/^at:\/\//);
     });
 

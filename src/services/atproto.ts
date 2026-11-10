@@ -37,7 +37,12 @@ export const AtProtoService = {
     // Ring Operations
     // -------------------------------------------------------------------------
 
-    async createRing(agent: Agent, title: string, description: string) {
+    async createRing(
+        agent: Agent,
+        title: string,
+        description: string,
+        acceptancePolicy: "automatic" | "manual" = "automatic",
+    ) {
         const net = new NetNS(agent);
         const record: RingRecord = {
             $type: NSID.RING,
@@ -45,7 +50,7 @@ export const AtProtoService = {
             description,
             admin: agent.assertDid,
             status: "open", // Default to open on creation
-            acceptancePolicy: "automatic", // Default to automatic
+            acceptancePolicy,
             createdAt: new Date().toISOString(),
         };
 

@@ -4,6 +4,11 @@ import { httpUrl } from "./url.js";
 export const createRingSchema = z.object({
     title: z.string().min(1, "Title is required").max(100),
     description: z.string().max(500).optional(),
+    acceptance_policy: z.enum(["automatic", "manual"]).default("automatic"),
+    // 作成と同時に参加させる自分のサイト。旧フォームでは送られない
+    url: httpUrl("Invalid site URL").optional().or(z.literal("")),
+    site_title: z.string().max(200).optional().or(z.literal("")),
+    rss: httpUrl("Invalid RSS URL").optional().or(z.literal("")),
 });
 
 export const joinRingSchema = z.object({

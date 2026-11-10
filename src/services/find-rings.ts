@@ -52,6 +52,18 @@ export type JoinContext = {
     joined: boolean;
 };
 
+/** 自分の登録済みサイト（未登録なら null） */
+export const getMySite = async (
+    db: D1Database,
+    did: string,
+): Promise<JoinContext["site"]> =>
+    (await db
+        .prepare(
+            "SELECT url, title, rss_url FROM sites WHERE user_did = ? LIMIT 1",
+        )
+        .bind(did)
+        .first<JoinContext["site"]>()) ?? null;
+
 /** 参加欄に出す自分のサイトと、そのリングに参加済み（申請中を含む）か */
 export const getJoinContext = async (
     db: D1Database,
@@ -59,12 +71,7 @@ export const getJoinContext = async (
     ringUri: string,
 ): Promise<JoinContext> => {
     const [site, existing] = await Promise.all([
-        db
-            .prepare(
-                "SELECT url, title, rss_url FROM sites WHERE user_did = ? LIMIT 1",
-            )
-            .bind(did)
-            .first<JoinContext["site"]>(),
+        getMySite(db, did),
         db
             .prepare(`
             SELECT 1 FROM memberships m
@@ -77,5 +84,5 @@ export const getJoinContext = async (
             .bind(ringUri, did, ringUri, did)
             .first(),
     ]);
-    return { site: site ?? null, joined: !!existing };
+    return { site, joined: !!existing };
 };

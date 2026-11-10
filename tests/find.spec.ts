@@ -42,3 +42,29 @@ test.describe("リングを探す", () => {
         await ctx.close();
     });
 });
+
+test.describe("リングを立ち上げる", () => {
+    test("未ログインならログインへ回る", async ({ page }) => {
+        await page.goto("/rings/new");
+        await expect(page).toHaveURL(/\/login\?next=%2Frings%2Fnew/);
+    });
+
+    test("入力に合わせてプレビューが変わる", async ({ page }) => {
+        await loginAs(page, TEST_USER.did, TEST_USER.handle);
+        await page.goto("/rings/new");
+        const preview = page.getByRole("complementary");
+        await page.locator("#ring-name").fill("手作りWebの会");
+        await page.locator("#ring-desc").fill("HTMLを手で書く人の輪");
+        await page.getByLabel("Approval").check();
+        await expect(preview).toContainText("手作りWebの会");
+        await expect(preview).toContainText("HTMLを手で書く人の輪");
+        await expect(preview.locator("#preview-policy")).toHaveText("Approval");
+
+        const width = 320;
+        await page.setViewportSize({ width, height: 800 });
+        const scrollWidth = await page.evaluate(
+            () => document.documentElement.scrollWidth,
+        );
+        expect(scrollWidth).toBeLessThanOrEqual(width);
+    });
+});
