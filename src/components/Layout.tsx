@@ -19,6 +19,8 @@ export const Layout = (props: {
     current?: NavKey;
     /** 未ログインのトップ用。ナビを「ログインせずにリングを見る」だけにする */
     guest?: boolean;
+    /** ヘッダーとナビの間に出す帯（「リングを探す」の流れる文字） */
+    ticker?: any;
 }) => {
     const t = (key: string, fallback: string) =>
         props.t ? props.t(key) : fallback;
@@ -97,6 +99,7 @@ export const Layout = (props: {
         <a href="/" class="rt-logo rt-logo-main">${t("common.brand", "AT CIRCLE")}</a>
         <div class="rt-logo rt-tagline">～ ATProto WebRing ～</div>
       </header>
+      ${props.ticker ?? ""}
       <nav aria-label="${t("common.main_nav", "Main")}" class="rt-nav">${nav}</nav>
       <main class="rt-main">
       ${props.children}

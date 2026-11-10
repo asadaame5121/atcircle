@@ -158,3 +158,77 @@ describe("POST /dashboard/ring/leave", () => {
         expect(AtProtoService.leaveRing).toHaveBeenCalledOnce();
     });
 });
+
+describe("POST /dashboard/ring/join", () => {
+    const RING = "at://did:plc:owner/net.asadaame5121.at-circle.ring/3own";
+
+    beforeEach(() => {
+        vi.restoreAllMocks();
+        vi.spyOn(oauth, "restoreAgent").mockResolvedValue({} as any);
+        vi.spyOn(AtProtoService, "getRing").mockResolvedValue({
+            value: { title: "Ring", acceptancePolicy: "automatic" },
+        } as any);
+        vi.spyOn(AtProtoService, "joinRing").mockResolvedValue(
+            "at://did:plc:me/net.asadaame5121.at-circle.member/1",
+        );
+    });
+
+    const join = async (site: { id: number } | null) => {
+        const token = await createMockAuthToken("did:plc:me", "me.test");
+        let siteRow = site;
+        const db = createMockDB({
+            first: (query: string) => {
+                if (query.includes("SELECT id FROM sites")) return siteRow;
+                return null;
+            },
+            all: [],
+        });
+        const prepare = db.prepare as any;
+        const original = prepare.getMockImplementation();
+        prepare.mockImplementation((query: string) => {
+            const stmt = original(query);
+            if (/INSERT INTO sites/i.test(query)) siteRow = { id: 42 };
+            return stmt;
+        });
+        const res = await wrapApp(dashboardApp).request(
+            "/ring/join",
+            {
+                method: "POST",
+                headers: {
+                    Cookie: `session=${token}`,
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: new URLSearchParams({
+                    ring_uri: RING,
+                    url: "https://example.com",
+                    title: "Example",
+                    rss: "",
+                }),
+            },
+            { DB: db },
+        );
+        const queries = prepare.mock.calls.map((c: any[]) => c[0] as string);
+        return { res, queries };
+    };
+
+    it("サイト未登録なら入力されたサイトを登録してから参加を記録する", async () => {
+        const { res, queries } = await join(null);
+        expect(res.status).toBe(302);
+        const siteInsert = queries.findIndex((q) =>
+            /INSERT INTO sites/i.test(q),
+        );
+        const memberInsert = queries.findIndex((q) =>
+            /INSERT OR IGNORE INTO memberships/i.test(q),
+        );
+        expect(siteInsert).toBeGreaterThanOrEqual(0);
+        expect(memberInsert).toBeGreaterThan(siteInsert);
+    });
+
+    it("サイト登録済みなら登録し直さない", async () => {
+        const { queries } = await join({ id: 7 });
+        expect(queries.some((q) => /INSERT INTO sites/i.test(q))).toBe(false);
+        expect(
+            queries.some((q) => /INSERT OR IGNORE INTO memberships/i.test(q)),
+        ).toBe(true);
+    });
+});

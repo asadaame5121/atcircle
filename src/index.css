@@ -488,3 +488,124 @@ html[data-theme="light"] {
     border-top: 1px dashed #8899cc;
     font-size: 14px;
 }
+
+.rt-ring-row-selected {
+    background: #ffff99;
+}
+
+/* ---- リングを探す ---- */
+
+.rt-marquee {
+    padding: 4px 0;
+    background: #000000;
+    color: #66ff66;
+    font-size: 14px;
+}
+
+.rt-ticker-new {
+    color: #ff3399;
+}
+
+.rt-progress {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 20px;
+    padding: 0;
+    list-style: none;
+    font-size: 14px;
+}
+
+.rt-progress-done,
+.rt-progress-sep {
+    color: #666666;
+}
+
+.rt-progress-now {
+    padding: 2px 8px;
+    background: #ffff66;
+    border: 1px solid #000000;
+}
+
+.rt-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.rt-tabs a[aria-current="page"] {
+    font-weight: bold;
+}
+
+.rt-find {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.rt-find-list {
+    flex: 999 1 380px;
+    min-width: 0;
+}
+
+.rt-find-join {
+    flex: 1 1 260px;
+    min-width: 0;
+    scroll-margin-top: 12px;
+}
+
+.rt-empty {
+    margin: 0;
+    padding: 20px 12px;
+    text-align: center;
+}
+
+.rt-pick-prompt {
+    margin: 0;
+    text-align: center;
+    color: #444444;
+}
+
+.rt-join-title {
+    margin: 0 0 2px;
+    font-size: 20px;
+    font-weight: normal;
+    color: #000080;
+    overflow-wrap: anywhere;
+}
+
+.rt-join-meta {
+    margin: 0 0 12px;
+    font-size: 13px;
+    color: #444444;
+}
+
+.rt-join-meta a {
+    color: #0000ee;
+}
+
+.rt-join-done {
+    margin: 0 0 12px;
+}
+
+.rt-rss {
+    margin-bottom: 14px;
+    font-size: 14px;
+}
+
+.rt-rss > summary {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    cursor: pointer;
+    color: #0000ee;
+    text-decoration: underline;
+}
+
+.rt-rss .rt-input {
+    margin-bottom: 0;
+}

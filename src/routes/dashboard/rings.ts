@@ -114,6 +114,20 @@ app.post("/join", zValidator("form", joinRingSchema), async (c) => {
             return c.redirect("/dashboard?msg=already_joined_or_requested");
         }
 
+        // 0.5 サイト未登録なら、参加フォームに入力されたサイトを登録する
+        const registered = await c.env.DB.prepare(
+            "SELECT id FROM sites WHERE user_did = ?",
+        )
+            .bind(did)
+            .first();
+        if (!registered) {
+            await c.env.DB.prepare(
+                "INSERT INTO sites (user_did, url, title, rss_url, is_active) VALUES (?, ?, ?, ?, 1)",
+            )
+                .bind(did, url, title, rss || null)
+                .run();
+        }
+
         // 1. Fetch Ring Metadata and Save/Update locally
         let acceptancePolicy = "automatic";
         try {

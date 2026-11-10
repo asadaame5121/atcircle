@@ -40,7 +40,7 @@ describe("Home Route", () => {
             title: `Ring ${i}`,
             uri: `at://ring/${i}`,
             description: i === 7 ? "いちばん大きい" : "",
-            acceptance_policy: i === 7 ? "manual" : "auto",
+            acceptance_policy: i === 7 ? "manual" : "automatic",
             member_count: i,
         }));
         const env = { DB: createMockDB({ all: rings }) };
