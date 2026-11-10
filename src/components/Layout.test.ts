@@ -80,3 +80,11 @@ describe("Layout（90年代後半風デザイン）", () => {
         );
     });
 });
+
+describe("Layout の読み込み", () => {
+    it("daisyUI と Font Awesome は読み込まない（全画面が独自CSSに移行済み）", async () => {
+        const html = await render();
+        expect(html).not.toContain("daisyui");
+        expect(html).not.toContain("font-awesome");
+    });
+});

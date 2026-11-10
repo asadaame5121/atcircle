@@ -33,7 +33,12 @@
         "main_nav": "Main",
         "optional": "optional",
         "upload": "Upload",
-        "create": "Create"
+        "create": "Create",
+        "back_to_list": "Back to list",
+        "no_description": "No description.",
+        "back_to_home": "Back to home",
+        "visit": "Visit",
+        "copy_to_clipboard": "Copy to clipboard"
     },
     "home": {
         "headline_1": "Link your personal site",
@@ -459,5 +464,12 @@
         "more": "More",
         "blocks_title": "Blocked",
         "unblock": "Unblock"
+    },
+    "profile": {
+        "bluesky": "Bluesky profile",
+        "sites": "Registered sites",
+        "no_sites": "No sites registered yet.",
+        "rings": "Webrings",
+        "no_rings": "Not joined any rings yet."
     }
 }

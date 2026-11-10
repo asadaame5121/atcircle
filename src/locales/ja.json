@@ -482,5 +482,12 @@
         "more": "その他",
         "blocks_title": "ブロック中",
         "unblock": "ブロック解除"
+    },
+    "profile": {
+        "bluesky": "Blueskyのプロフィール",
+        "sites": "登録サイト",
+        "no_sites": "まだサイトが登録されていません。",
+        "rings": "参加中のリング",
+        "no_rings": "まだリングに参加していません。"
     }
 }
