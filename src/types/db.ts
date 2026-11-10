@@ -15,6 +15,8 @@ export interface Site {
     acceptance_policy: string;
     atproto_status: string;
     is_verified: number;
+    /** PDS の site レコード (正本) の AT URI。移行前は null */
+    site_uri?: string | null;
     created_at?: number;
 }
 

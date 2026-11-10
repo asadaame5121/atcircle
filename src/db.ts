@@ -290,6 +290,8 @@ if (db && db instanceof SqliteDatabase) {
         "ALTER TABLE memberships ADD COLUMN last_verified_at INTEGER;",
     );
     await silentExec("ALTER TABLE memberships ADD COLUMN banner_url TEXT;");
+    // サイト登録の正本 (PDS の site レコード) の AT URI
+    await silentExec("ALTER TABLE sites ADD COLUMN site_uri TEXT;");
 }
 
 export default db;
