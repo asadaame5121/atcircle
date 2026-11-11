@@ -18,6 +18,7 @@
 | [開発・保守マニュアル](development-maintenance.md) | セットアップ、設定、DB、テスト、デプロイ、監視、障害対応 |
 | [ATProto CRUD 仕様](spec/atproto_crud.md) | 独自レコードとローカルインデックスの役割 |
 | [Lexicon リファレンス](lexicons.md) | Lexicon から生成されたレコード定義 |
+| [Spaces / コミュニティ対応の検討](spaces-community-plan.md) | Atproto Spaces と Bluesky コミュニティ機能への対応方針（検討中） |
 | [リポジトリ README](../README.md) | プロジェクト概要と開発入口 |
 
 ## 編集時の注意
