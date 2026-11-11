@@ -144,3 +144,15 @@ describe("Companion Navigation & PWA Integration Tests", () => {
         expect(swText).toContain("atcircle-companion");
     });
 });
+
+describe("CSP", () => {
+    it("使わなくなった CDN（jsdelivr・cdnjs.cloudflare）を許可しない", async () => {
+        const env = { DB: createMockDB({}) };
+        const res = await app.request("/help", {}, env as any);
+        const csp = res.headers.get("Content-Security-Policy") || "";
+        expect(csp).toContain("fonts.googleapis.com");
+        expect(csp).toContain("public.api.bsky.app");
+        expect(csp).not.toContain("cdn.jsdelivr.net");
+        expect(csp).not.toContain("cdnjs.cloudflare.com");
+    });
+});
