@@ -303,128 +303,71 @@ export const RingDetailView = ({
     const navMembers: NavigationMember[] = toNavigationMembers(members || []);
 
     return html`
-        <div class="card bg-base-100 shadow-xl">
-            <div class="card-body p-4 sm:p-8">
-                <div class="text-sm breadcrumbs mb-4">
-                    <ul>
-                        <li><a href="/rings">${t("rings.explore_title")}</a></li>
-                        <li>${ring.title}</li>
-                    </ul>
-                </div>
-
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
-                    <div class="flex-1">
-                        ${
-                            ring.banner_url
-                                ? html`
-                            <div class="mb-4 rounded-xl overflow-hidden shadow-sm aspect-3/1 max-h-[150px] w-full bg-base-200 border border-base-300">
-                                <img src="${safeHref(ring.banner_url, "")}" alt="${ring.title}" class="w-full h-full object-contain" />
-                            </div>
-                        `
-                                : ""
-                        }
-                        <h1 class="card-title text-3xl mb-2">${ring.title}</h1>
-                        <p class="opacity-75">${ring.description || t("common.no_description")}</p>
-                    </div>
-                    <div class="flex flex-wrap gap-2">
-                        <a href="/antenna?ring=${encodeURIComponent(ringUri)}" class="btn btn-outline btn-sm"><i class="fa-solid fa-tower-broadcast mr-1"></i>Antenna</a>
-                        <a href="/rings/opml?ring=${encodeURIComponent(ringUri)}" class="btn btn-outline btn-sm"><i class="fa-solid fa-file-export mr-1"></i>OPML</a>
-                        <a href="${companionUrl}" target="_blank" class="btn btn-primary btn-sm">
-                            <i class="fa-solid fa-compass mr-1"></i>
-                            ${t("rings.open_companion")}
-                        </a>
-                    </div>
-                </div>
-
-                ${
-                    navMembers.length > 0
-                        ? html`
-                    <!-- Touring Companion Panel -->
-                    <div id="main-tour-card" class="bg-base-200/80 rounded-2xl p-5 border border-base-300 my-4 shadow-sm">
-                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
-                            <div class="flex items-center gap-2">
-                                <span class="badge badge-primary badge-sm font-bold">${t("rings.current_member")}</span>
-                                <h3 id="tour-member-title" class="font-bold text-lg text-base-content truncate max-w-[240px] sm:max-w-md">Loading...</h3>
-                                <a id="tour-member-rss" href="#" target="_blank" class="badge badge-warning badge-xs font-mono font-bold hidden">RSS</a>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <button id="btn-open-companion-win" class="btn btn-xs btn-outline" title="${t("rings.open_companion_window")}">
-                                    <i class="fa-solid fa-window-restore mr-1"></i>
-                                    ${t("rings.open_companion_window")}
-                                </button>
-                                <a href="${companionUrl}" target="_blank" class="btn btn-xs btn-ghost" title="${t("rings.open_companion_tab")}">
-                                    <i class="fa-solid fa-arrow-up-right-from-square mr-1"></i>
-                                    ${t("rings.open_companion_tab")}
-                                </a>
-                            </div>
-                        </div>
-
-                        <p id="tour-member-desc" class="text-sm text-base-content/75 mb-3">-</p>
-
-                        <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-base-300/60">
-                            <div class="flex items-center gap-2">
-                                <button id="tour-btn-visit" class="btn btn-primary btn-sm font-semibold">
-                                    ${t("rings.visit_site")}
-                                </button>
-                                <a id="tour-member-url" href="#" target="_blank" rel="noopener noreferrer" class="link link-hover text-xs font-mono opacity-60 truncate max-w-[180px] sm:max-w-xs">
-                                    https://...
-                                </a>
-                            </div>
-
-                            <div class="flex items-center gap-2 ml-auto">
-                                <a href="/nav/prev?ring=${encodeURIComponent(ringUri)}" id="tour-btn-prev" class="btn btn-outline btn-sm" aria-label="${t("rings.prev_member")}">
-                                    <i class="fa-solid fa-chevron-left mr-1"></i>
-                                    ${t("rings.prev_member")}
-                                </a>
-                                <a href="/nav/random?ring=${encodeURIComponent(ringUri)}" id="tour-btn-random" class="btn btn-outline btn-sm" aria-label="${t("rings.random_member")}">
-                                    <i class="fa-solid fa-shuffle mr-1"></i>
-                                    ${t("rings.random_member")}
-                                </a>
-                                <a href="/nav/next?ring=${encodeURIComponent(ringUri)}" id="tour-btn-next" class="btn btn-outline btn-sm font-semibold" aria-label="${t("rings.next_member")}">
-                                    ${t("rings.next_member")}
-                                    <i class="fa-solid fa-chevron-right ml-1"></i>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                `
-                        : ""
-                }
-
-                <div class="divider mt-6">${t("rings.members_count_label", { count: members?.length || 0 })}</div>
-
-                ${
-                    members && members.length > 0
-                        ? html`
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        ${members.map(
-                            (site) => html`
-                            <div class="card bg-base-200 shadow-sm border border-base-300">
-                                <div class="card-body p-5">
-                                    <h3 class="font-bold break-all">${site.title}</h3>
-                                    <p class="text-xs opacity-50 underline truncate" title="${site.url}">
-                                        <a href="${safeHref(site.url)}" target="_blank" rel="noopener noreferrer">${displayUrl(site.url)}</a>
-                                    </p>
-                                    <p class="text-sm text-base-content/70 line-clamp-2">${site.description || "-"}</p>
-                                    <div class="card-actions justify-end mt-2">
-                                        ${site.rss_url ? html`<a href="${safeHref(site.rss_url)}" target="_blank" rel="noopener noreferrer" class="badge badge-warning badge-sm">RSS</a>` : ""}
-                                        <a href="${safeHref(site.url)}" target="_blank" rel="noopener noreferrer" class="btn btn-xs btn-ghost">${t("common.visit")}</a>
-                                    </div>
-                                </div>
-                            </div>
-                        `,
-                        )}
-                    </div>
-                `
-                        : html`<div class="alert alert-ghost border-dashed">${t("rings.no_members_found")}</div>`
-                }
-
-                <div class="card-actions justify-center mt-12 gap-4">
-                    <a href="/dashboard?ring=${encodeURIComponent(ringUri)}" class="btn btn-primary btn-lg">${t("rings.join_this_ring")}</a>
-                    <a href="/rings" class="btn btn-ghost">${t("common.back_to_list")}</a>
-                </div>
-            </div>
+        <p class="rt-crumbs"><a href="/rings">${t("find.title")}</a> ≫ ${ring.title}</p>
+        ${
+            ring.banner_url
+                ? html`<p class="rt-center"><img src="${safeHref(ring.banner_url, "")}" alt="${ring.title}" class="rt-ring-banner" /></p>`
+                : ""
+        }
+        <h1 class="rt-h1">★ ${ring.title} ★</h1>
+        <p class="rt-lead">${ring.description || t("common.no_description")}</p>
+        <div class="rt-actions">
+            <a href="/rings?select=${encodeURIComponent(ringUri)}#join" class="rt-bevel rt-go">${t("rings.join_this_ring")}</a>
+            <a href="/antenna?ring=${encodeURIComponent(ringUri)}" class="rt-bevel">${t("common.antenna")}</a>
+            <a href="/rings/opml?ring=${encodeURIComponent(ringUri)}" class="rt-bevel">OPML</a>
         </div>
+
+        ${
+            navMembers.length > 0
+                ? html`
+            <section id="main-tour-card" class="rt-box rt-tour" aria-labelledby="tour-heading">
+                <h2 id="tour-heading" class="rt-box-title">${t("rings.current_member")}</h2>
+                <div class="rt-tour-body">
+                    <p class="rt-tour-title">
+                        <b id="tour-member-title">Loading...</b>
+                        <a id="tour-member-rss" href="#" target="_blank" rel="noopener noreferrer" class="rt-tag rt-tag-manual hidden">RSS</a>
+                    </p>
+                    <p id="tour-member-desc" class="rt-dash-ring-desc">-</p>
+                    <p class="rt-tour-url"><a id="tour-member-url" href="#" target="_blank" rel="noopener noreferrer">https://...</a></p>
+                    <div class="rt-tour-nav">
+                        <a href="/nav/prev?ring=${encodeURIComponent(ringUri)}" id="tour-btn-prev" class="rt-bevel" aria-label="${t("rings.prev_member")}">≪ ${t("rings.prev_member")}</a>
+                        <a href="/nav/random?ring=${encodeURIComponent(ringUri)}" id="tour-btn-random" class="rt-bevel" aria-label="${t("rings.random_member")}">${t("rings.random_member")}</a>
+                        <a href="/nav/next?ring=${encodeURIComponent(ringUri)}" id="tour-btn-next" class="rt-bevel" aria-label="${t("rings.next_member")}">${t("rings.next_member")} ≫</a>
+                    </div>
+                    <button type="button" id="tour-btn-visit" class="rt-bevel rt-go rt-block">${t("rings.visit_site")}</button>
+                    <p class="rt-tour-companion">
+                        <button type="button" id="btn-open-companion-win" class="rt-link-btn">${t("rings.open_companion_window")}</button>
+                        ｜ <a href="${companionUrl}" target="_blank" rel="noopener">${t("rings.open_companion_tab")}</a>
+                    </p>
+                </div>
+            </section>
+        `
+                : ""
+        }
+
+        <section class="rt-box" aria-labelledby="members-heading">
+            <h2 id="members-heading" class="rt-box-title">${t("rings.members_count_label", { count: members?.length || 0 })}</h2>
+            ${
+                members && members.length > 0
+                    ? html`<ul class="rt-ring-list">
+                ${members.map(
+                    (site, i) => html`
+                    <li class="rt-ring-row${i === 0 ? " rt-ring-row-first" : ""}">
+                        <span class="rt-ring-head">
+                            <span class="rt-mark" aria-hidden="true">◆</span>
+                            <a href="${safeHref(site.url)}" target="_blank" rel="noopener noreferrer" class="rt-ring-name">${site.title}</a>
+                            <span class="rt-ring-meta">${displayUrl(site.url)}</span>
+                            ${site.rss_url ? html`<a href="${safeHref(site.rss_url)}" target="_blank" rel="noopener noreferrer" class="rt-tag rt-tag-manual">RSS</a>` : ""}
+                        </span>
+                        ${site.description ? html`<span class="rt-ring-desc">${site.description}</span>` : ""}
+                    </li>
+                `,
+                )}
+            </ul>`
+                    : html`<p class="rt-empty">${t("rings.no_members_found")}</p>`
+            }
+        </section>
+        <p class="rt-right"><a href="/rings">${t("common.back_to_list")}</a></p>
         ${
             navMembers.length > 0
                 ? html`<script>${raw(generateRingTourScript(ringUri, navMembers, initialMemberUri || null))}</script>`

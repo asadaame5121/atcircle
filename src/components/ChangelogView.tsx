@@ -17,6 +17,44 @@ interface ChangelogEntry {
 
 const changelogData: ChangelogEntry[] = [
     {
+        version: "v0.5.0",
+        date: "2026-11",
+        title: {
+            ja: "90年代後半風デザインに刷新 & 参加の流れを整理",
+            en: "Late-90s redesign & simpler joining flow",
+        },
+        items: [
+            {
+                type: "improvement",
+                text: {
+                    ja: "全画面を90年代後半の個人サイト風デザインに刷新（丸ゴシック、スマホ幅にも対応）",
+                    en: "Redesigned every page in a late-90s personal-site style (rounded gothic font, mobile friendly)",
+                },
+            },
+            {
+                type: "feature",
+                text: {
+                    ja: "ログイン → リングに入る → ウィジェットを貼る の3ステップで迷わない流れに",
+                    en: "A clear 3-step flow: log in → join a ring → paste the widget",
+                },
+            },
+            {
+                type: "feature",
+                text: {
+                    ja: "ログイン時にハンドル候補を表示。リングの検索と、新しいリングを立ち上げる画面を追加",
+                    en: "Handle suggestions on login, ring search, and a new page to start a ring",
+                },
+            },
+            {
+                type: "improvement",
+                text: {
+                    ja: "承認制リングは承認されるまでコードを出さず、承認待ちの画面とダッシュボード表示を追加",
+                    en: "Approval-based rings now show a waiting page and dashboard status until approved",
+                },
+            },
+        ],
+    },
+    {
         version: "v0.4.0",
         date: "2026-08",
         title: {
@@ -170,82 +208,41 @@ const changelogData: ChangelogEntry[] = [
     },
 ];
 
-const renderBadge = (type: ChangelogEntry["items"][0]["type"], t: any) => {
-    switch (type) {
-        case "feature":
-            return html`<span class="badge badge-primary badge-sm font-semibold">${t("changelog.badge_feature")}</span>`;
-        case "improvement":
-            return html`<span class="badge badge-info badge-sm font-semibold">${t("changelog.badge_improvement")}</span>`;
-        case "fix":
-            return html`<span class="badge badge-warning badge-sm font-semibold">${t("changelog.badge_fix")}</span>`;
-        case "docs":
-            return html`<span class="badge badge-neutral badge-sm font-semibold">${t("changelog.badge_docs")}</span>`;
-    }
+const BADGE_CLASS: Record<ChangelogEntry["items"][0]["type"], string> = {
+    feature: "rt-tag-feature",
+    improvement: "rt-tag-auto",
+    fix: "rt-tag-manual",
+    docs: "rt-tag-off",
 };
+
+const renderBadge = (type: ChangelogEntry["items"][0]["type"], t: any) =>
+    html`<span class="rt-tag ${BADGE_CLASS[type]}">${t(`changelog.badge_${type}`)}</span>`;
 
 export const ChangelogView = ({ lang, t }: ChangelogViewProps) => {
     const isJa = lang === "ja" || !lang;
 
     return html`
-        <div class="max-w-4xl mx-auto space-y-8">
-            <!-- Header Banner -->
-            <div class="bg-base-100 rounded-box border border-base-300 p-6 sm:p-8 shadow-sm">
-                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div>
-                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-2">
-                            <i class="fa-solid fa-clock-rotate-left"></i> ${t("common.changelog")}
-                        </div>
-                        <h1 class="text-3xl font-extrabold text-base-content tracking-tight">${t("changelog.title")}</h1>
-                        <p class="mt-2 text-sm sm:text-base opacity-75 leading-relaxed">${t("changelog.subtitle")}</p>
-                    </div>
-                    <div class="flex gap-2 shrink-0">
-                        <a href="/help" class="btn btn-outline btn-sm gap-2">
-                            <i class="fa-solid fa-circle-question"></i> ${t("common.help")}
-                        </a>
-                        <a href="https://github.com/asadaame5121/atcircle/releases" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm gap-2">
-                            <i class="fa-brands fa-github"></i> Releases
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Timeline Entries -->
-            <div class="space-y-6">
-                ${changelogData.map(
-                    (entry) => html`
-                    <div class="card bg-base-100 border border-base-300 shadow-sm overflow-hidden">
-                        <div class="card-header bg-base-200/50 px-6 py-4 border-b border-base-200 flex flex-wrap items-center justify-between gap-2">
-                            <div class="flex items-center gap-3">
-                                <span class="badge badge-lg badge-primary font-mono font-bold">${entry.version}</span>
-                                <h2 class="text-lg font-bold">${isJa ? entry.title.ja : entry.title.en}</h2>
-                            </div>
-                            <span class="text-xs font-semibold opacity-60 flex items-center gap-1.5">
-                                <i class="fa-regular fa-calendar"></i> ${entry.date}
-                            </span>
-                        </div>
-                        <div class="card-body p-6">
-                            <ul class="space-y-3">
-                                ${entry.items.map(
-                                    (item) => html`
-                                    <li class="flex items-start gap-3 text-sm">
-                                        <div class="shrink-0 mt-0.5">${renderBadge(item.type, t)}</div>
-                                        <span class="opacity-85 leading-relaxed">${isJa ? item.text.ja : item.text.en}</span>
-                                    </li>
-                                `,
-                                )}
-                            </ul>
-                        </div>
-                    </div>
-                `,
-                )}
-            </div>
-
-            <!-- Back to Help / Home -->
-            <div class="text-center pt-4">
-                <a href="/help" class="btn btn-ghost btn-sm gap-2">
-                    <i class="fa-solid fa-arrow-left"></i> ${t("changelog.back_to_help")}
-                </a>
-            </div>
-        </div>
+        <h1 class="rt-h1">■ ${t("changelog.title")} ■</h1>
+        <p class="rt-lead">${t("changelog.subtitle")}<br>
+            <a href="https://github.com/asadaame5121/atcircle/releases" target="_blank" rel="noopener noreferrer">GitHub Releases</a>
+        </p>
+        ${changelogData.map(
+            (entry) => html`
+            <section class="rt-box rt-section" aria-labelledby="cl-${entry.version}">
+                <h2 id="cl-${entry.version}" class="rt-box-title">${entry.version} ｜ ${entry.date} ｜ ${isJa ? entry.title.ja : entry.title.en}</h2>
+                <ul class="rt-ring-list">
+                    ${entry.items.map(
+                        (item, i) => html`
+                        <li class="rt-ring-row rt-changelog-item${i === 0 ? " rt-ring-row-first" : ""}">
+                            ${renderBadge(item.type, t)}
+                            <span>${isJa ? item.text.ja : item.text.en}</span>
+                        </li>
+                    `,
+                    )}
+                </ul>
+            </section>
+        `,
+        )}
+        <p class="rt-right"><a href="/help">${t("changelog.back_to_help")}</a></p>
     `;
 };

@@ -67,6 +67,7 @@ app.use(
             connectSrc: [
                 "'self'",
                 "https://queue.simpleanalyticscdn.com",
+                "https://public.api.bsky.app", // ログイン時のハンドル候補（searchActorsTypeahead）
                 "https://scripts.simpleanalyticscdn.com", // Maps
                 "https://cdn.jsdelivr.net", // Maps
             ], // Simple Analytics events

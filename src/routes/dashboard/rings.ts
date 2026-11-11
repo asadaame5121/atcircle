@@ -23,16 +23,20 @@ const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
 app.post("/create", zValidator("form", createRingSchema), async (c) => {
     const payload = c.get("jwtPayload");
     const did = payload.sub;
-    const { title, description } = c.req.valid("form");
+    const form = c.req.valid("form");
+    const { title, description } = form;
+    const acceptancePolicy = form.acceptance_policy;
 
+    let ringUri = "";
     try {
         const agent = await restoreAgent(c.env.DB, PUBLIC_URL, did);
         if (!agent) return c.redirect("/login");
 
-        const ringUri = await AtProtoService.createRing(
+        ringUri = await AtProtoService.createRing(
             agent,
             title,
             description || "",
+            acceptancePolicy,
         );
 
         // 1. Save to local DB
@@ -41,16 +45,38 @@ app.post("/create", zValidator("form", createRingSchema), async (c) => {
             description,
             admin: did,
             status: "open",
-            acceptancePolicy: "automatic",
+            acceptancePolicy,
         });
 
-        // 2. UX Improvement: Auto-join my own site
-        const mySite = (await c.env.DB.prepare(
+        // 2. 自分のサイトも参加させる。サイト未登録ならフォームの値で登録する
+        let mySite = (await c.env.DB.prepare(
             "SELECT * FROM sites WHERE user_did = ?",
         )
             .bind(did)
             .first()) as any;
-        if (mySite && ringUri) {
+        if (!mySite && form.url && form.site_title) {
+            await c.env.DB.prepare(
+                "INSERT INTO sites (user_did, url, title, rss_url, is_active) VALUES (?, ?, ?, ?, 1)",
+            )
+                .bind(did, form.url, form.site_title, form.rss || null)
+                .run();
+            mySite = (await c.env.DB.prepare(
+                "SELECT * FROM sites WHERE user_did = ?",
+            )
+                .bind(did)
+                .first()) as any;
+        }
+        const joinSite =
+            form.url && form.site_title
+                ? { url: form.url, title: form.site_title, rss: form.rss || "" }
+                : mySite
+                  ? {
+                        url: mySite.url,
+                        title: mySite.title,
+                        rss: mySite.rss_url || "",
+                    }
+                  : null;
+        if (mySite && joinSite && ringUri) {
             pinoLogger.info({
                 msg: "[AutoJoin] Automatically joining site to new ring",
                 did,
@@ -60,11 +86,7 @@ app.post("/create", zValidator("form", createRingSchema), async (c) => {
                 const memberUri = await AtProtoService.joinRing(
                     agent,
                     ringUri,
-                    {
-                        url: mySite.url,
-                        title: mySite.title,
-                        rss: mySite.rss_url || "",
-                    },
+                    joinSite,
                 );
 
                 // Save membership locally
@@ -85,7 +107,10 @@ app.post("/create", zValidator("form", createRingSchema), async (c) => {
         return c.text("Failed to create ring", 500);
     }
 
-    return c.redirect("/dashboard?msg=created");
+    // 作成したらそのままウィジェットの取得へ進む
+    return c.redirect(
+        `/dashboard/ring/widget?ring_uri=${encodeURIComponent(ringUri)}`,
+    );
 });
 
 // POST /dashboard/ring/join
@@ -110,8 +135,23 @@ app.post("/join", zValidator("form", joinRingSchema), async (c) => {
             .bind(ringUri, did, ringUri, did)
             .first();
 
+        const widgetUrl = `/dashboard/ring/widget?ring_uri=${encodeURIComponent(ringUri)}`;
         if (existing) {
-            return c.redirect("/dashboard?msg=already_joined_or_requested");
+            return c.redirect(widgetUrl);
+        }
+
+        // 0.5 サイト未登録なら、参加フォームに入力されたサイトを登録する
+        const registered = await c.env.DB.prepare(
+            "SELECT id FROM sites WHERE user_did = ?",
+        )
+            .bind(did)
+            .first();
+        if (!registered) {
+            await c.env.DB.prepare(
+                "INSERT INTO sites (user_did, url, title, rss_url, is_active) VALUES (?, ?, ?, ?, 1)",
+            )
+                .bind(did, url, title, rss || null)
+                .run();
         }
 
         // 1. Fetch Ring Metadata and Save/Update locally
@@ -182,7 +222,10 @@ app.post("/join", zValidator("form", joinRingSchema), async (c) => {
         }
 
         ringIndex.invalidate(ringUri);
-        return c.redirect(`/dashboard?msg=joined&policy=${acceptancePolicy}`);
+        // 自動承認はそのままウィジェットへ、承認制は承認待ちの画面へ（同じURLで出し分ける）
+        return c.redirect(
+            `${widgetUrl}&${acceptancePolicy === "manual" ? "requested" : "joined"}=1`,
+        );
     } catch (e: any) {
         pinoLogger.error({
             msg: "Error joining ring",

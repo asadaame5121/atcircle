@@ -1,12 +1,22 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
+import { CreateView } from "../components/CreateView.js";
+import { FindView, RecentTicker } from "../components/FindView.js";
 import { Layout } from "../components/Layout.js";
 import { RingDetailView } from "../components/RingDetailView.js";
-import { RingListView } from "../components/RingListView.js";
+import { logger as pinoLogger } from "../lib/logger.js";
 import { toNavigationMembers } from "../lib/navigation-session.js";
+import { getOptionalSession } from "../middleware/auth.js";
 import { RingRepository } from "../repositories/ring.repository.js";
 import { ringQuerySchema } from "../schemas/index.js";
-import { AtProtoService } from "../services/atproto.js";
+import {
+    filterRings,
+    getJoinContext,
+    getMySite,
+    getRecentActivity,
+    type JoinContext,
+    type RecentActivity,
+} from "../services/find-rings.js";
 import { generateOpml } from "../services/opml.js";
 import { findRing, refreshRingCache } from "../services/ring-cache.js";
 import { getApprovedMembers } from "../services/ring-members.js";
@@ -14,35 +24,82 @@ import type { AppVariables, Bindings } from "../types/bindings.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
 
-// List all rings
+// リングを探す（一覧・検索・選んだリングへの参加）
 app.get("/", async (c) => {
     const t = c.get("t");
     const lang = c.get("lang");
-    const ringRepo = new RingRepository(c.env.DB);
-    const rings = await ringRepo.getAllWithMemberCount({ onlyOpen: true });
+    const q = (c.req.query("q") ?? "").slice(0, 100);
+    const selectedUri = c.req.query("select") || undefined;
 
-    // Resolve owner DIDs to handles (best-effort; fall back to short DID)
-    const ownerLabels: Record<string, string> = {};
-    try {
-        const dids = [
-            ...new Set(rings.map((r) => r.owner_did).filter(Boolean)),
-        ];
-        if (dids.length > 0) {
-            const profiles = await AtProtoService.getProfilesPublic(dids);
-            for (const p of profiles.profiles) {
-                ownerLabels[p.did] = p.displayName || p.handle || p.did;
-            }
+    const ringRepo = new RingRepository(c.env.DB);
+    const all = await ringRepo.getAllWithMemberCount({ onlyOpen: true });
+    const rings = filterRings(
+        [...all].sort((a, b) => (b.member_count ?? 0) - (a.member_count ?? 0)),
+        q,
+    );
+
+    const session = await getOptionalSession(c);
+    const selected = selectedUri
+        ? rings.find((r) => r.uri === selectedUri)
+        : undefined;
+    let join: JoinContext | null = null;
+    if (session && selected) {
+        try {
+            join = await getJoinContext(c.env.DB, session.sub, selected.uri);
+        } catch (e) {
+            pinoLogger.error({ msg: "Join context load failed", error: e });
         }
-    } catch {
-        // Keep raw DIDs on profile resolution failure
+    }
+
+    let recent: RecentActivity[] = [];
+    try {
+        recent = await getRecentActivity(c.env.DB);
+    } catch (e) {
+        pinoLogger.error({ msg: "Recent activity load failed", error: e });
     }
 
     return c.html(
         Layout({
             title: t("rings.explore_title"),
             t,
+            current: "rings",
             lang,
-            children: RingListView({ rings, ownerLabels, t }),
+            ticker: RecentTicker({ items: recent, t }),
+            children: FindView({
+                rings,
+                q,
+                selectedUri,
+                loggedIn: !!session,
+                join,
+                t,
+            }),
+        }),
+    );
+});
+
+// リングを立ち上げる（要ログイン）
+app.get("/new", async (c) => {
+    const session = await getOptionalSession(c);
+    if (!session) {
+        return c.redirect(`/login?next=${encodeURIComponent("/rings/new")}`);
+    }
+    const t = c.get("t");
+    const lang = c.get("lang");
+
+    let site: JoinContext["site"] = null;
+    try {
+        site = await getMySite(c.env.DB, session.sub);
+    } catch (e) {
+        pinoLogger.error({ msg: "Site load failed", error: e });
+    }
+
+    return c.html(
+        Layout({
+            title: t("create.page_title"),
+            t,
+            current: "rings",
+            lang,
+            children: CreateView({ site, t }),
         }),
     );
 });
@@ -71,6 +128,7 @@ app.get("/view", zValidator("query", ringQuerySchema), async (c) => {
         Layout({
             title: `${ring.title} - Site List`,
             t,
+            current: "rings",
             lang,
             ogImage: ring.banner_url || undefined,
             children: RingDetailView({

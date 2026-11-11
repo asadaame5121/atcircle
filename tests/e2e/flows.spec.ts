@@ -29,8 +29,8 @@ if (e2eEnabled) {
         await expect(page.getByText(site.title)).toBeVisible();
     }
 
-    async function ringCard(page: Page) {
-        return page.locator(".card", { hasText: RING_TITLE });
+    function ringCard(page: Page) {
+        return page.locator("article.rt-dash-ring", { hasText: RING_TITLE });
     }
 
     test("alice registers a site (idempotent)", async ({ page }) => {
@@ -41,32 +41,26 @@ if (e2eEnabled) {
 
     test("alice creates a ring", async ({ page }) => {
         await oauthLogin(page, E2E_ACCOUNTS.alice);
-        await page.goto("/dashboard");
-        await page.getByRole("button", { name: /create webring/i }).click();
-        const modal = page.locator("#create_ring_modal[open]");
-        await modal.waitFor();
-        await modal.locator('input[name="title"]').fill(RING_TITLE);
-        await modal.locator('textarea[name="description"]').fill(
+        await page.goto("/rings/new");
+        await page.locator('input[name="title"]').fill(RING_TITLE);
+        await page.locator('textarea[name="description"]').fill(
             "E2E test ring",
         );
-        await modal.locator('button[type="submit"]').click();
-        await expect(page).toHaveURL(/msg=created/);
-
-        const card = page.locator(".card", { hasText: RING_TITLE });
-        await card.waitFor();
-        // The ring URI is now hidden behind the "Copy URI" button (data-uri)
-        const copyBtn = card.locator('button[data-uri^="at://"]').first();
-        await copyBtn.waitFor();
-        ringUri = (await copyBtn.getAttribute("data-uri")) || "";
+        await page.getByRole("button", { name: /create/i }).click();
+        // 作成するとそのままウィジェットの画面へ進む
+        await expect(page).toHaveURL(/\/dashboard\/ring\/widget\?ring_uri=/);
+        ringUri =
+            new URL(page.url()).searchParams.get("ring_uri") || "";
         expect(ringUri).toMatch(/^at:\/\//);
     });
 
     test("alice switches the ring to manual acceptance", async ({ page }) => {
         await oauthLogin(page, E2E_ACCOUNTS.alice);
         await page.goto("/dashboard");
-        const card = page.locator(".card", { hasText: RING_TITLE });
+        const card = ringCard(page);
         await card.waitFor();
-        await card.getByRole("button", { name: /configure ring/i }).click();
+        await card.locator("details.rt-menu > summary").click();
+        await card.getByRole("button", { name: /ring settings/i }).click();
         const modal = page.locator("#circle_config_modal[open]");
         await modal.waitFor();
         await modal.locator("#config-acceptance").selectOption("manual");
@@ -80,21 +74,22 @@ if (e2eEnabled) {
         await oauthLogin(page, E2E_ACCOUNTS.bob);
         await registerSite(page, bobSite);
 
-        await page.getByRole("button", { name: /join webring/i }).click();
-        const modal = page.locator("#join_ring_modal[open]");
-        await modal.waitFor();
-        await modal.locator("#join-ring-uri").fill(ringUri);
-        await modal.locator('input[name="url"]').fill(bobSite.url);
-        await modal.locator('input[name="title"]').fill(bobSite.title);
-        await modal.locator('button[type="submit"]').click();
-        await expect(page).toHaveURL(/msg=joined&policy=manual/);
+        // 「リングを探す」の参加欄から申請する
+        await page.goto(`/rings?select=${encodeURIComponent(ringUri)}#join`);
+        const join = page.locator("#join");
+        await join.locator('input[name="url"]').fill(bobSite.url);
+        await join.locator('input[name="title"]').fill(bobSite.title);
+        await join.getByRole("button", { name: /request to join/i }).click();
+        // 承認制なので承認待ちの画面になり、コードは出ない
+        await expect(page).toHaveURL(/\/dashboard\/ring\/widget\?.*requested=1/);
+        await expect(page.locator("#w-code")).toHaveCount(0);
     });
 
     test("alice approves bob's join request", async ({ page }) => {
         await oauthLogin(page, E2E_ACCOUNTS.alice);
         await page.goto("/dashboard");
-        const requestCard = page.locator(".card", {
-            hasText: `Join Request for ${RING_TITLE}`,
+        const requestCard = page.locator("#requests .rt-mod-row", {
+            hasText: bobSite.title,
         });
         await requestCard.waitFor({ timeout: 15_000 });
         await requestCard.getByRole("button", { name: /approve/i }).click();
@@ -106,7 +101,7 @@ if (e2eEnabled) {
     test("bob sees the ring listed on the dashboard", async ({ page }) => {
         await oauthLogin(page, E2E_ACCOUNTS.bob);
         await page.goto("/dashboard");
-        const card = page.locator(".card", { hasText: RING_TITLE });
+        const card = ringCard(page);
         await card.waitFor();
         await expect(card).toBeVisible();
     });
@@ -121,15 +116,13 @@ if (e2eEnabled) {
         page.on("dialog", (dialog) => dialog.accept());
         await oauthLogin(page, E2E_ACCOUNTS.bob);
         await page.goto("/dashboard");
-        const card = page.locator(".card", { hasText: RING_TITLE });
+        const card = ringCard(page);
         await card.waitFor();
-        await card.getByRole("button", { name: /leave/i }).click();
+        await card.locator("details.rt-menu > summary").click();
+        await card.getByRole("button", { name: /leave ring/i }).click();
         await expect(page).toHaveURL(/msg=left/);
-        // The leave action (isMember section) disappears from the card
-        const cardAfter = await ringCard(page);
-        await expect(
-            cardAfter.getByRole("button", { name: /leave/i }),
-        ).toHaveCount(0);
+        // 離脱するとそのリングは一覧から消える
+        await expect(ringCard(page)).toHaveCount(0);
     });
 
     test("admin can access the admin stats page", async ({ page }) => {

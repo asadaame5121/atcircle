@@ -146,3 +146,43 @@ describe("Dashboard Route", () => {
         expect(text).not.toContain("openInviteModal");
     });
 });
+
+describe("ダッシュボード：自分が申請中のリング", () => {
+    it("承認待ちの申請もリング一覧に入れる", async () => {
+        vi.spyOn(AtProtoService, "listRings").mockResolvedValue([]);
+        vi.spyOn(AtProtoService, "listMemberRecords").mockResolvedValue([]);
+        vi.spyOn(oauth, "restoreAgent").mockResolvedValue({} as any);
+        const token = await createMockAuthToken("did:plc:me", "me.test");
+        const env = {
+            DB: createMockDB({
+                first: { id: 1, url: "https://site.com", title: "Site 1" },
+                all: (query: string) =>
+                    query.includes("jr.user_did = ?")
+                        ? [
+                              {
+                                  ring_uri: "at://did:plc:y/ring/req",
+                                  atproto_uri: "at://did:plc:me/request/1",
+                                  title: "読書ブログの輪",
+                                  description: "本の感想",
+                                  member_count: 5,
+                              },
+                          ]
+                        : [],
+            }),
+        };
+        const res = await wrapApp(dashboardApp).request(
+            "/",
+            {
+                headers: {
+                    Cookie: `session=${token}`,
+                    "Accept-Language": "ja",
+                },
+            },
+            env,
+        );
+        const text = await res.text();
+        expect(text).toContain("読書ブログの輪");
+        expect(text).toContain("承認待ち");
+        expect(text).toContain("申請を取り消す");
+    });
+});
