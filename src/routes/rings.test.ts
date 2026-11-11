@@ -130,3 +130,54 @@ describe("リング詳細（90年代後半風）", () => {
         }
     });
 });
+
+describe("コンパニオン画面（90年代後半風）", () => {
+    it("独自CSSで描き、daisyUI・Font Awesome は読み込まない。スクリプトが使う要素は残す", async () => {
+        const env = {
+            DB: createMockDB({
+                first: { id: 1, title: "Test Ring", uri: "at://test" },
+                all: [
+                    {
+                        id: 1,
+                        title: "Member 1",
+                        url: "https://site1.com",
+                        member_uri: "at://member1",
+                    },
+                ],
+            }),
+        };
+        const app = wrapApp(ringsApp);
+        const res = await app.request(
+            "/companion?ring=at://test",
+            { headers: { "Accept-Language": "ja" } },
+            env,
+        );
+        const text = await res.text();
+        expect(text).not.toContain("daisyui");
+        expect(text).not.toContain("font-awesome");
+        expect(text).toContain("family=DotGothic16");
+        expect(text).toContain("rt-body");
+        for (const id of [
+            "member-card",
+            "member-title",
+            "member-desc",
+            "member-url",
+            "member-url-link",
+            "member-rss-badge",
+            "member-rss-link",
+            "invalid-url-alert",
+            "no-members-alert",
+            "member-unavailable-alert",
+            "history-count",
+            "btn-prev",
+            "btn-next",
+            "btn-random",
+            "btn-visit",
+            "chk-auto-open",
+            "btn-start-over",
+            "btn-clear-session",
+        ]) {
+            expect(text).toContain(`id="${id}"`);
+        }
+    });
+});
