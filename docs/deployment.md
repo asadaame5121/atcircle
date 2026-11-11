@@ -87,6 +87,8 @@ GitHub Actions (repo level):
 
 Fly secrets はアプリごとに設定済み。変更は `fly secrets set -a <app> KEY=VALUE`。
 
+承認通知（公式アカウントからのメンション）を有効にするには、本番アプリに `NOTIFY_APP_PASSWORD`（atcircle.bsky.social のアプリパスワード）を設定する：`fly secrets set -a <app> NOTIFY_APP_PASSWORD=xxxx-xxxx-xxxx-xxxx`。未設定なら通知は送らず、承認待ち画面にも通知の手順は出ない。
+
 ## 6. 参考
 
 - dev PDS の構成・アカウント・招待コード: `pds/README.md`

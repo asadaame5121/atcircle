@@ -6,6 +6,7 @@ import {
 } from "../../../tests/route-utils.js";
 import { AtProtoService } from "../../services/atproto.js";
 import { MembershipActions } from "../../services/membership-actions.js";
+import { approvalNotifier } from "../../services/notification.js";
 import * as oauth from "../../services/oauth.js";
 import { publicRecords } from "../../services/public-records.js";
 import dashboardApp from "../dashboard.js";
@@ -146,5 +147,56 @@ describe("承認・拒否は decision レコードを PDS に書く", () => {
         });
         expect(res.status).toBe(403);
         expect(AtProtoService.unblock).not.toHaveBeenCalled();
+    });
+});
+
+describe("承認したら申請者に Bluesky で通知する", () => {
+    beforeEach(() => {
+        vi.restoreAllMocks();
+        vi.spyOn(oauth, "restoreAgent").mockResolvedValue({
+            assertDid: OWNER,
+        } as any);
+        vi.spyOn(MembershipActions, "decide").mockResolvedValue(undefined);
+        vi.spyOn(publicRecords, "getRecord").mockResolvedValue({
+            uri: RING,
+            cid: "c",
+            value: { admin: OWNER },
+        });
+        vi.spyOn(approvalNotifier, "notifyApproval").mockResolvedValue(true);
+    });
+
+    it("承認すると、申請レコードの持ち主にリング名つきで通知する", async () => {
+        const { res } = await post(
+            OWNER,
+            "/request/approve",
+            { ring_uri: RING, subject_uri: REQUEST },
+            { title: "個人サイトの集い" },
+        );
+        expect(res.status).toBe(302);
+        expect(approvalNotifier.notifyApproval).toHaveBeenCalledWith({
+            subjectDid: "did:plc:alice",
+            ringUri: RING,
+            ringTitle: "個人サイトの集い",
+        });
+    });
+
+    it("拒否では通知しない", async () => {
+        await post(OWNER, "/request/reject", {
+            ring_uri: RING,
+            subject_uri: REQUEST,
+        });
+        expect(approvalNotifier.notifyApproval).not.toHaveBeenCalled();
+    });
+
+    it("通知に失敗しても承認は完了する", async () => {
+        vi.spyOn(approvalNotifier, "notifyApproval").mockRejectedValue(
+            new Error("boom"),
+        );
+        const { res } = await post(OWNER, "/request/approve", {
+            ring_uri: RING,
+            subject_uri: REQUEST,
+        });
+        expect(res.status).toBe(302);
+        expect(res.headers.get("Location")).toContain("msg=approved");
     });
 });

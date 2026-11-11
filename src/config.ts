@@ -39,3 +39,10 @@ export const SLINGSHOT_URL = (
 export const CONSTELLATION_URL = (
     process.env.CONSTELLATION_URL || "https://constellation.microcosm.blue"
 ).replace(/\/$/, "");
+
+// 承認通知を送る公式アカウント。アプリパスワードが未設定なら通知しない
+export const NOTIFY_HANDLE =
+    process.env.NOTIFY_HANDLE || "atcircle.bsky.social";
+export const NOTIFY_APP_PASSWORD = process.env.NOTIFY_APP_PASSWORD || undefined;
+export const NOTIFY_SERVICE =
+    process.env.NOTIFY_SERVICE || "https://bsky.social";
