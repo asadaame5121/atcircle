@@ -11,6 +11,7 @@ import { DB_PATH, PORT, PUBLIC_URL } from "./config.js";
 import db from "./db.js";
 import { logger as pinoLogger } from "./lib/logger.js";
 import { updateAllFeeds } from "./services/feed.js";
+import { verifyAllWidgets } from "./services/widget-presence.js";
 
 // Create a new Hono instance for the Node.js server
 const server = new Hono();
@@ -43,6 +44,12 @@ function setupCron() {
                 msg: "[Cron] Scheduled update failed",
                 error: e,
             });
+        }
+        try {
+            const result = await verifyAllWidgets(db);
+            pinoLogger.info({ msg: "[Cron] Widget check finished", ...result });
+        } catch (e) {
+            pinoLogger.error({ msg: "[Cron] Widget check failed", error: e });
         }
     });
     pinoLogger.info("[Startup] Cron job scheduled (Daily at 00:00)");
