@@ -73,6 +73,7 @@ pnpm dev
 - `NODE_ENV=production`
 - `TURSO_DATABASE_URL` と `TURSO_AUTH_TOKEN`: Turso を利用する場合
 - `ADMIN_DID`: 管理機能を利用するアカウントの DID
+- `NOTIFY_APP_PASSWORD`: 承認時に公式アカウント（atcircle.bsky.social）から通知する場合のアプリパスワード（任意）
 
 設定項目の完全な一覧、データベース、テスト、デプロイ、障害対応については
 [開発・保守マニュアル](docs/development-maintenance.md)を参照してください。

@@ -252,7 +252,9 @@
         "pending_step_review": "Owner is reviewing",
         "pending_step_widget": "Paste the widget",
         "pending_note": "Once approved, you can get the widget from your dashboard.",
-        "pending_site": "Requested site"
+        "pending_site": "Requested site",
+        "pending_step_notify": "You get a Bluesky notification",
+        "pending_note_notify": "When approved, {{handle}} will mention you on Bluesky. You can also get it from your dashboard."
     },
     "widget_script": {
         "prev": "Prev",

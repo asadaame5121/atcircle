@@ -318,7 +318,9 @@
         "pending_step_review": "オーナーが確認中",
         "pending_step_widget": "ウィジェットを貼る",
         "pending_note": "承認されると、ダッシュボードからウィジェットを取得できます。",
-        "pending_site": "申請したサイト"
+        "pending_site": "申請したサイト",
+        "pending_step_notify": "Blueskyに通知が届く",
+        "pending_note_notify": "承認されると {{handle}} からBlueskyでお知らせします。ダッシュボードからも取得できます。"
     },
     "widget_script": {
         "prev": "前へ",

@@ -20,6 +20,10 @@ interface WidgetPendingProps {
     t: (key: string, params?: any) => string;
     /** 申請した直後なら true */
     justRequested?: boolean;
+    /** 承認時の Bluesky 通知が有効なら true */
+    notifyEnabled?: boolean;
+    /** 通知を送る公式アカウントのハンドル */
+    notifyHandle?: string;
 }
 
 /** 承認制リングの承認待ち画面。承認されるまで埋め込みコードは出さない */
@@ -28,6 +32,8 @@ export const WidgetPending = ({
     site,
     t,
     justRequested,
+    notifyEnabled = false,
+    notifyHandle = "atcircle.bsky.social",
 }: WidgetPendingProps) => html`
     ${ProgressSteps({ current: 2, pending: true, t })}
     ${justRequested ? html`<p class="rt-flash">★ ${t("widget_builder.requested_flash", { ring: ringTitle })} ★</p>` : ""}
@@ -37,13 +43,20 @@ export const WidgetPending = ({
             <li class="rt-box-title">${t("widget_builder.pending_steps_label")}</li>
             <li class="rt-step"><span aria-hidden="true" class="rt-check">✓</span> ${t("widget_builder.pending_step_requested")}</li>
             <li class="rt-step rt-step-now"><span aria-hidden="true" class="rt-mark">▶</span> <b>${t("widget_builder.pending_step_review")}</b></li>
+            ${notifyEnabled ? html`<li class="rt-step"><span aria-hidden="true" class="rt-todo">□</span> ${t("widget_builder.pending_step_notify")}</li>` : ""}
             <li class="rt-step"><span aria-hidden="true" class="rt-todo">□</span> ${t("widget_builder.pending_step_widget")}</li>
             <li class="rt-step rt-step-foot"><a href="/dashboard">${t("widget_builder.to_dashboard")}</a></li>
         </ol>
         <aside aria-label="${t("widget_builder.pending_site")}" class="rt-panel rt-find-join">
             <h2 class="rt-panel-title">${t("widget_builder.pending_site")}</h2>
             <p class="rt-pending-site"><b>${site.title}</b><br><a href="${safeHref(site.url, "#")}" target="_blank" rel="noopener noreferrer">${site.url}</a></p>
-            <p class="rt-note">${t("widget_builder.pending_note")}</p>
+            <p class="rt-note">${
+                notifyEnabled
+                    ? t("widget_builder.pending_note_notify", {
+                          handle: `@${notifyHandle}`,
+                      })
+                    : t("widget_builder.pending_note")
+            }</p>
         </aside>
     </div>
 `;
