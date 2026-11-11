@@ -162,3 +162,37 @@ describe("DashboardView（90年代後半風）", () => {
         expect(html).toContain("leave_modal");
     });
 });
+
+describe("ウィジェット未設置の表示", () => {
+    it("確認済みで未設置の参加にだけ「ウィジェット未設置」を出す", () => {
+        const html = String(
+            DashboardView({
+                ...base,
+                widgetStatus: {
+                    [OWN]: { checked: true, installed: false },
+                    [JOINED]: { checked: true, installed: true },
+                },
+            } as any),
+        );
+        const own = html.slice(
+            html.indexOf("個人サイトの集い"),
+            html.indexOf('aria-label="個人サイトの集いのその他の操作"'),
+        );
+        expect(own).toContain("ウィジェット未設置");
+        const joined = html.slice(
+            html.indexOf(">Obsidian<"),
+            html.indexOf('aria-label="Obsidianのその他の操作"'),
+        );
+        expect(joined).not.toContain("ウィジェット未設置");
+    });
+
+    it("まだ一度も確認していなければ出さない", () => {
+        const html = String(
+            DashboardView({
+                ...base,
+                widgetStatus: { [OWN]: { checked: false, installed: false } },
+            } as any),
+        );
+        expect(html).not.toContain("ウィジェット未設置");
+    });
+});

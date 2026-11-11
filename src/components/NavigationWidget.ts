@@ -28,6 +28,22 @@ class WebringNav extends HTMLElement {
         const banner = this.getAttribute("banner"); // Banner URL
              
         this.render(ring, theme, layout, customTitle, listUrl, banner);
+        this.ping(ring);
+    }
+
+    // 設置の確認のため、表示されたことを AT CIRCLE に知らせる（1ページにつきリングごと1回）。
+    // AT CIRCLE 自身の画面（取得画面のプレビュー）では知らせない
+    ping(ring) {
+        try {
+            if (!ring || window.location.origin === new URL("${baseUrl}").origin) return;
+            const sent = (window.__atcPinged = window.__atcPinged || {});
+            if (sent[ring]) return;
+            sent[ring] = true;
+            const site = this.getAttribute("site") || window.location.href;
+            const img = new Image();
+            img.referrerPolicy = "no-referrer";
+            img.src = "${baseUrl}/nav/ping?ring=" + encodeURIComponent(ring) + "&site=" + encodeURIComponent(site);
+        } catch (e) {}
     }
 
     async render(ring, theme, layout, customTitle, listUrl, banner) {
