@@ -18,6 +18,8 @@
 | [開発・保守マニュアル](development-maintenance.md) | セットアップ、設定、DB、テスト、デプロイ、監視、障害対応 |
 | [ATProto CRUD 仕様](spec/atproto_crud.md) | 独自レコードとローカルインデックスの役割 |
 | [Lexicon リファレンス](lexicons.md) | Lexicon から生成されたレコード定義 |
+| [Turso 依存の段階的削減計画](turso-reduction-plan.md) | PDS を正本にして Turso を外すまでの計画 |
+| [スペース対応の準備計画](spaces-readiness-plan.md) | ATProto スペース（非公開データ）への対応方針と準備 |
 | [リポジトリ README](../README.md) | プロジェクト概要と開発入口 |
 
 ## 編集時の注意
