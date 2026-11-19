@@ -3402,6 +3402,58 @@ export const schemaDict = {
             },
         },
     },
+    NetAsadaame5121AtCircleSite: {
+        lexicon: 1,
+        id: "net.asadaame5121.at-circle.site",
+        defs: {
+            main: {
+                type: "record",
+                description:
+                    "A personal website registered with AT CIRCLE. Webring memberships copy url, title and rss from here.",
+                key: "tid",
+                record: {
+                    type: "object",
+                    required: ["url", "title", "createdAt"],
+                    properties: {
+                        url: {
+                            type: "string",
+                            format: "uri",
+                            maxLength: 2000,
+                            description: "URL of the site (http or https)",
+                        },
+                        title: {
+                            type: "string",
+                            maxLength: 1000,
+                            maxGraphemes: 100,
+                            description: "Title of the site",
+                        },
+                        description: {
+                            type: "string",
+                            maxLength: 5000,
+                            maxGraphemes: 500,
+                            description: "Short description of the site",
+                        },
+                        rss: {
+                            type: "string",
+                            format: "uri",
+                            maxLength: 2000,
+                            description: "RSS or Atom feed URL",
+                        },
+                        link: {
+                            type: "ref",
+                            ref: "lex:com.atproto.repo.strongRef",
+                            description:
+                                "The app.bsky.actor.link record (profile link) this site was registered from, if any",
+                        },
+                        createdAt: {
+                            type: "string",
+                            format: "datetime",
+                        },
+                    },
+                },
+            },
+        },
+    },
     ToolsOzoneReportDefs: {
         id: "tools.ozone.report.defs",
         defs: {
@@ -3679,5 +3731,6 @@ export const ids = {
     NetAsadaame5121AtCircleMember: "net.asadaame5121.at-circle.member",
     NetAsadaame5121AtCircleRequest: "net.asadaame5121.at-circle.request",
     NetAsadaame5121AtCircleRing: "net.asadaame5121.at-circle.ring",
+    NetAsadaame5121AtCircleSite: "net.asadaame5121.at-circle.site",
     ToolsOzoneReportDefs: "tools.ozone.report.defs",
 } as const;

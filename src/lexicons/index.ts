@@ -18,6 +18,7 @@ import type * as NetAsadaame5121AtCircleDecision from "./types/net/asadaame5121/
 import type * as NetAsadaame5121AtCircleMember from "./types/net/asadaame5121/at-circle/member.js";
 import type * as NetAsadaame5121AtCircleRequest from "./types/net/asadaame5121/at-circle/request.js";
 import type * as NetAsadaame5121AtCircleRing from "./types/net/asadaame5121/at-circle/ring.js";
+import type * as NetAsadaame5121AtCircleSite from "./types/net/asadaame5121/at-circle/site.js";
 import type { OmitKey, Un$Typed } from "./util.js";
 
 export * as AppBskyActorDefs from "./types/app/bsky/actor/defs.js";
@@ -47,6 +48,7 @@ export * as NetAsadaame5121AtCircleDefs from "./types/net/asadaame5121/at-circle
 export * as NetAsadaame5121AtCircleMember from "./types/net/asadaame5121/at-circle/member.js";
 export * as NetAsadaame5121AtCircleRequest from "./types/net/asadaame5121/at-circle/request.js";
 export * as NetAsadaame5121AtCircleRing from "./types/net/asadaame5121/at-circle/ring.js";
+export * as NetAsadaame5121AtCircleSite from "./types/net/asadaame5121/at-circle/site.js";
 export * as ToolsOzoneReportDefs from "./types/tools/ozone/report/defs.js";
 
 export const APP_BSKY_ACTOR = {
@@ -564,6 +566,7 @@ export class NetAsadaame5121AtCircleNS {
     member: NetAsadaame5121AtCircleMemberRecord;
     request: NetAsadaame5121AtCircleRequestRecord;
     ring: NetAsadaame5121AtCircleRingRecord;
+    site: NetAsadaame5121AtCircleSiteRecord;
 
     constructor(client: XrpcClient) {
         this._client = client;
@@ -573,6 +576,7 @@ export class NetAsadaame5121AtCircleNS {
         this.member = new NetAsadaame5121AtCircleMemberRecord(client);
         this.request = new NetAsadaame5121AtCircleRequestRecord(client);
         this.ring = new NetAsadaame5121AtCircleRingRecord(client);
+        this.site = new NetAsadaame5121AtCircleSiteRecord(client);
     }
 }
 
@@ -1075,6 +1079,89 @@ export class NetAsadaame5121AtCircleRingRecord {
             "com.atproto.repo.deleteRecord",
             undefined,
             { collection: "net.asadaame5121.at-circle.ring", ...params },
+            { headers },
+        );
+    }
+}
+
+export class NetAsadaame5121AtCircleSiteRecord {
+    _client: XrpcClient;
+
+    constructor(client: XrpcClient) {
+        this._client = client;
+    }
+
+    async list(
+        params: OmitKey<ComAtprotoRepoListRecords.QueryParams, "collection">,
+    ): Promise<{
+        cursor?: string;
+        records: { uri: string; value: NetAsadaame5121AtCircleSite.Record }[];
+    }> {
+        const res = await this._client.call("com.atproto.repo.listRecords", {
+            collection: "net.asadaame5121.at-circle.site",
+            ...params,
+        });
+        return res.data;
+    }
+
+    async get(
+        params: OmitKey<ComAtprotoRepoGetRecord.QueryParams, "collection">,
+    ): Promise<{
+        uri: string;
+        cid: string;
+        value: NetAsadaame5121AtCircleSite.Record;
+    }> {
+        const res = await this._client.call("com.atproto.repo.getRecord", {
+            collection: "net.asadaame5121.at-circle.site",
+            ...params,
+        });
+        return res.data;
+    }
+
+    async create(
+        params: OmitKey<
+            ComAtprotoRepoCreateRecord.InputSchema,
+            "collection" | "record"
+        >,
+        record: Un$Typed<NetAsadaame5121AtCircleSite.Record>,
+        headers?: Record<string, string>,
+    ): Promise<{ uri: string; cid: string }> {
+        const collection = "net.asadaame5121.at-circle.site";
+        const res = await this._client.call(
+            "com.atproto.repo.createRecord",
+            undefined,
+            { collection, ...params, record: { ...record, $type: collection } },
+            { encoding: "application/json", headers },
+        );
+        return res.data;
+    }
+
+    async put(
+        params: OmitKey<
+            ComAtprotoRepoPutRecord.InputSchema,
+            "collection" | "record"
+        >,
+        record: Un$Typed<NetAsadaame5121AtCircleSite.Record>,
+        headers?: Record<string, string>,
+    ): Promise<{ uri: string; cid: string }> {
+        const collection = "net.asadaame5121.at-circle.site";
+        const res = await this._client.call(
+            "com.atproto.repo.putRecord",
+            undefined,
+            { collection, ...params, record: { ...record, $type: collection } },
+            { encoding: "application/json", headers },
+        );
+        return res.data;
+    }
+
+    async delete(
+        params: OmitKey<ComAtprotoRepoDeleteRecord.InputSchema, "collection">,
+        headers?: Record<string, string>,
+    ): Promise<void> {
+        await this._client.call(
+            "com.atproto.repo.deleteRecord",
+            undefined,
+            { collection: "net.asadaame5121.at-circle.site", ...params },
             { headers },
         );
     }

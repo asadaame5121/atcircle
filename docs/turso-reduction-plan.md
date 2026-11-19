@@ -17,7 +17,7 @@ ATProto（各ユーザーの PDS）を唯一の正本とし、Turso は「消え
 | `memberships.banner_url` / `widget_installed` | DB のみ | 表示用・確認結果のキャッシュ |
 | `join_requests` | 申請は PDS（request レコード）、**承認結果は DB のみ** | |
 | `block_records` | **PDS**（管理者の block レコード） | DB はキャッシュ |
-| `sites` | **DB のみ** | メンバーレコードにも url / title / rss はある |
+| `sites` | **PDS**（`site` レコード、2026-11 に移行） | DB はキャッシュ。説明文・RSS アンテナで使う |
 | `users` | ハンドルのキャッシュ | |
 | `antenna_items` | RSS のキャッシュ | |
 | `oauth_states` | サーバー側 OAuth セッション | 保存先が別途必要 |
@@ -69,7 +69,7 @@ ATProto（各ユーザーの PDS）を唯一の正本とし、Turso は「消え
 ### フェーズ 4: 残りを Turso 以外へ移し、Turso を外す
 
 - 残るのは OAuth セッション、RSS アンテナのキャッシュ、ウィジェット確認結果、
-  ハンドルのキャッシュ。
+  ハンドルのキャッシュ。サイト登録は `site` レコードとして PDS に移した。
 - 注意: 本番は Fly のマシン2台構成なので、マシンごとのローカル SQLite では
   セッションが共有されない。選択肢は次のどれか。
   - 書き込みをブラウザ側 OAuth に移し、サーバーはトークンを持たない

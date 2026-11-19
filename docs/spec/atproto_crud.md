@@ -14,10 +14,46 @@
 | ブロック | `net.asadaame5121.at-circle.block` | リング管理者 |
 | バナー | `net.asadaame5121.at-circle.banner` | リング管理者 |
 | 参加の判断 | `net.asadaame5121.at-circle.decision` | リング管理者 |
+| サイト登録 | `net.asadaame5121.at-circle.site` | サイトの持ち主 |
 
-OAuth クライアントは上記6コレクションへのリポジトリアクセスと、バナー用 blob
-アクセスを要求します。`decision` は後から追加したため、それ以前にログインした
-ユーザーは、承認・停止・キックの前にログインし直す必要があります。
+OAuth クライアントは上記7コレクションへのリポジトリアクセスと、バナー用 blob
+アクセスを要求します。`decision` と `site` は後から追加したため、それ以前に
+ログインしたユーザーは、承認・停止・キックやサイトの登録・編集の前に
+ログインし直す必要があります。
+
+## サイト登録
+
+サイト登録は持ち主のリポジトリの `site` レコードが正本です。キーは `tid` で、
+いまのアプリは最も古い 1 件をそのユーザーのサイトとして扱います (将来は複数
+サイトに広げられます)。
+
+```json
+{
+  "$type": "net.asadaame5121.at-circle.site",
+  "url": "https://example.com/",
+  "title": "Example Site",
+  "description": "個人サイトです",
+  "rss": "https://example.com/feed.xml",
+  "link": {
+    "uri": "at://did:plc:example/app.bsky.actor.link/3example",
+    "cid": "bafy..."
+  },
+  "createdAt": "2026-01-01T00:00:00.000Z"
+}
+```
+
+- `link` は任意。登録時に Bluesky プロフィールのリンク (`app.bsky.actor.link`)
+  から選んだ場合、その参照を残します。Bluesky 側のレコードは読むだけで、
+  書き込みません。
+- 登録フォームの候補は、プロフィール (`app.bsky.actor.profile`) の `links`
+  の順に `app.bsky.actor.link` を読んで作ります。`links` がなければ非推奨の
+  `website`、次にプロフィール説明文の URL を使います。
+- 登録・編集は PDS を先に書き、成功してから DB の `sites` (キャッシュ) を
+  更新します。DB の行には `site_uri` で正本の AT URI を記録します。
+- 移行: DB にだけある登録は、ダッシュボードの「同期」で `site` レコードとして
+  書き込みます。それまでは DB の登録を使います。
+- 参加 (member / request) レコードには、参加時点のサイトの URL・タイトル・RSS
+  が写されます。サイトを編集しても既存の参加レコードは変わりません。
 
 ## 共通の参照形式
 
@@ -248,7 +284,7 @@ Slingshot・Constellation に届かないときは、ローカル DB のキャ�
 | `join_requests` | 承認待ち申請のキャッシュ |
 | `memberships` | 参加状態のキャッシュ、ウィジェット設置確認、参加者バナー |
 | `block_records` | ブロックのキャッシュ |
-| `sites` | 参加サイトの説明・RSS (RSS アンテナ用) |
+| `sites` | サイト登録のキャッシュ (正本は `site` レコード、`site_uri` で対応)。説明文と RSS アンテナで使う |
 
 書き込みは PDS を先に行い、成功してからキャッシュを更新します。PDS に書けな
 かった場合はキャッシュを変えずにエラーを返します。

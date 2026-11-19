@@ -11,6 +11,8 @@ const pickScript = `
     form.url.value = r.dataset.url || "";
     form.title.value = r.dataset.title || "";
     form.rss_url.value = r.dataset.rss || "";
+    form.link_uri.value = r.dataset.linkUri || "";
+    form.link_cid.value = r.dataset.linkCid || "";
   });
 })();
 `;
@@ -36,13 +38,13 @@ export const RegistrationForm = (props: {
                     ${detectedSites.map(
                         (site, index) => html`
                         <label class="rt-choice">
-                            <input type="radio" name="site_selection" value="${index}" data-url="${site.url || ""}" data-title="${site.title || ""}" data-rss="${site.rss || ""}" ${index === 0 ? "checked" : ""} />
+                            <input type="radio" name="site_selection" value="${index}" data-url="${site.url || ""}" data-title="${site.title || ""}" data-rss="${site.rss || ""}" data-link-uri="${site.link?.uri || ""}" data-link-cid="${site.link?.cid || ""}" ${index === 0 ? "checked" : ""} />
                             <span><b>${site.url}</b>${site.title ? html`<br><span class="rt-ring-meta">${site.title}</span>` : ""}</span>
                         </label>
                     `,
                     )}
                     <label class="rt-choice">
-                        <input type="radio" name="site_selection" value="-1" data-url="" data-title="" data-rss="" />
+                        <input type="radio" name="site_selection" value="-1" data-url="" data-title="" data-rss="" data-link-uri="" data-link-cid="" />
                         <span>${t("dashboard.enter_manually")}</span>
                     </label>
                 </fieldset>
@@ -55,6 +57,10 @@ export const RegistrationForm = (props: {
 
                 <label class="rt-label" for="title">${t("dashboard.site_title")}</label>
                 <input type="text" name="title" id="title" required value="${defaultSite.title || ""}" class="rt-sunken rt-input" />
+
+                <!-- 選んだプロフィールのリンク (app.bsky.actor.link) -->
+                <input type="hidden" name="link_uri" id="link_uri" value="${defaultSite.link?.uri || ""}" />
+                <input type="hidden" name="link_cid" id="link_cid" value="${defaultSite.link?.cid || ""}" />
 
                 <details class="rt-rss"${defaultSite.rss ? " open" : ""}>
                     <summary>${t("find.add_rss")}</summary>

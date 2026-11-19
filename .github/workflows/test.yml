@@ -24,7 +24,9 @@ jobs:
           node-version: 24.22.1
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
+      # Chromium の実行に要るライブラリは runner に入っている。--with-deps は
+      # 追加フォントを apt で取りに行き、ミラーの不調で頻繁に落ちるので使わない
+      - run: pnpm exec playwright install chromium
       - run: pnpm build
       - run: pnpm exec playwright test tests/smoke.spec.ts
 
@@ -38,7 +40,9 @@ jobs:
           node-version: 24.22.1
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
+      # Chromium の実行に要るライブラリは runner に入っている。--with-deps は
+      # 追加フォントを apt で取りに行き、ミラーの不調で頻繁に落ちるので使わない
+      - run: pnpm exec playwright install chromium
       - run: pnpm exec playwright test -c playwright.e2e.config.ts --pass-with-no-tests
         env:
           E2E_DEV_PDS_URL: ${{ vars.E2E_DEV_PDS_URL }}

@@ -365,4 +365,64 @@
   }
 }
 ```
+---
+
+## net.asadaame5121.at-circle.site
+
+```json
+{
+  "lexicon": 1,
+  "id": "net.asadaame5121.at-circle.site",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "A personal website registered with AT CIRCLE. Webring memberships copy url, title and rss from here.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": [
+          "url",
+          "title",
+          "createdAt"
+        ],
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 2000,
+            "description": "URL of the site (http or https)"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 1000,
+            "maxGraphemes": 100,
+            "description": "Title of the site"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 5000,
+            "maxGraphemes": 500,
+            "description": "Short description of the site"
+          },
+          "rss": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 2000,
+            "description": "RSS or Atom feed URL"
+          },
+          "link": {
+            "type": "ref",
+            "ref": "com.atproto.repo.strongRef",
+            "description": "The app.bsky.actor.link record (profile link) this site was registered from, if any"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime"
+          }
+        }
+      }
+    }
+  }
+}
+```
 <!-- END lex generated TOC please keep comment here to allow auto update -->

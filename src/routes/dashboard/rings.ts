@@ -15,6 +15,7 @@ import { MembershipActions } from "../../services/membership-actions.js";
 import { restoreAgent } from "../../services/oauth.js";
 import { isOwnedBy } from "../../services/ring.service.js";
 import { ringIndex } from "../../services/ring-index.js";
+import { SiteService } from "../../services/site.service.js";
 import type { AppVariables, Bindings } from "../../types/bindings.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
@@ -49,23 +50,19 @@ app.post("/create", zValidator("form", createRingSchema), async (c) => {
         });
 
         // 2. 自分のサイトも参加させる。サイト未登録ならフォームの値で登録する
-        let mySite = (await c.env.DB.prepare(
-            "SELECT * FROM sites WHERE user_did = ?",
-        )
-            .bind(did)
-            .first()) as any;
-        if (!mySite && form.url && form.site_title) {
-            await c.env.DB.prepare(
-                "INSERT INTO sites (user_did, url, title, rss_url, is_active) VALUES (?, ?, ?, ?, 1)",
-            )
-                .bind(did, form.url, form.site_title, form.rss || null)
-                .run();
-            mySite = (await c.env.DB.prepare(
-                "SELECT * FROM sites WHERE user_did = ?",
-            )
-                .bind(did)
-                .first()) as any;
-        }
+        const mySite = (
+            form.url && form.site_title
+                ? await new SiteService(c.env.DB).ensureSite(agent, did, {
+                      url: form.url,
+                      title: form.site_title,
+                      rss: form.rss || "",
+                  })
+                : await c.env.DB.prepare(
+                      "SELECT * FROM sites WHERE user_did = ?",
+                  )
+                      .bind(did)
+                      .first()
+        ) as any;
         const joinSite =
             form.url && form.site_title
                 ? { url: form.url, title: form.site_title, rss: form.rss || "" }
@@ -140,19 +137,12 @@ app.post("/join", zValidator("form", joinRingSchema), async (c) => {
             return c.redirect(widgetUrl);
         }
 
-        // 0.5 サイト未登録なら、参加フォームに入力されたサイトを登録する
-        const registered = await c.env.DB.prepare(
-            "SELECT id FROM sites WHERE user_did = ?",
-        )
-            .bind(did)
-            .first();
-        if (!registered) {
-            await c.env.DB.prepare(
-                "INSERT INTO sites (user_did, url, title, rss_url, is_active) VALUES (?, ?, ?, ?, 1)",
-            )
-                .bind(did, url, title, rss || null)
-                .run();
-        }
+        // 0.5 サイト未登録なら、参加フォームに入力されたサイトを登録する (PDS が正本)
+        await new SiteService(c.env.DB).ensureSite(agent, did, {
+            url,
+            title,
+            rss,
+        });
 
         // 1. Fetch Ring Metadata and Save/Update locally
         let acceptancePolicy = "automatic";

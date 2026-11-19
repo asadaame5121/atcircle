@@ -171,6 +171,11 @@ describe("POST /dashboard/ring/join", () => {
         vi.spyOn(AtProtoService, "joinRing").mockResolvedValue(
             "at://did:plc:me/net.asadaame5121.at-circle.member/1",
         );
+        vi.spyOn(AtProtoService, "listSites").mockResolvedValue([]);
+        vi.spyOn(AtProtoService, "putSite").mockResolvedValue({
+            uri: "at://did:plc:me/net.asadaame5121.at-circle.site/1",
+            cid: "c",
+        });
     });
 
     const join = async (site: { id: number } | null) => {
@@ -178,7 +183,7 @@ describe("POST /dashboard/ring/join", () => {
         let siteRow = site;
         const db = createMockDB({
             first: (query: string) => {
-                if (query.includes("SELECT id FROM sites")) return siteRow;
+                if (/FROM sites WHERE user_did/.test(query)) return siteRow;
                 return null;
             },
             all: [],
@@ -211,9 +216,14 @@ describe("POST /dashboard/ring/join", () => {
         return { res, queries };
     };
 
-    it("サイト未登録なら入力されたサイトを登録してから参加を記録する", async () => {
+    it("サイト未登録なら入力されたサイトを PDS と DB に登録してから参加を記録する", async () => {
         const { res, queries } = await join(null);
         expect(res.status).toBe(302);
+        expect(AtProtoService.putSite).toHaveBeenCalledWith(expect.anything(), {
+            url: "https://example.com",
+            title: "Example",
+            rss: "",
+        });
         const siteInsert = queries.findIndex((q) =>
             /INSERT INTO sites/i.test(q),
         );
@@ -227,6 +237,7 @@ describe("POST /dashboard/ring/join", () => {
     it("サイト登録済みなら登録し直さない", async () => {
         const { queries } = await join({ id: 7 });
         expect(queries.some((q) => /INSERT INTO sites/i.test(q))).toBe(false);
+        expect(AtProtoService.putSite).not.toHaveBeenCalled();
         expect(
             queries.some((q) => /INSERT OR IGNORE INTO memberships/i.test(q)),
         ).toBe(true);
@@ -243,6 +254,11 @@ describe("POST /dashboard/ring/create", () => {
         vi.spyOn(AtProtoService, "joinRing").mockResolvedValue(
             "at://did:plc:me/net.asadaame5121.at-circle.member/1",
         );
+        vi.spyOn(AtProtoService, "listSites").mockResolvedValue([]);
+        vi.spyOn(AtProtoService, "putSite").mockResolvedValue({
+            uri: "at://did:plc:me/net.asadaame5121.at-circle.site/1",
+            cid: "c",
+        });
     });
 
     const create = async (form: Record<string, string>, site: any = null) => {
@@ -301,6 +317,11 @@ describe("POST /dashboard/ring/create", () => {
             site_title: "Example",
         });
         expect(queries.some((q) => /INSERT INTO sites/i.test(q))).toBe(true);
+        expect(AtProtoService.putSite).toHaveBeenCalledWith(expect.anything(), {
+            url: "https://example.com",
+            title: "Example",
+            rss: "",
+        });
         expect(AtProtoService.joinRing).toHaveBeenCalledWith(
             expect.anything(),
             NEW_RING,
