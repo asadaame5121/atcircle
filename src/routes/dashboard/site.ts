@@ -46,66 +46,28 @@ app.get("/edit", async (c) => {
             title: t("dashboard.edit_site"),
             t,
             lang,
+            current: "dashboard",
             children: html`
-                <div class="card bg-base-100 shadow-xl max-w-2xl mx-auto">
-                    <div class="card-body">
-                        <h1 class="card-title text-2xl mb-6">${t(
-                            "dashboard.edit_site",
-                        )}</h1>
-                        <form action="/dashboard/site/update" method="POST">
-                            <div class="form-control w-full mb-4">
-                                <label class="label"><span class="label-text font-bold"
-                                    >${t("dashboard.site_url")}</span></label>
-                                <input
-                                    type="url"
-                                    name="url"
-                                    value="${site.url}"
-                                    required
-                                    class="input input-bordered w-full"
-                                />
-                            </div>
-                            <div class="form-control w-full mb-4">
-                                <label class="label"><span class="label-text font-bold"
-                                    >${t("dashboard.site_title")}</span></label>
-                                <input
-                                    type="text"
-                                    name="title"
-                                    value="${site.title}"
-                                    required
-                                    class="input input-bordered w-full"
-                                />
-                            </div>
-                            <div class="form-control w-full mb-4">
-                                <label class="label"><span class="label-text font-bold"
-                                    >${t(
-                                        "dashboard.modal_description",
-                                    )}</span></label>
-                                <textarea
-                                    name="description"
-                                    class="textarea textarea-bordered h-24"
-                                >${site.description || ""}</textarea>
-                            </div>
-                            <div class="form-control w-full mb-8">
-                                <label class="label"><span class="label-text font-bold"
-                                    >RSS Feed URL</span></label>
-                                <input
-                                    type="url"
-                                    name="rss_url"
-                                    value="${site.rss_url || ""}"
-                                    class="input input-bordered w-full"
-                                />
-                            </div>
-                            <div class="card-actions justify-between">
-                                <a href="/dashboard" class="btn btn-ghost">${t(
-                                    "common.back",
-                                )}</a>
-                                <button type="submit" class="btn btn-primary">
-                                    ${t("common.save")}
-                                </button>
-                            </div>
-                        </form>
+                <h1 class="rt-h1">■ ${t("dashboard.edit_site")} ■</h1>
+                <form action="/dashboard/site/update" method="POST" class="rt-panel rt-narrow rt-narrow-wide">
+                    <label class="rt-label" for="site-url">${t("dashboard.site_url")}</label>
+                    <input id="site-url" type="url" name="url" value="${site.url}" required class="rt-sunken rt-input" />
+
+                    <label class="rt-label" for="site-name">${t("dashboard.site_title")}</label>
+                    <input id="site-name" type="text" name="title" value="${site.title}" required class="rt-sunken rt-input" />
+
+                    <label class="rt-label" for="site-rss">${t("find.rss_url")}（${t("common.optional")}）</label>
+                    <input id="site-rss" type="url" name="rss_url" value="${site.rss_url || ""}" class="rt-sunken rt-input" />
+
+                    <label class="rt-label" for="site-desc">${t("dashboard.modal_description")}（${t("common.optional")}）</label>
+                    <textarea id="site-desc" name="description" rows="3" maxlength="500" class="rt-sunken rt-input rt-textarea">${site.description || ""}</textarea>
+
+                    <div class="rt-dialog-actions">
+                        <a href="/dashboard" class="rt-bevel">${t("common.back")}</a>
+                        <span class="rt-dialog-spacer"></span>
+                        <button type="submit" class="rt-bevel rt-go">${t("common.save")}</button>
                     </div>
-                </div>
+                </form>
             `,
         }),
     );

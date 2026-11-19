@@ -100,24 +100,22 @@ export const Scripts = ({ t }: ScriptsProps) => {
                     if (!container || !loading) return;
 
                     container.innerHTML = '';
-                    loading.classList.remove('hidden');
-                    loading.classList.add('flex');
+                    loading.hidden = false;
 
                     try {
                         const res = await fetch('/dashboard/ring/members/list?ring_uri=' + encodeURIComponent(window.atcircle.currentRingUri));
                         const data = await res.json();
-                        loading.classList.add('hidden');
-                        loading.classList.remove('flex');
+                        loading.hidden = true;
 
                         if (data.success) {
                             if (!data.members || data.members.length === 0) {
-                                container.innerHTML = '<div class="text-center py-8 opacity-50 italic">' + i18n.noMembers + '</div>';
+                                container.innerHTML = '<p class="rt-empty">' + esc(i18n.noMembers) + '</p>';
                                 return;
                             }
 
                             data.members.forEach(m => {
                                 const div = document.createElement('div');
-                                div.className = 'flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-base-200 rounded-lg border border-base-300 gap-4';
+                                div.className = 'rt-member';
 
                                 // Member data comes from other users' records: escape everything
                                 // and only allow http(s) URLs.
@@ -125,41 +123,35 @@ export const Scripts = ({ t }: ScriptsProps) => {
                                 const isPending = m.status === 'pending' ? 'selected' : '';
                                 const isSuspended = m.status === 'suspended' ? 'selected' : '';
 
-                                const avatarUrl = safeUrl(m.avatar, 'https://cdn.bsky.app/img/avatar/plain/did:plc:z72i7hdynmk6p22nfzvega35/asadaame5121@1.png');
+                                const avatarUrl = safeUrl(m.avatar, '');
                                 const siteUrl = safeUrl(m.url, '#');
                                 const handle = m.handle ? '@' + m.handle : 'DID: ' + m.user_did;
                                 const displayName = m.displayName || m.title || 'Unknown';
 
-                                div.innerHTML = '<div class="flex items-center gap-3 min-w-0 w-full flex-1">' +
-                                    '<div class="avatar">' +
-                                    '<div class="w-10 h-10 rounded-full">' +
-                                    '<img src="' + esc(avatarUrl) + '" alt="Avatar" />' +
+                                div.innerHTML = '<div class="rt-member-main">' +
+                                    (avatarUrl
+                                        ? '<img class="rt-member-avatar" src="' + esc(avatarUrl) + '" alt="" referrerpolicy="no-referrer" />'
+                                        : '<span class="rt-member-avatar" aria-hidden="true">' + esc(displayName.charAt(0).toUpperCase()) + '</span>') +
+                                    '<span class="rt-member-text">' +
+                                    '<b>' + esc(displayName) + '</b>' +
+                                    '<span class="rt-ring-meta">' + esc(handle) + '</span>' +
+                                    '<a href="' + esc(siteUrl) + '" target="_blank" rel="noopener noreferrer">' + esc(m.url) + '</a>' +
+                                    '<span class="rt-member-widget">' +
+                                        (m.widget_installed
+                                            ? '<span class="rt-tag rt-tag-auto">' + esc(i18n.widgetInstalled) + '</span>'
+                                            : '<span class="rt-tag rt-tag-off">' + esc(i18n.widgetNotInstalled) + '</span>') +
+                                        ' <button type="button" data-action="verify" class="rt-link-btn">' + esc(i18n.verifyNow) + '</button>' +
+                                    '</span>' +
+                                    '</span>' +
                                     '</div>' +
-                                    '</div>' +
-                                    '<div class="flex flex-col min-w-0 flex-1">' +
-                                    '<span class="font-bold truncate">' + esc(displayName) + '</span>' +
-                                    '<span class="text-xs opacity-50 truncate">' + esc(handle) + '</span>' +
-                                    '<div class="flex items-center gap-2 mt-0.5">' +
-                                        '<a href="' + esc(siteUrl) + '" target="_blank" rel="noopener noreferrer" class="text-[10px] link link-primary truncate max-w-[150px] sm:max-w-[200px]">' + esc(m.url) + '</a>' +
-                                        '<div class="flex items-center gap-1 ml-1 shrink-0">' +
-                                            (m.widget_installed ?
-                                                '<span class="badge badge-success badge-xs gap-1 py-1.5" title="' + esc(i18n.widgetInstalled) + '"><i class="fa-solid fa-check text-[8px]"></i></span>' :
-                                                '<span class="badge badge-error badge-xs gap-1 py-1.5" title="' + esc(i18n.widgetNotInstalled) + '"><i class="fa-solid fa-xmark text-[8px]"></i></span>') +
-                                            '<button type="button" data-action="verify" class="btn btn-ghost btn-xs btn-circle h-5 w-5 min-h-0" title="' + esc(i18n.verifyNow) + '">' +
-                                                '<i class="fa-solid fa-rotate text-[10px]"></i>' +
-                                            '</button>' +
-                                        '</div>' +
-                                    '</div>' +
-                                    '</div>' +
-                                    '</div>' +
-                                    '<div class="flex items-center gap-2 w-full sm:w-auto justify-start sm:justify-end flex-wrap">' +
-                                    '<select data-action="status" class="select select-bordered select-xs flex-1 sm:flex-none">' +
+                                    '<div class="rt-member-actions">' +
+                                    '<select data-action="status" class="rt-sunken rt-input" aria-label="' + esc(displayName) + '">' +
                                     '<option value="approved" ' + isApproved + '>' + esc(i18n.statusApproved) + '</option>' +
                                     '<option value="pending" ' + isPending + '>' + esc(i18n.statusPending) + '</option>' +
                                     '<option value="suspended" ' + isSuspended + '>' + esc(i18n.statusSuspended) + '</option>' +
                                     '</select>' +
-                                    '<button type="button" data-action="kick" class="btn btn-ghost btn-xs btn-outline flex-1 sm:flex-none">' + esc(i18n.kick) + '</button>' +
-                                    '<button type="button" data-action="block" class="btn btn-error btn-xs btn-outline flex-1 sm:flex-none">' + esc(i18n.block) + '</button>' +
+                                    '<button type="button" data-action="kick" class="rt-bevel">' + esc(i18n.kick) + '</button>' +
+                                    '<button type="button" data-action="block" class="rt-bevel rt-danger">' + esc(i18n.block) + '</button>' +
                                     '</div>';
 
                                 div.querySelector('[data-action="verify"]').addEventListener('click', function() {
@@ -177,12 +169,11 @@ export const Scripts = ({ t }: ScriptsProps) => {
                                 container.appendChild(div);
                             });
                         } else {
-                            container.innerHTML = '<div class="alert alert-error font-bold">' + esc(data.error || 'Unknown error') + '</div>';
+                            container.innerHTML = '<p class="rt-error">' + esc(data.error || 'Unknown error') + '</p>';
                         }
                     } catch (e) {
-                        loading.classList.add('hidden');
-                        loading.classList.remove('flex');
-                        container.innerHTML = '<div class="alert alert-error">Failed to fetch members</div>';
+                        loading.hidden = true;
+                        container.innerHTML = '<p class="rt-error">Failed to fetch members</p>';
                     }
                 };
 
@@ -296,24 +287,34 @@ export const Scripts = ({ t }: ScriptsProps) => {
                     });
                 };
 
-                // Join Ring
-                window.openJoinModal = function(uri) {
-                    const input = document.getElementById('join-ring-uri');
-                    if (input) input.value = uri || '';
-                    if (window.join_ring_modal) join_ring_modal.showModal();
+                // リング設定ダイアログからの削除
+                window.deleteRingFromConfig = function(btn) {
+                    if (!confirm(btn.dataset.confirmMessage)) return;
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '/dashboard/ring/delete';
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'uri';
+                    input.value = document.getElementById('config-uri').value;
+                    form.appendChild(input);
+                    document.body.appendChild(form);
+                    form.submit();
                 };
 
-                window.sendInvites = function() {
-                    // Logic removed
-                };
-
-                // Initialization
-                window.addEventListener('load', () => {
-                    const params = new URLSearchParams(window.location.search);
-                    const ringUri = params.get('ring_uri');
-                    if (ringUri) {
-                        window.openJoinModal(ringUri);
+                // data-confirm のあるフォームは送信前に確認する
+                document.addEventListener('submit', function(e) {
+                    const form = e.target;
+                    if (form && form.dataset && form.dataset.confirm && !confirm(form.dataset.confirm)) {
+                        e.preventDefault();
                     }
+                });
+
+                // ほかのメニューを開いたら、開いているメニューを閉じる
+                document.addEventListener('click', function(e) {
+                    document.querySelectorAll('details.rt-menu[open]').forEach(function(d) {
+                        if (!d.contains(e.target)) d.removeAttribute('open');
+                    });
                 });
 
                 console.log('ATcircle Dashboard: Script initialized successfully.');

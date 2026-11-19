@@ -15,15 +15,10 @@ app.get("/terms", (c) => {
             t,
             lang,
             children: html`
-            <div class="card bg-base-100 shadow-xl max-w-2xl mx-auto">
-                <div class="card-body prose">
-                    <h1 class="card-title text-3xl mb-6">${t("legal.terms_title")}</h1>
-                    ${raw(t("legal.terms_content"))}
-                </div>
-            </div>
-            <div class="text-center mt-8">
-               <a href="/" class="btn btn-ghost">${t("common.back_to_home")}</a>
-            </div>
+            <h1 class="rt-h1">■ ${t("legal.terms_title")} ■</h1>
+            <article class="rt-prose">
+                ${raw(t("legal.terms_content"))}
+            </article>
         `,
         }),
     );
@@ -39,15 +34,10 @@ app.get("/privacy", (c) => {
             t,
             lang,
             children: html`
-            <div class="card bg-base-100 shadow-xl max-w-2xl mx-auto">
-                <div class="card-body prose">
-                    <h1 class="card-title text-3xl mb-6">${t("legal.privacy_title")}</h1>
-                    ${raw(t("legal.privacy_content"))}
-                </div>
-            </div>
-            <div class="text-center mt-8">
-               <a href="/" class="btn btn-ghost">${t("common.back_to_home")}</a>
-            </div>
+            <h1 class="rt-h1">■ ${t("legal.privacy_title")} ■</h1>
+            <article class="rt-prose">
+                ${raw(t("legal.privacy_content"))}
+            </article>
         `,
         }),
     );

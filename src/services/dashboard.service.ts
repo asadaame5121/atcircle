@@ -1,5 +1,6 @@
 import { AtUri } from "@atproto/api";
 import { IDENTITY_RESOLVER_URL, PUBLIC_URL } from "../config.js";
+import { logger as pinoLogger } from "../lib/logger.js";
 import { RingRepository } from "../repositories/ring.repository.js";
 import { SiteRepository } from "../repositories/site.repository.js";
 // import type { Site, SqliteDatabaseInterface } from "../types/db.js";
@@ -283,6 +284,39 @@ export class DashboardService {
         for (const item of [...joinRequests, ...pendingMemberships]) {
             const ring = ringMap.get(item.ring_uri);
             if (ring) ring.pendingCount = (ring.pendingCount || 0) + 1;
+        }
+
+        // 自分が申請中（承認待ち）のリングも一覧に入れる
+        try {
+            const myRequests = await this.db
+                .prepare(`
+                SELECT jr.ring_uri, jr.atproto_uri, r.title, r.description,
+                    (SELECT COUNT(*) FROM memberships m WHERE m.ring_uri = jr.ring_uri AND m.status = 'approved') as member_count
+                FROM join_requests jr
+                LEFT JOIN rings r ON r.uri = jr.ring_uri
+                WHERE jr.user_did = ? AND jr.status = 'pending'
+            `)
+                .bind(did)
+                .all<any>();
+            for (const req of myRequests.results ?? []) {
+                if (ringMap.has(req.ring_uri)) continue;
+                ringMap.set(req.ring_uri, {
+                    uri: req.ring_uri,
+                    title: req.title || req.ring_uri,
+                    description: req.description || "",
+                    isAdmin: false,
+                    isMember: false,
+                    isPendingRequest: true,
+                    requestUri: req.atproto_uri,
+                    memberCount: req.member_count ?? 0,
+                    pendingCount: 0,
+                });
+            }
+        } catch (e) {
+            pinoLogger.error({
+                msg: "Failed to load my join requests",
+                error: e,
+            });
         }
 
         return {

@@ -13,6 +13,7 @@ const handleHelp = (c: any) => {
         Layout({
             title: `${t("help.title")} | ${t("common.brand")}`,
             t,
+            current: "help",
             lang,
             children: HelpView({ lang, t }),
         }),

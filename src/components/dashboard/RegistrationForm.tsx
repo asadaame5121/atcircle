@@ -1,4 +1,19 @@
-import { html } from "hono/html";
+import { html, raw } from "hono/html";
+
+/** 検出したサイトの候補を選ぶと入力欄に反映する（値は data 属性から読む） */
+const pickScript = `
+(function () {
+  var form = document.getElementById("registerForm");
+  if (!form) return;
+  form.addEventListener("change", function (e) {
+    var r = e.target;
+    if (r.name !== "site_selection") return;
+    form.url.value = r.dataset.url || "";
+    form.title.value = r.dataset.title || "";
+    form.rss_url.value = r.dataset.rss || "";
+  });
+})();
+`;
 
 export const RegistrationForm = (props: {
     discoveryStatus: string;
@@ -9,122 +24,54 @@ export const RegistrationForm = (props: {
     const { discoveryStatus, detectedSites, defaultSite, t } = props;
 
     return html`
-        <div class="card bg-base-100 shadow-xl max-w-2xl mx-auto">
-            <div class="card-body">
-                <h1 class="card-title text-3xl mb-4 text-center justify-center">${t("dashboard.register_title")}</h1>
-                <p class="text-center opacity-75">${t("dashboard.register_desc")}</p>
-                <div class="text-center mb-6">
-                    <div class="dropdown dropdown-hover dropdown-center">
-                        <label tabindex="0" class="btn btn-ghost btn-xs text-primary low-case gap-1">
-                            <i class="fa-solid fa-circle-info"></i> What is AT-Proto?
-                        </label>
-                        <div tabindex="0" class="dropdown-content z-1 card card-compact w-64 p-2 shadow bg-base-100 border border-base-200 text-xs">
-                            <div class="card-body">
-                                <p>${t("dashboard.atproto_help")}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
+        <h1 class="rt-h1">■ ${t("dashboard.register_title")} ■</h1>
+        <div class="rt-narrow rt-narrow-wide">
+            ${discoveryStatus ? html`<p class="rt-flash" role="status">${discoveryStatus}</p>` : ""}
+            <form action="/dashboard/site" method="POST" id="registerForm" class="rt-panel">
                 ${
-                    discoveryStatus
+                    detectedSites.length > 1
                         ? html`
-                    <div class="alert alert-info mb-6">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <span>${discoveryStatus}</span>
-                    </div>
+                <fieldset class="rt-fieldset">
+                    <legend>${t("dashboard.detected_sites")}</legend>
+                    ${detectedSites.map(
+                        (site, index) => html`
+                        <label class="rt-choice">
+                            <input type="radio" name="site_selection" value="${index}" data-url="${site.url || ""}" data-title="${site.title || ""}" data-rss="${site.rss || ""}" ${index === 0 ? "checked" : ""} />
+                            <span><b>${site.url}</b>${site.title ? html`<br><span class="rt-ring-meta">${site.title}</span>` : ""}</span>
+                        </label>
+                    `,
+                    )}
+                    <label class="rt-choice">
+                        <input type="radio" name="site_selection" value="-1" data-url="" data-title="" data-rss="" />
+                        <span>${t("dashboard.enter_manually")}</span>
+                    </label>
+                </fieldset>
                 `
                         : ""
                 }
 
-                <form action="/dashboard/site" method="POST" id="registerForm">
-                    
-                    ${
-                        detectedSites.length > 1
-                            ? html`
-                        <div class="form-control mb-6">
-                            <label class="label">
-                                <span class="label-text font-bold">${t("dashboard.detected_sites")}</span>
-                            </label>
-                            <div class="space-y-2">
-                                ${detectedSites.map(
-                                    (site, index) => html`
-                                    <label class="label cursor-pointer justify-start gap-4 border p-3 rounded-lg hover:bg-base-200 transition-colors">
-                                        <input type="radio" name="site_selection" class="radio radio-primary" 
-                                            value="${index}" 
-                                            ${index === 0 ? "checked" : ""}
-                                            onchange="selectSite(${index})"
-                                        />
-                                        <div class="flex-1">
-                                            <div class="font-bold">${site.url}</div>
-                                            ${site.title ? html`<div class="text-xs opacity-70">${site.title}</div>` : ""}
-                                        </div>
-                                    </label>
-                                `,
-                                )}
-                                <label class="label cursor-pointer justify-start gap-4 border p-3 rounded-lg hover:bg-base-200 transition-colors">
-                                    <input type="radio" name="site_selection" class="radio radio-primary" value="-1" onchange="clearForm()" />
-                                    <span class="font-bold">${t("dashboard.enter_manually")}</span>
-                                </label>
-                            </div>
-                        </div>
-                    `
-                            : ""
-                    }
+                <label class="rt-label" for="url">${t("dashboard.site_url")}</label>
+                <input type="url" name="url" id="url" required value="${defaultSite.url}" placeholder="https://" class="rt-sunken rt-input" />
 
-                    <div class="form-control w-full mb-4">
-                        <label class="label" for="url">
-                            <span class="label-text font-bold">${t("dashboard.site_url")}</span>
-                        </label>
-                        <input type="url" name="url" id="url" required value="${defaultSite.url}" class="input input-bordered w-full" />
-                    </div>
+                <label class="rt-label" for="title">${t("dashboard.site_title")}</label>
+                <input type="text" name="title" id="title" required value="${defaultSite.title || ""}" class="rt-sunken rt-input" />
 
-                    <div class="form-control w-full mb-4">
-                        <label class="label" for="title">
-                            <span class="label-text font-bold">${t("dashboard.site_title")}</span>
-                        </label>
-                        <input type="text" name="title" id="title" required value="${defaultSite.title || ""}" class="input input-bordered w-full" />
-                    </div>
+                <details class="rt-rss"${defaultSite.rss ? " open" : ""}>
+                    <summary>${t("find.add_rss")}</summary>
+                    <label class="rt-label" for="rss_url">${t("find.rss_url")}</label>
+                    <input type="url" name="rss_url" id="rss_url" value="${defaultSite.rss || ""}" placeholder="https://example.com/feed.xml" class="rt-sunken rt-input" />
+                </details>
 
-                    <div class="form-control w-full mb-4">
-                        <label class="label" for="description">
-                            <span class="label-text font-bold">${t("dashboard.modal_description")}</span>
-                        </label>
-                        <textarea name="description" id="description" class="textarea textarea-bordered h-24"></textarea>
-                    </div>
+                <label class="rt-label" for="description">${t("dashboard.modal_description")}（${t("common.optional")}）</label>
+                <textarea name="description" id="description" rows="3" maxlength="500" class="rt-sunken rt-input rt-textarea"></textarea>
 
-                    <div class="form-control w-full mb-8">
-                        <label class="label" for="rss_url">
-                            <span class="label-text font-bold">RSS Feed URL (${t("common.optional")})</span>
-                        </label>
-                        <input type="url" name="rss_url" id="rss_url" value="${defaultSite.rss || ""}" class="input input-bordered w-full" placeholder="https://example.com/feed.xml" />
-                    </div>
-
-                    <div class="card-actions justify-center flex-col gap-4">
-                        <button type="submit" class="btn btn-primary w-full text-lg">${t("dashboard.btn_register_site")}</button>
-                        <div class="text-center w-full">
-                            <a href="/logout" class="link link-hover text-sm">${t("common.logout")}</a>
-                        </div>
-                    </div>
-                </form>
-            </div>
+                <button type="submit" class="rt-bevel rt-go rt-block">${t("dashboard.btn_register_site")}</button>
+            </form>
+            <p class="rt-note">${t("dashboard.atproto_help")}</p>
+            <form action="/logout" method="POST" class="rt-center">
+                <button type="submit" class="rt-link-btn">${t("common.logout")}</button>
+            </form>
         </div>
-
-        <script>
-            const sites = ${JSON.stringify(detectedSites)};
-            
-            function selectSite(index) {
-                const site = sites[index];
-                document.getElementById('url').value = site.url || '';
-                document.getElementById('title').value = site.title || '';
-                document.getElementById('rss_url').value = site.rss || '';
-            }
-
-            function clearForm() {
-                document.getElementById('url').value = '';
-                document.getElementById('title').value = '';
-                document.getElementById('rss_url').value = '';
-            }
-        </script>
+        <script>${raw(pickScript)}</script>
     `;
 };

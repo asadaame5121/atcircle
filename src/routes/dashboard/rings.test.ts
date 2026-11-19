@@ -158,3 +158,241 @@ describe("POST /dashboard/ring/leave", () => {
         expect(AtProtoService.leaveRing).toHaveBeenCalledOnce();
     });
 });
+
+describe("POST /dashboard/ring/join", () => {
+    const RING = "at://did:plc:owner/net.asadaame5121.at-circle.ring/3own";
+
+    beforeEach(() => {
+        vi.restoreAllMocks();
+        vi.spyOn(oauth, "restoreAgent").mockResolvedValue({} as any);
+        vi.spyOn(AtProtoService, "getRing").mockResolvedValue({
+            value: { title: "Ring", acceptancePolicy: "automatic" },
+        } as any);
+        vi.spyOn(AtProtoService, "joinRing").mockResolvedValue(
+            "at://did:plc:me/net.asadaame5121.at-circle.member/1",
+        );
+    });
+
+    const join = async (site: { id: number } | null) => {
+        const token = await createMockAuthToken("did:plc:me", "me.test");
+        let siteRow = site;
+        const db = createMockDB({
+            first: (query: string) => {
+                if (query.includes("SELECT id FROM sites")) return siteRow;
+                return null;
+            },
+            all: [],
+        });
+        const prepare = db.prepare as any;
+        const original = prepare.getMockImplementation();
+        prepare.mockImplementation((query: string) => {
+            const stmt = original(query);
+            if (/INSERT INTO sites/i.test(query)) siteRow = { id: 42 };
+            return stmt;
+        });
+        const res = await wrapApp(dashboardApp).request(
+            "/ring/join",
+            {
+                method: "POST",
+                headers: {
+                    Cookie: `session=${token}`,
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: new URLSearchParams({
+                    ring_uri: RING,
+                    url: "https://example.com",
+                    title: "Example",
+                    rss: "",
+                }),
+            },
+            { DB: db },
+        );
+        const queries = prepare.mock.calls.map((c: any[]) => c[0] as string);
+        return { res, queries };
+    };
+
+    it("サイト未登録なら入力されたサイトを登録してから参加を記録する", async () => {
+        const { res, queries } = await join(null);
+        expect(res.status).toBe(302);
+        const siteInsert = queries.findIndex((q) =>
+            /INSERT INTO sites/i.test(q),
+        );
+        const memberInsert = queries.findIndex((q) =>
+            /INSERT OR IGNORE INTO memberships/i.test(q),
+        );
+        expect(siteInsert).toBeGreaterThanOrEqual(0);
+        expect(memberInsert).toBeGreaterThan(siteInsert);
+    });
+
+    it("サイト登録済みなら登録し直さない", async () => {
+        const { queries } = await join({ id: 7 });
+        expect(queries.some((q) => /INSERT INTO sites/i.test(q))).toBe(false);
+        expect(
+            queries.some((q) => /INSERT OR IGNORE INTO memberships/i.test(q)),
+        ).toBe(true);
+    });
+});
+
+describe("POST /dashboard/ring/create", () => {
+    const NEW_RING = "at://did:plc:me/net.asadaame5121.at-circle.ring/new1";
+
+    beforeEach(() => {
+        vi.restoreAllMocks();
+        vi.spyOn(oauth, "restoreAgent").mockResolvedValue({} as any);
+        vi.spyOn(AtProtoService, "createRing").mockResolvedValue(NEW_RING);
+        vi.spyOn(AtProtoService, "joinRing").mockResolvedValue(
+            "at://did:plc:me/net.asadaame5121.at-circle.member/1",
+        );
+    });
+
+    const create = async (form: Record<string, string>, site: any = null) => {
+        const token = await createMockAuthToken("did:plc:me", "me.test");
+        let siteRow = site;
+        const db = createMockDB({
+            first: (query: string) =>
+                query.includes("FROM sites WHERE user_did") ? siteRow : null,
+            all: [],
+        });
+        const prepare = db.prepare as any;
+        const original = prepare.getMockImplementation();
+        prepare.mockImplementation((query: string) => {
+            if (/INSERT INTO sites/i.test(query))
+                siteRow = { id: 42, url: form.url, title: form.site_title };
+            return original(query);
+        });
+        const res = await wrapApp(dashboardApp).request(
+            "/ring/create",
+            {
+                method: "POST",
+                headers: {
+                    Cookie: `session=${token}`,
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: new URLSearchParams(form),
+            },
+            { DB: db },
+        );
+        const queries = prepare.mock.calls.map((c: any[]) => c[0] as string);
+        return { res, queries };
+    };
+
+    it("受け付け方を承認制にして作れる", async () => {
+        await create({
+            title: "R",
+            description: "",
+            acceptance_policy: "manual",
+            url: "https://example.com",
+            site_title: "Example",
+        });
+        expect(AtProtoService.createRing).toHaveBeenCalledWith(
+            expect.anything(),
+            "R",
+            "",
+            "manual",
+        );
+    });
+
+    it("サイト未登録なら登録し、入力したサイトで自分も参加して、ウィジェット画面へ進む", async () => {
+        const { res, queries } = await create({
+            title: "R",
+            description: "説明",
+            acceptance_policy: "automatic",
+            url: "https://example.com",
+            site_title: "Example",
+        });
+        expect(queries.some((q) => /INSERT INTO sites/i.test(q))).toBe(true);
+        expect(AtProtoService.joinRing).toHaveBeenCalledWith(
+            expect.anything(),
+            NEW_RING,
+            { url: "https://example.com", title: "Example", rss: "" },
+        );
+        expect(res.status).toBe(302);
+        expect(res.headers.get("Location")).toBe(
+            `/dashboard/ring/widget?ring_uri=${encodeURIComponent(NEW_RING)}`,
+        );
+    });
+
+    it("サイト欄なしの旧フォームでも、登録済みサイトで参加する", async () => {
+        await create(
+            { title: "R", description: "" },
+            {
+                id: 7,
+                url: "https://mine.example",
+                title: "Mine",
+                rss_url: "https://mine.example/feed",
+            },
+        );
+        expect(AtProtoService.createRing).toHaveBeenCalledWith(
+            expect.anything(),
+            "R",
+            "",
+            "automatic",
+        );
+        expect(AtProtoService.joinRing).toHaveBeenCalledWith(
+            expect.anything(),
+            NEW_RING,
+            {
+                url: "https://mine.example",
+                title: "Mine",
+                rss: "https://mine.example/feed",
+            },
+        );
+    });
+});
+
+describe("POST /dashboard/ring/join の行き先", () => {
+    const RING = "at://did:plc:owner/net.asadaame5121.at-circle.ring/3own";
+    const widgetUrl = `/dashboard/ring/widget?ring_uri=${encodeURIComponent(RING)}`;
+
+    const join = async (policy: string, existing = false) => {
+        vi.restoreAllMocks();
+        vi.spyOn(oauth, "restoreAgent").mockResolvedValue({} as any);
+        vi.spyOn(AtProtoService, "getRing").mockResolvedValue({
+            value: { title: "Ring", acceptancePolicy: policy },
+        } as any);
+        vi.spyOn(AtProtoService, "joinRing").mockResolvedValue("at://m/1");
+        vi.spyOn(AtProtoService, "createJoinRequest").mockResolvedValue(
+            "at://req/1",
+        );
+        const token = await createMockAuthToken("did:plc:me", "me.test");
+        const db = createMockDB({
+            first: (q: string) => {
+                if (q.includes("UNION ALL")) return existing ? { 1: 1 } : null;
+                if (q.includes("FROM sites")) return { id: 7 };
+                return null;
+            },
+            all: [],
+        });
+        return wrapApp(dashboardApp).request(
+            "/ring/join",
+            {
+                method: "POST",
+                headers: {
+                    Cookie: `session=${token}`,
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: new URLSearchParams({
+                    ring_uri: RING,
+                    url: "https://example.com",
+                    title: "Example",
+                }),
+            },
+            { DB: db },
+        );
+    };
+
+    it("自動承認ならウィジェット画面へ（参加直後の印つき）", async () => {
+        const res = await join("automatic");
+        expect(res.headers.get("Location")).toBe(`${widgetUrl}&joined=1`);
+    });
+
+    it("承認制なら承認待ちの画面へ（申請直後の印つき）", async () => {
+        const res = await join("manual");
+        expect(res.headers.get("Location")).toBe(`${widgetUrl}&requested=1`);
+    });
+
+    it("参加済み・申請中ならそのリングのウィジェット画面へ", async () => {
+        const res = await join("automatic", true);
+        expect(res.headers.get("Location")).toBe(widgetUrl);
+    });
+});
