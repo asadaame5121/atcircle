@@ -1534,3 +1534,7 @@ html[data-theme="light"] {
     font-size: 13px;
     color: #444444;
 }
+
+.rt-dash-ring a.rt-tag-manual {
+    color: #a65200;
+}

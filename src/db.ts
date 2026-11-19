@@ -290,6 +290,10 @@ if (db && db instanceof SqliteDatabase) {
         "ALTER TABLE memberships ADD COLUMN last_verified_at INTEGER;",
     );
     await silentExec("ALTER TABLE memberships ADD COLUMN banner_url TEXT;");
+    // ウィジェットが表示・クリックされたのを最後に確認した時刻（widget.js の通知、前へ・次へのリンク）
+    await silentExec(
+        "ALTER TABLE memberships ADD COLUMN widget_seen_at INTEGER;",
+    );
 }
 
 export default db;

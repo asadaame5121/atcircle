@@ -45,6 +45,10 @@ describe("Legal Routes", () => {
                 // 承認時の公式アカウントからのメンション通知
                 "@atcircle.bsky.social",
                 "メンション",
+                // ウィジェットの設置確認（毎日の取得・表示時の通知・前へ次へ）
+                "毎日",
+                "表示されたとき",
+                "閲覧者を識別する情報は保存しません",
             ],
             // 巡回ページも独自CSSに移行したので CDN のスタイルシートは読み込まない
             notExpected: [
@@ -69,6 +73,9 @@ describe("Legal Routes", () => {
                 "Last revised: November 2026",
                 "@atcircle.bsky.social",
                 "mention",
+                "every day",
+                "when it is displayed",
+                "does not store information that identifies visitors",
             ],
             // 実装されていない機能（フォロー一覧の取得）は書かない
             notExpected: ["follow", "cdn.jsdelivr.net", "cdnjs.cloudflare.com"],

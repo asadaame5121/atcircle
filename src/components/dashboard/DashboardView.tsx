@@ -1,5 +1,6 @@
 import { html } from "hono/html";
 import { safeHref } from "../../lib/html.js";
+import type { WidgetStatus } from "../../services/widget-presence.js";
 import { Modals } from "./Modals.js";
 import { ModerationSection } from "./ModerationSection.js";
 
@@ -15,6 +16,8 @@ interface DashboardViewProps {
     isAdmin: boolean;
     /** 直前の操作結果（?msg=） */
     msg?: string;
+    /** 自分の参加ごとのウィジェット設置状況（リング URI → 状態） */
+    widgetStatus?: Record<string, WidgetStatus>;
     t: T;
 }
 
@@ -71,7 +74,17 @@ const RingMenu = ({ r, did, t }: { r: any; did: string; t: T }) => html`
     </details>
 `;
 
-const RingItem = ({ r, did, t }: { r: any; did: string; t: T }) => html`
+const RingItem = ({
+    r,
+    did,
+    widget,
+    t,
+}: {
+    r: any;
+    did: string;
+    widget?: WidgetStatus;
+    t: T;
+}) => html`
     <article class="rt-dash-ring">
         <div class="rt-dash-ring-main">
             <h3 class="rt-dash-ring-title">
@@ -83,6 +96,7 @@ const RingItem = ({ r, did, t }: { r: any; did: string; t: T }) => html`
             </h3>
             ${r.description ? html`<p class="rt-dash-ring-desc">${r.description}</p>` : ""}
             ${r.isPendingRequest ? html`<p class="rt-dash-ring-note"><span class="rt-tag rt-tag-manual">${t("dash.pending_tag")}</span></p>` : ""}
+            ${r.isMember && widget?.checked && !widget.installed ? html`<p class="rt-dash-ring-note"><a href="/dashboard/ring/widget?ring_uri=${encodeURIComponent(r.uri)}" class="rt-tag rt-tag-manual">${t("dash.widget_missing")}</a></p>` : ""}
             ${r.pendingCount > 0 ? html`<p class="rt-dash-ring-note"><b><a href="#requests">${t("dash.requests_link", { count: r.pendingCount })}</a></b></p>` : ""}
         </div>
         <div class="rt-dash-ring-actions">
@@ -101,6 +115,7 @@ export const DashboardView = ({
     did,
     isAdmin,
     msg,
+    widgetStatus = {},
     t,
 }: DashboardViewProps) => {
     return html`
@@ -126,7 +141,9 @@ export const DashboardView = ({
             <h2 id="my-rings-title" class="rt-box-title">${t("dash.rings_title")}</h2>
             ${
                 unifiedRings.length > 0
-                    ? unifiedRings.map((r) => RingItem({ r, did, t }))
+                    ? unifiedRings.map((r) =>
+                          RingItem({ r, did, widget: widgetStatus[r.uri], t }),
+                      )
                     : html`<p class="rt-empty">${t("dash.empty")}　<a href="/rings">${t("dash.find")}</a></p>`
             }
         </section>
