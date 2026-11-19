@@ -42,8 +42,11 @@ describe("Legal Routes", () => {
                 "localStorage",
                 // 改定日
                 "最終改定日：2026年11月",
+                // 承認時の公式アカウントからのメンション通知
+                "@atcircle.bsky.social",
+                "メンション",
             ],
-            notExpected: ["フォロー", "メンション"],
+            notExpected: ["フォロー"],
         },
         {
             lang: "en",
@@ -59,9 +62,11 @@ describe("Legal Routes", () => {
                 "cookie",
                 "localStorage",
                 "Last revised: November 2026",
+                "@atcircle.bsky.social",
+                "mention",
             ],
-            // 実装されていない機能（フォロー一覧の取得・承認時の通知）は書かない
-            notExpected: ["follow", "mention"],
+            // 実装されていない機能（フォロー一覧の取得）は書かない
+            notExpected: ["follow"],
         },
     ])("privacy policy content ($lang)", ({ lang, expected, notExpected }) => {
         const fetchPrivacy = async () => {

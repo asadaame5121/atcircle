@@ -7,6 +7,7 @@ import {
 } from "../components/dashboard/WidgetBuilder.js";
 import { Layout } from "../components/Layout.js";
 import { authMiddleware } from "../middleware/auth.js";
+import { approvalNotifier } from "../services/notification.js";
 import { RingService } from "../services/ring.service.js";
 import { WidgetService } from "../services/widget.service.js";
 import type { AppVariables, Bindings } from "../types/bindings.js";
@@ -45,6 +46,8 @@ app.get("/", async (c) => {
                     site: data.site,
                     t,
                     justRequested: c.req.query("requested") === "1",
+                    notifyEnabled: approvalNotifier.enabled,
+                    notifyHandle: approvalNotifier.handle,
                 }),
             }),
         );

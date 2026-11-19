@@ -1,3 +1,4 @@
+import { AtUri } from "@atproto/api";
 import { zValidator } from "@hono/zod-validator";
 import { type Context, Hono } from "hono";
 import { PUBLIC_URL } from "../../config.js";
@@ -9,6 +10,7 @@ import {
 } from "../../schemas/index.js";
 import { AtProtoService } from "../../services/atproto.js";
 import { MembershipActions } from "../../services/membership-actions.js";
+import { approvalNotifier } from "../../services/notification.js";
 import { restoreAgent } from "../../services/oauth.js";
 import { isOwnedBy } from "../../services/ring.service.js";
 import { canManageRing } from "../../services/ring-access.js";
@@ -74,9 +76,32 @@ async function decideAndRespond(
         pinoLogger.error({ msg: "Moderation cache update failed", error: e });
     }
 
+    if (status === "approved") {
+        await notifyApproved(c.env.DB, target);
+    }
+
     return c.redirect(
         `/dashboard?msg=${status === "approved" ? "approved" : "rejected"}`,
     );
+}
+
+/** 承認された人に公式アカウントからメンションで知らせる。失敗しても承認は止めない */
+async function notifyApproved(db: D1Database, target: Target) {
+    try {
+        const subjectDid = new AtUri(target.subjectUri).hostname;
+        const ring = await db
+            .prepare("SELECT title FROM rings WHERE uri = ?")
+            .bind(target.ringUri)
+            .first<{ title: string }>();
+        await approvalNotifier.notifyApproval({
+            subjectDid,
+            ringUri: target.ringUri,
+            ringTitle:
+                ring?.title || target.requestRow?.ring_title || "Webring",
+        });
+    } catch (e) {
+        pinoLogger.error({ msg: "Approval notification failed", error: e });
+    }
 }
 
 /** フォーム (ring_uri + subject_uri、または従来の request_id) から対象を決める */

@@ -88,3 +88,27 @@ describe("ウィジェットを貼る画面", () => {
         expect(html).toContain('href="/dashboard"');
     });
 });
+
+describe("承認待ち画面の通知の案内", () => {
+    it("通知が有効なら「Blueskyに通知が届く」の手順を出す", async () => {
+        const { WidgetPending } = await import(
+            "../components/dashboard/WidgetBuilder.js"
+        );
+        const ja = (await import("../locales/ja.json")).default as any;
+        const t = (k: string, o?: any) =>
+            String(k.split(".").reduce((a: any, p) => a?.[p], ja) ?? k).replace(
+                /\{\{(\w+)\}\}/g,
+                (_, x) => o?.[x] ?? "",
+            );
+        const site = { url: "https://mine.example", title: "Mine" };
+        const on = String(
+            WidgetPending({ ringTitle: "R", site, t, notifyEnabled: true }),
+        );
+        expect(on).toContain("Blueskyに通知が届く");
+        expect(on).toContain("@atcircle.bsky.social");
+        const off = String(
+            WidgetPending({ ringTitle: "R", site, t, notifyEnabled: false }),
+        );
+        expect(off).not.toContain("Blueskyに通知が届く");
+    });
+});
