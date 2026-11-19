@@ -46,7 +46,12 @@ describe("Legal Routes", () => {
                 "@atcircle.bsky.social",
                 "メンション",
             ],
-            notExpected: ["フォロー"],
+            // 巡回ページも独自CSSに移行したので CDN のスタイルシートは読み込まない
+            notExpected: [
+                "フォロー",
+                "cdn.jsdelivr.net",
+                "cdnjs.cloudflare.com",
+            ],
         },
         {
             lang: "en",
@@ -66,7 +71,7 @@ describe("Legal Routes", () => {
                 "mention",
             ],
             // 実装されていない機能（フォロー一覧の取得）は書かない
-            notExpected: ["follow"],
+            notExpected: ["follow", "cdn.jsdelivr.net", "cdnjs.cloudflare.com"],
         },
     ])("privacy policy content ($lang)", ({ lang, expected, notExpected }) => {
         const fetchPrivacy = async () => {

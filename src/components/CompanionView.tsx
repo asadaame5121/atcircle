@@ -371,136 +371,62 @@ export const CompanionView = ({
 
     return html`
     <!DOCTYPE html>
-    <html lang="${lang}" data-theme="light">
+    <html lang="${lang}">
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>${title}</title>
         <link rel="manifest" href="/manifest.webmanifest">
         <link rel="icon" type="image/png" href="/assets/favicon.png">
-        <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Kosugi+Maru&display=swap" rel="stylesheet">
         <link href="/assets/index.css" rel="stylesheet" />
-        <style>
-            .hidden, [hidden] {
-                display: none !important;
-            }
-            body {
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-                margin: 0;
-                padding: 0.75rem;
-                min-width: 300px;
-                user-select: none;
-            }
-            .site-description {
-                display: -webkit-box;
-                -webkit-line-clamp: 3;
-                -webkit-box-orient: vertical;
-                overflow: hidden;
-            }
-        </style>
-
     </head>
-    <body class="bg-base-200 min-h-screen flex flex-col justify-between">
-        <div class="w-full max-w-md mx-auto space-y-3">
-            <!-- Top Header -->
-            <div class="flex items-center justify-between bg-base-100 px-3 py-2 rounded-xl shadow-sm">
-                <div class="flex items-center gap-2 min-w-0">
-                    <span class="w-2.5 h-2.5 rounded-full bg-success animate-pulse shrink-0" title="${t("companion.synced")}"></span>
-                    <a href="/" target="_blank" class="text-xs font-black italic tracking-tighter text-primary shrink-0 hover:underline">AT CIRCLE</a>
-                    <span class="text-xs opacity-40">/</span>
-                    <a href="${ringPageUrl}" target="_blank" class="text-xs font-bold truncate hover:underline" title="${ring.title}">${ring.title}</a>
-                </div>
-                <div class="flex items-center gap-1 shrink-0">
-                    <span id="history-count" class="badge badge-sm badge-ghost text-[10px] font-mono">1 / ${members.length}</span>
-                    <a href="${ringPageUrl}" target="_blank" class="btn btn-ghost btn-xs btn-square" title="${t("companion.back_to_ring")}" aria-label="${t("companion.back_to_ring")}">
-                        <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
-                    </a>
-                </div>
-            </div>
+    <body class="rt-body rt-companion">
+        <div class="rt-frame">
+            <header class="rt-companion-head">
+                <a href="/" target="_blank" rel="noopener" class="rt-logo">AT CIRCLE</a>
+                <span class="rt-companion-sep" aria-hidden="true">≫</span>
+                <a href="${ringPageUrl}" target="_blank" rel="noopener" class="rt-companion-ring" title="${t("companion.back_to_ring")}">${ring.title}</a>
+                <span id="history-count" class="rt-companion-count" title="${t("companion.synced")}">1 / ${members.length}</span>
+            </header>
 
-            <!-- Member Card -->
-            <div id="member-card" class="card bg-base-100 shadow-md border border-base-300">
-                <div class="card-body p-4">
-                    <div class="flex items-start justify-between gap-2">
-                        <h2 id="member-title" class="card-title text-base leading-tight font-bold text-base-content break-words">
-                            Loading...
-                        </h2>
-                        <span id="member-rss-badge" class="hidden shrink-0">
-                            <a id="member-rss-link" href="#" target="_blank" class="badge badge-warning badge-xs font-mono font-bold">RSS</a>
-                        </span>
-                    </div>
-                    
-                    <p id="member-desc" class="text-xs text-base-content/70 site-description mt-1 min-h-[2.5rem]">
-                        -
+            <main class="rt-companion-main">
+                <section id="member-card" class="rt-panel" aria-live="polite">
+                    <p class="rt-tour-title">
+                        <b id="member-title">Loading...</b>
+                        <span id="member-rss-badge" class="hidden"><a id="member-rss-link" href="#" target="_blank" rel="noopener noreferrer" class="rt-tag rt-tag-manual">RSS</a></span>
                     </p>
+                    <p id="member-desc" class="rt-dash-ring-desc rt-companion-desc">-</p>
+                    <p class="rt-tour-url"><a id="member-url-link" href="#" target="_blank" rel="noopener noreferrer"><span id="member-url">https://...</span></a></p>
+                    <p id="invalid-url-alert" class="rt-error hidden" role="alert">${t("companion.invalid_url")}</p>
+                    <button type="button" id="btn-visit" class="rt-bevel rt-go rt-block" aria-label="${t("companion.visit_site")}">${t("companion.visit_site")} ≫</button>
+                </section>
 
-                    <div class="text-[11px] opacity-60 truncate mt-1">
-                        <a id="member-url-link" href="#" target="_blank" rel="noopener noreferrer" class="link link-hover flex items-center gap-1 font-mono">
-                            <i class="fa-solid fa-link text-[10px]"></i>
-                            <span id="member-url" class="truncate">https://...</span>
-                        </a>
-                    </div>
+                <p id="no-members-alert" class="rt-error hidden" role="alert">${t("companion.no_members")}</p>
+                <p id="member-unavailable-alert" class="rt-error hidden" role="alert">${t("companion.member_unavailable")}</p>
 
-                    <div id="invalid-url-alert" class="alert alert-error text-xs p-2 mt-2 hidden">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                        <span>${t("companion.invalid_url")}</span>
-                    </div>
+                <nav class="rt-tour-nav rt-companion-nav" aria-label="${t("companion.prev")} / ${t("companion.next")}">
+                    <button type="button" id="btn-prev" class="rt-bevel" aria-label="${t("companion.prev")}">≪ ${t("companion.prev")}</button>
+                    <button type="button" id="btn-random" class="rt-bevel" aria-label="${t("companion.random")}">${t("companion.random")}</button>
+                    <button type="button" id="btn-next" class="rt-bevel rt-go" aria-label="${t("companion.next")}">${t("companion.next")} ≫</button>
+                </nav>
 
-                    <!-- Visit Site Button -->
-                    <button id="btn-visit" class="btn btn-primary btn-sm w-full mt-3 shadow-sm font-semibold flex items-center justify-center gap-2" aria-label="${t("companion.visit_site")}">
-                        <span>${t("companion.visit_site")}</span>
-                        <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
-                    </button>
+                <div class="rt-box rt-companion-options">
+                    <label class="rt-check-label rt-companion-option">
+                        <input id="chk-auto-open" type="checkbox" />
+                        ${t("companion.auto_open")}
+                    </label>
+                    <p class="rt-companion-links">
+                        <button type="button" id="btn-start-over" class="rt-link-btn">${t("companion.start_over")}</button>
+                        ｜
+                        <button type="button" id="btn-clear-session" class="rt-link-btn rt-danger">${t("companion.clear_session")}</button>
+                    </p>
                 </div>
-            </div>
 
-            <!-- Error Alerts -->
-            <div id="no-members-alert" class="alert alert-warning text-xs p-3 hidden">
-                <i class="fa-solid fa-circle-exclamation"></i>
-                <span>${t("companion.no_members")}</span>
-            </div>
-
-            <div id="member-unavailable-alert" class="alert alert-error text-xs p-3 hidden">
-                <i class="fa-solid fa-ban"></i>
-                <span>${t("companion.member_unavailable")}</span>
-            </div>
-
-            <!-- Navigation Controls -->
-            <div class="grid grid-cols-3 gap-2">
-                <button id="btn-prev" class="btn btn-outline btn-sm font-medium" aria-label="${t("companion.prev")}">
-                    <i class="fa-solid fa-chevron-left mr-1"></i>
-                    ${t("companion.prev")}
-                </button>
-                <button id="btn-random" class="btn btn-outline btn-sm font-medium" aria-label="${t("companion.random")}">
-                    <i class="fa-solid fa-shuffle mr-1"></i>
-                    ${t("companion.random")}
-                </button>
-                <button id="btn-next" class="btn btn-primary btn-sm font-bold" aria-label="${t("companion.next")}">
-                    ${t("companion.next")}
-                    <i class="fa-solid fa-chevron-right ml-1"></i>
-                </button>
-            </div>
-
-            <!-- Auto Open & Session Options -->
-            <div class="bg-base-100 rounded-xl p-3 shadow-sm text-xs space-y-2 border border-base-200">
-                <label class="label cursor-pointer p-0 justify-between">
-                    <span class="label-text text-xs opacity-80">${t("companion.auto_open")}</span>
-                    <input id="chk-auto-open" type="checkbox" class="toggle toggle-primary toggle-xs" />
-                </label>
-
-                <div class="divider my-1"></div>
-
-                <div class="flex items-center justify-between text-[11px] text-base-content/60">
-                    <button id="btn-start-over" class="btn btn-ghost btn-xs text-[11px] px-1">${t("companion.start_over")}</button>
-                    <button id="btn-clear-session" class="btn btn-ghost btn-xs text-error text-[11px] px-1">${t("companion.clear_session")}</button>
-                </div>
-            </div>
-
-            <!-- Keyboard shortcuts footer hint -->
-            <div class="text-center text-[10px] text-base-content/40 select-none pb-1">
-                ${t("companion.shortcuts_hint")}
-            </div>
+                <p class="rt-note rt-center">${t("companion.shortcuts_hint")}</p>
+            </main>
         </div>
 
         <script>

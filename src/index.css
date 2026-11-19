@@ -1436,3 +1436,101 @@ html[data-theme="light"] {
 .rt-tag-feature {
     color: #000080;
 }
+
+/* ---- コンパニオン（巡回用の小窓） ---- */
+
+.rt-companion {
+    padding: 8px;
+    min-width: 280px;
+}
+
+.rt-companion .rt-frame {
+    max-width: 480px;
+}
+
+.rt-companion-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 10px;
+    background: #000080;
+    color: #ffffff;
+    font-size: 14px;
+}
+
+.rt-companion-head .rt-logo {
+    flex: none;
+    color: #ffff66;
+    text-decoration: none;
+    text-shadow: 2px 2px 0 #ff3399;
+}
+
+.rt-companion-sep {
+    color: #aaccff;
+}
+
+.rt-companion-ring {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: #ffffff;
+}
+
+.rt-companion-ring:visited,
+.rt-companion-ring:hover {
+    color: #ffff99;
+}
+
+.rt-companion-count {
+    flex: none;
+    padding: 0 6px;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 12px;
+    color: #000000;
+    background: #c0c0c0;
+}
+
+.rt-companion-main {
+    padding: 12px;
+}
+
+.rt-companion-main > * + * {
+    margin-top: 12px;
+}
+
+.rt-companion-main a:not(.rt-bevel) {
+    color: #0000ee;
+}
+
+.rt-companion-desc {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.rt-companion-nav {
+    margin: 0;
+}
+
+.rt-companion-nav > button {
+    flex: 1 1 72px;
+    padding: 0 6px;
+    white-space: nowrap;
+}
+
+.rt-companion-options {
+    padding: 4px 12px;
+}
+
+.rt-companion-option {
+    font-size: 14px;
+}
+
+.rt-companion-links {
+    margin: 0;
+    font-size: 13px;
+    color: #444444;
+}
