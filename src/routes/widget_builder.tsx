@@ -1,9 +1,13 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
-import { WidgetBuilder } from "../components/dashboard/WidgetBuilder.js";
+import {
+    WidgetBuilder,
+    WidgetPending,
+} from "../components/dashboard/WidgetBuilder.js";
 import { Layout } from "../components/Layout.js";
 import { authMiddleware } from "../middleware/auth.js";
+import { approvalNotifier } from "../services/notification.js";
 import { RingService } from "../services/ring.service.js";
 import { WidgetService } from "../services/widget.service.js";
 import type { AppVariables, Bindings } from "../types/bindings.js";
@@ -30,10 +34,30 @@ app.get("/", async (c) => {
         return c.redirect("/dashboard");
     }
 
+    if (data.pending) {
+        return c.html(
+            Layout({
+                title: t("widget_builder.pending_heading"),
+                t,
+                current: "dashboard",
+                lang,
+                children: WidgetPending({
+                    ringTitle: data.ringTitle,
+                    site: data.site,
+                    t,
+                    justRequested: c.req.query("requested") === "1",
+                    notifyEnabled: approvalNotifier.enabled,
+                    notifyHandle: approvalNotifier.handle,
+                }),
+            }),
+        );
+    }
+
     return c.html(
         Layout({
             title: t("widget_builder.title", { ring: data.ringTitle }),
             t,
+            current: "dashboard",
             lang,
             children: WidgetBuilder({
                 ringUri,
@@ -43,6 +67,7 @@ app.get("/", async (c) => {
                 bannerUrl: data.bannerUrl,
                 t,
                 lang,
+                justJoined: c.req.query("joined") === "1",
             }),
         }),
     );

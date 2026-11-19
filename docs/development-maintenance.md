@@ -102,6 +102,9 @@ pnpm dev
 | `NODE_ENV` | `development` | 本番は `production` |
 | `OAUTH_PRIVATE_KEY` | 一時鍵 | 秘密 JWK JSON または Base64。本番では永続鍵を必ず設定 |
 | `ADMIN_DID` | なし | 管理者として扱う DID |
+| `NOTIFY_APP_PASSWORD` | なし | 承認通知を送る公式アカウントのアプリパスワード。未設定なら通知しない |
+| `NOTIFY_HANDLE` | `atcircle.bsky.social` | 承認通知を送る公式アカウントのハンドル |
+| `NOTIFY_SERVICE` | `https://bsky.social` | 公式アカウントの PDS |
 | `TURSO_DATABASE_URL` | なし | 設定時は `DB_PATH` より優先 |
 | `TURSO_AUTH_TOKEN` | なし | Turso 認証トークン |
 | `LOG_LEVEL` | 開発 `debug`、本番 `info` | Pino のログレベル |

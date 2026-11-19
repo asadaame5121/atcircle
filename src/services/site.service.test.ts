@@ -207,4 +207,81 @@ describe("SiteService", () => {
             );
         });
     });
+
+    describe("ensureSite（リングの参加・作成時）", () => {
+        const fields = { url: "https://new.test/", title: "New", rss: "" };
+
+        it("DB に登録済みなら PDS に書かずにそれを返す", async () => {
+            await insertLegacy();
+            const put = vi.spyOn(AtProtoService, "putSite");
+
+            const site = await new SiteService(db).ensureSite(
+                agent,
+                ME,
+                fields,
+            );
+
+            expect(site.url).toBe("https://legacy.test/");
+            expect(put).not.toHaveBeenCalled();
+        });
+
+        it("PDS にだけあれば、それを DB にキャッシュして返す", async () => {
+            vi.spyOn(AtProtoService, "listSites").mockResolvedValue([
+                pdsSite(),
+            ] as any);
+            const put = vi.spyOn(AtProtoService, "putSite");
+
+            const site = await new SiteService(db).ensureSite(
+                agent,
+                ME,
+                fields,
+            );
+
+            expect(site).toMatchObject({
+                url: "https://me.test/",
+                site_uri: SITE_URI,
+            });
+            expect(put).not.toHaveBeenCalled();
+        });
+
+        it("未登録なら PDS に site を作ってから DB に保存する", async () => {
+            vi.spyOn(AtProtoService, "listSites").mockResolvedValue([]);
+            const put = vi
+                .spyOn(AtProtoService, "putSite")
+                .mockResolvedValue({ uri: SITE_URI, cid: "c" });
+
+            const site = await new SiteService(db).ensureSite(
+                agent,
+                ME,
+                fields,
+            );
+
+            expect(put).toHaveBeenCalledWith(agent, fields);
+            expect(site).toMatchObject({
+                url: "https://new.test/",
+                site_uri: SITE_URI,
+            });
+            expect((await rows()).results).toHaveLength(1);
+        });
+
+        it("PDS に書けなくても DB には登録する（参加は止めない。後で同期すれば PDS に移る）", async () => {
+            vi.spyOn(AtProtoService, "listSites").mockResolvedValue([]);
+            vi.spyOn(AtProtoService, "putSite").mockRejectedValue(
+                new Error("insufficient scope"),
+            );
+
+            const site = await new SiteService(db).ensureSite(
+                agent,
+                ME,
+                fields,
+            );
+
+            expect(site).toMatchObject({
+                url: "https://new.test/",
+                title: "New",
+            });
+            expect(site.site_uri ?? null).toBeNull();
+            expect((await rows()).results).toHaveLength(1);
+        });
+    });
 });

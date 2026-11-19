@@ -57,6 +57,44 @@ export class SiteService {
     }
 
     /**
+     * リングの参加・作成時に使う。登録済みならそれを返し、未登録なら入力値で登録する。
+     * 未登録時は PDS に site を書くが、書けなくても (権限不足など) 参加は止めず、
+     * DB にだけ登録する。その登録はダッシュボードの「同期」で PDS に移る。
+     */
+    async ensureSite(
+        agent: Agent,
+        did: string,
+        fields: SiteFields,
+    ): Promise<Site> {
+        const cached = await this.findCached(did);
+        if (cached) return cached;
+        try {
+            const [primary] = await AtProtoService.listSites(agent);
+            if (primary) return await this.cache(did, primary);
+            return await this.saveMySite(agent, did, fields);
+        } catch (e) {
+            pinoLogger.warn({
+                msg: "[SiteService] Could not write site record; saving to DB only",
+                did,
+                error: e instanceof Error ? e.message : String(e),
+            });
+            await this.db
+                .prepare(
+                    "INSERT INTO sites (url, title, description, rss_url, user_did, is_active) VALUES (?, ?, ?, ?, ?, 1)",
+                )
+                .bind(
+                    fields.url,
+                    fields.title,
+                    fields.description || null,
+                    fields.rss || null,
+                    did,
+                )
+                .run();
+            return (await this.findCached(did)) as Site;
+        }
+    }
+
+    /**
      * 移行用: DB にだけある登録から site レコードを作る。
      * すでに PDS にあれば DB と結び付けるだけ。
      */

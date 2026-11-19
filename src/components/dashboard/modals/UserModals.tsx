@@ -6,23 +6,20 @@ interface UserModalsProps {
 
 export const UserModals = ({ t }: UserModalsProps) => {
     return html`
-        <!-- Leave Modal (Delete Account) -->
-        <dialog id="leave_modal" class="modal">
-            <div class="modal-box">
-                <h3 class="font-bold text-lg text-error">${t("dashboard.warning")}</h3>
-                <p class="py-4">${t("dashboard.confirm_delete_account")}</p>
-                <div class="modal-action">
+        <dialog id="leave_modal" class="rt-dialog" aria-labelledby="leave-modal-title">
+            <h3 id="leave-modal-title" class="rt-box-title rt-box-title-danger">${t("dashboard.warning")}</h3>
+            <div class="rt-dialog-body">
+                <p>${t("dashboard.confirm_delete_account")}</p>
+                <div class="rt-dialog-actions">
+                    <span class="rt-dialog-spacer"></span>
                     <form method="dialog">
-                        <button class="btn btn-ghost">${t("common.cancel")}</button>
+                        <button class="rt-bevel">${t("common.cancel")}</button>
                     </form>
                     <form action="/dashboard/leave" method="POST">
-                        <button class="btn btn-error">${t("dashboard.yes_delete_account")}</button>
+                        <button class="rt-bevel rt-danger">${t("dashboard.yes_delete_account")}</button>
                     </form>
                 </div>
             </div>
-            <form method="dialog" class="modal-backdrop">
-                <button>${t("common.close")}</button>
-            </form>
         </dialog>
     `;
 };

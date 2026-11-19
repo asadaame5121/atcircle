@@ -8,9 +8,12 @@ import {
     type DashboardViewData,
     type RegistrationData,
 } from "../services/dashboard.service.js";
-import type { AppVariables, Bindings } from "../types/bindings.js";
-
 // Sub-apps
+import {
+    getMyWidgetStatus,
+    type WidgetStatus,
+} from "../services/widget-presence.js";
+import type { AppVariables, Bindings } from "../types/bindings.js";
 import adminApp from "./dashboard/admin.js";
 import memberApp from "./dashboard/members.js";
 import moderationApp from "./dashboard/moderation.js";
@@ -37,6 +40,13 @@ app.route("/admin", adminApp);
 app.route("/", userApp);
 
 app.get("/", async (c) => {
+    // 旧来の参加用リンク（/dashboard?ring_uri=...）は「リングを探す」の参加欄へ
+    const legacyRingUri = c.req.query("ring_uri");
+    if (legacyRingUri) {
+        return c.redirect(
+            `/rings?select=${encodeURIComponent(legacyRingUri)}#join`,
+        );
+    }
     const payload = c.get("jwtPayload");
     const did = payload.sub;
     const isDebug = !!payload.isDebug;
@@ -53,6 +63,7 @@ app.get("/", async (c) => {
             Layout({
                 title: t("dashboard.register_title"),
                 t,
+                current: "dashboard",
                 lang,
                 isDebug,
                 children: RegistrationForm({
@@ -66,10 +77,17 @@ app.get("/", async (c) => {
     }
 
     const dashData = data as DashboardViewData;
+    let widgetStatus: Record<string, WidgetStatus> = {};
+    try {
+        widgetStatus = await getMyWidgetStatus(c.env.DB, did);
+    } catch {
+        // 表示の補助なので、取れなければ出さない
+    }
     return c.html(
         Layout({
             title: t("dashboard.title"),
             t,
+            current: "dashboard",
             lang,
             isDebug,
             children: DashboardView({
@@ -80,6 +98,8 @@ app.get("/", async (c) => {
                 blocks: dashData.blocks,
                 did: dashData.did,
                 isAdmin,
+                msg: c.req.query("msg"),
+                widgetStatus,
                 t,
             }),
         }),

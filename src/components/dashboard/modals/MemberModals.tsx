@@ -6,29 +6,17 @@ interface MemberModalsProps {
 
 export const MemberModals = ({ t }: MemberModalsProps) => {
     return html`
-        <!-- Member Management Modal -->
-        <dialog id="member_management_modal" class="modal">
-            <div class="modal-box max-w-2xl">
-                <h3 class="font-bold text-lg mb-1">${t("members.title")}</h3>
-                <p id="member-modal-subtitle" class="text-sm opacity-60 mb-4 font-mono truncate"></p>
-                
-                <div id="member-list-loading" class="justify-center py-10 hidden">
-                    <span class="loading loading-spinner loading-lg text-primary"></span>
-                </div>
-
-                <div id="member-list-container" class="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
-                    <!-- Members will be injected here -->
-                </div>
-
-                <div class="modal-action">
-                    <button class="btn" onclick="member_management_modal.close()">${t("common.close")}</button>
+        <dialog id="member_management_modal" class="rt-dialog rt-dialog-wide" aria-labelledby="member-modal-title">
+            <h3 id="member-modal-title" class="rt-box-title">${t("members.title")}</h3>
+            <div class="rt-dialog-body">
+                <p id="member-modal-subtitle" class="rt-note rt-did"></p>
+                <p id="member-list-loading" class="rt-center" hidden>Loading…</p>
+                <div id="member-list-container" class="rt-member-list"></div>
+                <div class="rt-dialog-actions">
+                    <span class="rt-dialog-spacer"></span>
+                    <button type="button" class="rt-bevel" onclick="member_management_modal.close()">${t("common.close")}</button>
                 </div>
             </div>
-            <form method="dialog" class="modal-backdrop">
-                <button>close</button>
-            </form>
-        </dialog>
-
         </dialog>
     `;
 };
